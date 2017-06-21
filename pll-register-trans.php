@@ -9,4 +9,4 @@ if ( !function_exists( 'pll_register_string' ) ) {
     require_once WP_PLUGIN_DIR . '/polylang/include/api.php';
 }
 
-pll_register_string('Example', 'Example', 'AnbTopDeals');
+pll_register_string('Proximus most popular', 'Proximus most popular', 'AnbTopDeals');
