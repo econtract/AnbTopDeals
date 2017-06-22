@@ -10,3 +10,5 @@ if ( !function_exists( 'pll_register_string' ) ) {
 }
 
 pll_register_string('Proximus most popular', 'Proximus most popular', 'AnbTopDeals');
+pll_register_string('Installation', 'Installation', 'AnbTopDeals');
+pll_register_string('Activation', 'Activation', 'AnbTopDeals');

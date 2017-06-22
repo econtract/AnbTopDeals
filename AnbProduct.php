@@ -30,7 +30,7 @@ class AnbProduct
     {
         $atts = shortcode_atts(array(
             'cat' => '',
-            'detaillevel' => [],//specifications, logo
+            'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts'],//specifications, logo
             'sg' => 'consumer',
             'product_1' => [],
             'product_2' => [],
@@ -75,10 +75,54 @@ class AnbProduct
             'productid' => array($atts['product_1'], $atts['product_2'], $atts['product_3']),
             'detaillevel' => $atts['detaillevel']));
 
+        $products = json_decode($products);
+
         /*echo "<pre>PRODUCTS>>>";
         print_r($products);
         echo "</pre>";*/
 
+        //prepare product data to be displayed
+        $data = [];
+        //for now hardcoded decimal separator to coma
+        foreach($products as $idx => $product) {
+            $data[$idx]['name'] = $product->product_name;
+            $data[$idx]['tagline'] = isset($product->texts->tagline) ? $product->texts->tagline : "";
+            $data[$idx]['price_detail'] = (array)$product->price;
+            $data[$idx]['monthly_price'] = (array)$product->monthly_fee;
+            //break price into chunks like price, cents and currency
+            $monthlyPrice = $data[$idx]['monthly_price']['value'];
+            $monthlyPriceArr = explode(".", $monthlyPrice);
+            $data[$idx]['monthly_price_chunk'] = [
+                'price' => $monthlyPriceArr[0],
+                'cents' => $monthlyPriceArr[1],
+                'unit' => $data[$idx]['monthly_price']['unit']
+            ];
+            $data[$idx]['monthly_price_promo'] = isset($product->monthly_fee_promo) ? (array)$product->monthly_fee_promo : 0;
+
+            if($data[$idx]['monthly_price_promo'] != 0) {
+                //break price into chunks like price, cents and currency
+                $monthlyPricePromo = $data[$idx]['monthly_price_promo']['value'];
+                $monthlyPricePromoArr = explode(".", $monthlyPricePromo);
+                $data[$idx]['monthly_price_promo_chunk'] = [
+                    'price' => $monthlyPricePromoArr[0],
+                    'cents' => $monthlyPricePromoArr[1],
+                    'unit' => $data[$idx]['monthly_price_promo']['unit']
+                ];
+            }
+
+            $data[$idx]['services'] = (array)$product->supplier->services;
+            $data[$idx]['logo'] = (array)$product->supplier->logo;
+            $data[$idx]['review_score'] = $product->reviews->score;
+            $promotions = (array)$product->promotions;
+            foreach($promotions as $promotion) {
+                $data[$idx]['promotions'][] = $promotion->texts->name;
+            }
+        }
+
+        /*echo "<pre>";
+        print_r($data);
+        echo "</pre>";*/
+        
         wp_enqueue_script('jquery');
         wp_enqueue_script( 'top_deals_js', plugin_dir_url(__FILE__ ) . 'js/top-deals.js' );
 
@@ -112,198 +156,140 @@ class AnbProduct
         }
 
         $navHtmlName = sanitize_title_with_dashes($nav);
+        $navContent = '<div class="row '.$navHtmlName.'" '.$displayStyle.'>';
+        foreach($data as $idx => $prd) {
+            $boxClass = 'left';
+            if($idx == 1) {
+                $boxClass = 'center';
+            } elseif($idx == 2) {
+                $boxClass = 'right';
+            }
 
-        $navContent = '<div class="row '.$navHtmlName.'" '.$displayStyle.'>
-                        <div class="col-md-4 offer left">
-                            <div class="dealDetails">
-                                <div class="bestReviewBadge">
-                                    <span>BEST</span>
-                                    <span class="bold">Review</span>
-                                </div>
-                                <div class="customerRating">
-                                    <div class="stamp">
-                                        8.4
+            //Services HTML
+            $servicesHtml = '';
+            if(in_array("internet", $prd['services'])) {
+                $servicesHtml .= '<li>
+                                    <i class="fa fa-wifi"></i>
+                                  </li>';
+            }
+            if(in_array("mobile", $prd['services'])) {
+                $servicesHtml .= '<li>
+                                    <i class="fa fa-mobile"></i>
+                                  </li>';
+            }
+            if(in_array("telephony", $prd['services'])) {
+                $servicesHtml .= '<li>
+                                    <i class="fa fa-phone"></i>
+                                  </li>';
+            }
+            if(in_array("idtv", $prd['services'])) {
+                $servicesHtml .= '<li>
+                                    <i class="fa fa-tv"></i>
+                                  </li>';
+            }
+
+            //Price HTML
+            /**
+            <div class="oldPrice">
+            <span class="amount">110</span><span class="cents">95</span>
+            </div>
+            <div class="newPrice">
+            <span class="amount">97<span class="cents">95</span><span class="recursion">/mth</span></span>
+            </div>
+             */
+            $priceHtml = '';
+            if(isset($prd['monthly_price_promo_chunk'])) {
+                $priceHtml .= '<div class="oldPrice">
+                                <span class="amount">'.$prd['monthly_price_chunk']['price'].'</span>';
+                if(isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
+                    $priceHtml .= '<span class="cents">'.$prd['monthly_price_chunk']['cents'].'</span>';
+                }
+                $priceHtml .= '</div>';
+
+                $priceHtml .= '<div class="newPrice">
+                                <span class="amount">'.$prd['monthly_price_chunk']['price'];
+                if(isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
+                    $priceHtml .= '<span class="cents">'.$prd['monthly_price_chunk']['cents'].'</span>';
+                }
+                $priceHtml .= '<span class="recursion">/mth</span></span>
+                               </div>';
+            } else {
+                $priceHtml .= '<div class="newPrice">
+                                <span class="amount">'.$prd['monthly_price_chunk']['price'];
+                if(isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
+                    $priceHtml .= '<span class="cents">'.$prd['monthly_price_chunk']['cents'].'</span>';
+                }
+                $priceHtml .= '<span class="recursion">/mth</span></span>
+                               </div>';
+            }
+
+            //Promotions, Installation/Activation HTML
+            $promotionHtml = '';
+            //print_r($prd[$idx]['promotions']);
+            if(!isset($prd['promotions'])) {
+                //in case of no promotions, display installation and activation price
+                if($prd['price_detail']['installation_full'] >= 0.5) {
+                    $promotionHtml .= '<li>'.pll__('Installation').' '.$prd['price_detail']['installation_full'].'</li>';
+                }
+                if($prd['price_detail']['activation'] >= 0.5) {
+                    $promotionHtml .= '<li>'.pll__('Activation').' '.$prd['price_detail']['activation'].'</li>';
+                }
+            } else {
+                //display only promotions
+                foreach($prd['promotions'] as $promotion) {
+                    $promotionHtml .= '<li class="prominent">'.$promotion.'</li>';
+                }
+            }
+
+            $navContent .= '<div class="col-md-4 offer '.$boxClass.'">
+                                <div class="dealDetails">
+                                    <!--div class="bestReviewBadge">
+                                        <span>BEST</span>
+                                        <span class="bold">Review</span>
+                                    </div-->
+                                    <div class="customerRating">
+                                        <div class="stamp">
+                                            '.$prd['review_score'].'
+                                        </div>
+                                    </div>
+                                    <div class="dealLogo">
+                                        <img src="'.$prd['logo']['200x140']->color.'" alt="'.$prd['name'].'">
+                                    </div>
+                                    <h4>'.$prd['name'].'</h4>
+                                    <p class="slogan">'.$prd['tagline'].'</p>
+                                    <div class="services">
+                                        <ul class="list-unstyled list-inline">
+                                            '.$servicesHtml.'
+                                        </ul>
                                     </div>
                                 </div>
-                                <div class="dealLogo">
-                                    <img src="'.get_template_directory_uri().'/images/common/providers/proximus.png" alt="Proximus Tuttimus">
+                                <div class="dealPrice">
+                                    '.$priceHtml.'
+                                    <!--div class="priceInfo">
+                                        <ul class="list-unstyled">
+                                            <li>the first 6 months</li>
+                                            <li>€ 1200 the first year
+                                                <span class="calc">
+                                                    <a href="#"><i class="fa fa-calculator"></a></i>
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div-->
                                 </div>
-                                <h4>Proximus Tuttimus ('.$nav.')</h4>
-                                <p class="slogan">De eerste all-in voor je gezin</p>
-                                <div class="services">
-                                    <ul class="list-unstyled list-inline">
-                                        <li>
-                                            <i class="fa fa-wifi"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-mobile"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-phone"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-tv"></i>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="dealPrice">
-                                <div class="oldPrice">
-                                    <span class="amount">110</span><span class="cents">95</span>
-                                </div>
-                                <div class="newPrice">
-                                    <span class="amount">97<span class="cents">95</span><span class="recursion">/mth</span></span>
-                                </div>
-                                <div class="priceInfo">
-                                    <ul class="list-unstyled">
-                                        <li>the first 6 months</li>
-                                        <li>€ 1200 the first year
-                                            <span class="calc">
-                                                <a href="#"><i class="fa fa-calculator"></a></i>
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="dealFeatures">
-                                <div class="extras">
-                                    <ul class="list-unstyled">
-                                        <li>Installation 65€</li>
-                                        <li>Activation 50€</li>
-                                    </ul>
-                                </div>
-                                <div class="advantages">
-                                    <p>&nbsp;</p>
-                                </div>
-                            </div>
-                            <a href="#" class="btn btn-primary">Info and options</a>
-                        </div>
-                        <div class="col-md-4 offer center">
-                            <div class="dealDetails">
-                                <div class="bestReviewBadge">
-                                    <span>BEST</span>
-                                    <span class="bold">Promo</span>
-                                </div>
-                                <div class="customerRating">
-                                    <div class="stamp">
-                                        8.4
+                                <div class="dealFeatures">
+                                    <div class="extras">
+                                        <ul class="list-unstyled">
+                                            '.$promotionHtml.'
+                                        </ul>
                                     </div>
+                                    <!--div class="advantages">
+                                        <p>&nbsp;</p>
+                                    </div-->
                                 </div>
-                                <div class="dealLogo">
-                                    <img src="'.get_template_directory_uri().'/images/common/providers/telenet.png" alt="Proximus Tuttimus">
-                                </div>
-                                <h4>Proximus Tuttimus</h4>
-                                <p class="slogan">De eerste all-in voor je gezin</p>
-                                <div class="services">
-                                    <ul class="list-unstyled list-inline">
-                                        <li>
-                                            <i class="fa fa-wifi"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-mobile"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-phone"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-tv"></i>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="dealPrice">
-                                <div class="oldPrice">
-                                    <span class="amount">99</span><span class="cents">95</span>
-                                </div>
-                                <div class="newPrice">
-                                    <span class="amount">97<span class="cents">95</span><span class="recursion">/mth</span></span>
-                                </div>
-                                <div class="priceInfo">
-                                    <ul class="list-unstyled">
-                                        <li>the first 6 months</li>
-                                        <li>€ 1200 the first year
-                                            <span class="calc">
-                                                <a href="#"><i class="fa fa-calculator"></a></i>
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="dealFeatures">
-                                <div class="extras">
-                                    <ul class="list-unstyled">
-                                        <li>Installation 65€</li>
-                                        <li class="prominent">Free activation t.w.v. 50€</li>
-                                    </ul>
-                                </div>
-                                <div class="advantages">
-                                    <p>-50€ advantage</p>
-                                </div>
-                            </div>
-                            <a href="#" class="btn btn-primary">Info and options</a>
-                        </div>
-                        <div class="col-md-4 offer right">
-                            <div class="dealDetails">
-                                <div class="customerRating">
-                                    <div class="stamp">
-                                        8.4
-                                    </div>
-                                </div>
-                                <div class="dealLogo">
-                                    <img src="'.get_template_directory_uri().'/images/common/providers/telenet.png" alt="Proximus Tuttimus">
-                                </div>
-                                <h4>Proximus Tuttimus</h4>
-                                <p class="slogan">De eerste all-in voor je gezin</p>
-                                <div class="services">
-                                    <ul class="list-unstyled list-inline">
-                                        <li>
-                                            <i class="fa fa-wifi"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-mobile"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-phone"></i>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-tv"></i>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="dealPrice">
-                                <div class="oldPrice">
-                                    <span class="amount">110</span><span class="cents">95</span>
-                                </div>
-                                <div class="newPrice">
-                                    <span class="amount">97<span class="cents">95</span><span class="recursion">/mth</span></span>
-                                </div>
-                                <div class="priceInfo">
-                                    <ul class="list-unstyled">
-                                        <li>the first 6 months</li>
-                                        <li>€ 1200 the first year
-                                            <span class="calc">
-                                                <a href="#"><i class="fa fa-calculator"></a></i>
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="dealFeatures">
-                                <div class="extras">
-                                    <ul class="list-unstyled">
-                                        <li>Installation 65€</li>
-                                        <li class="prominent">Free activation t.w.v. 50€</li>
-                                        <li class="prominent">10€ discount</li>
-                                    </ul>
-                                </div>
-                                <div class="advantages">
-                                    <p>-50€ advantage</p>
-                                </div>
-                            </div>
-                            <a href="#" class="btn btn-primary">Info and options</a>
-                        </div>
-                    </div>';
+                                <a href="#" class="btn btn-primary">Info and options</a>
+                            </div>';
+        }
+        $navContent .= '</div>';
 
         $navHtml = '<li '.$class.'><a href="javascript:void(0);" related="'.$navHtmlName.'">'.pll__($nav).'</a></li>';
 
