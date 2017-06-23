@@ -92,9 +92,12 @@ class AnbProduct
             //break price into chunks like price, cents and currency
             $monthlyPrice = $data[$idx]['monthly_price']['value'];
             $monthlyPriceArr = explode(".", $monthlyPrice);
+			if(!isset($monthlyPriceArr[1])) {
+				$monthlyPriceArr[1] = 0;
+			}
             $data[$idx]['monthly_price_chunk'] = [
                 'price' => $monthlyPriceArr[0],
-                'cents' => $monthlyPriceArr[1],
+                'cents' => ($monthlyPriceArr[1] < 10 ? '0'.$monthlyPriceArr[1] : "00"),
                 'unit' => $data[$idx]['monthly_price']['unit']
             ];
             $data[$idx]['monthly_price_promo'] = isset($product->monthly_fee_promo) ? (array)$product->monthly_fee_promo : 0;
@@ -103,16 +106,20 @@ class AnbProduct
                 //break price into chunks like price, cents and currency
                 $monthlyPricePromo = $data[$idx]['monthly_price_promo']['value'];
                 $monthlyPricePromoArr = explode(".", $monthlyPricePromo);
+
+				if(!isset($monthlyPricePromoArr[1])) {
+					$monthlyPricePromoArr[1] = 0;
+				}
                 $data[$idx]['monthly_price_promo_chunk'] = [
                     'price' => $monthlyPricePromoArr[0],
-                    'cents' => $monthlyPricePromoArr[1],
+                    'cents' => ($monthlyPricePromoArr[1] < 10 ? '0'.$monthlyPricePromoArr[1] : "00"),
                     'unit' => $data[$idx]['monthly_price_promo']['unit']
                 ];
             }
 
             $data[$idx]['services'] = (array)$product->supplier->services;
             $data[$idx]['logo'] = (array)$product->supplier->logo;
-            $data[$idx]['review_score'] = $product->reviews->score;
+            $data[$idx]['review_score'] = str_replace(",", ".", $product->reviews->score);
             $promotions = (array)$product->promotions;
             foreach($promotions as $promotion) {
                 $data[$idx]['promotions'][] = $promotion->texts->name;
