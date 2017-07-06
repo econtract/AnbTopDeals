@@ -89,32 +89,40 @@ class AnbProduct
             $data[$idx]['tagline'] = isset($product->texts->tagline) ? $product->texts->tagline : "";
             $data[$idx]['price_detail'] = (array)$product->price;
             $data[$idx]['monthly_price'] = (array)$product->monthly_fee;
+            $data[$idx]['advantage_price'] = $product->price->advantage;
+            $data[$idx]['currency_unit'] = $data[$idx]['monthly_price']['unit'];
+            $data[$idx]['1st_year_price'] = $product->price->year_1_promo;
             //break price into chunks like price, cents and currency
             $monthlyPrice = $data[$idx]['monthly_price']['value'];
             $monthlyPriceArr = explode(".", $monthlyPrice);
-			if(!isset($monthlyPriceArr[1])) {
-				$monthlyPriceArr[1] = 0;
-			}
+            if(!isset($monthlyPriceArr[1])) {
+                $monthlyPriceArr[1] = 0;
+            }
             $data[$idx]['monthly_price_chunk'] = [
                 'price' => $monthlyPriceArr[0],
                 'cents' => ($monthlyPriceArr[1] < 10 ? '0'.$monthlyPriceArr[1] : "00"),
                 'unit' => $data[$idx]['monthly_price']['unit']
             ];
-            $data[$idx]['monthly_price_promo'] = isset($product->monthly_fee_promo) ? (array)$product->monthly_fee_promo : 0;
+//            echo "+++".print_r($product->price, true)."<br>";
+            $data[$idx]['monthly_promo_price'] = isset($product->price->monthly_promo) ? $product->price->monthly_promo : 0;
+            $data[$idx]['monthly_promo_duration'] = isset($product->price->monthly_promo_duration) ? $product->price->monthly_promo_duration : 0;
 
-            if($data[$idx]['monthly_price_promo'] != 0) {
+            //in case normal price and promo price are not same
+            if($product->price->monthly_promo != $product->price->monthly) {
                 //break price into chunks like price, cents and currency
-                $monthlyPricePromo = $data[$idx]['monthly_price_promo']['value'];
+                $monthlyPricePromo = $data[$idx]['monthly_promo_price'];
                 $monthlyPricePromoArr = explode(".", $monthlyPricePromo);
 
-				if(!isset($monthlyPricePromoArr[1])) {
-					$monthlyPricePromoArr[1] = 0;
-				}
-                $data[$idx]['monthly_price_promo_chunk'] = [
+                if(!isset($monthlyPricePromoArr[1])) {
+                    $monthlyPricePromoArr[1] = 0;
+                }
+                $data[$idx]['monthly_promo_price_chunk'] = [
                     'price' => $monthlyPricePromoArr[0],
                     'cents' => ($monthlyPricePromoArr[1] < 10 ? '0'.$monthlyPricePromoArr[1] : "00"),
-                    'unit' => $data[$idx]['monthly_price_promo']['unit']
+                    'unit' => $data[$idx]['monthly_price_chunk']['unit'],//use unit of normal monthly price
+                    'duration' => $data[$idx]['monthly_promo_duration']
                 ];
+                //echo "+++".print_r($data[$idx]['monthly_promo_price_chunk'], true)."<br>";
             }
 
             $data[$idx]['services'] = (array)$product->supplier->services;
@@ -129,7 +137,7 @@ class AnbProduct
         /*echo "<pre>";
         print_r($data);
         echo "</pre>";*/
-        
+
         wp_enqueue_script('jquery');
         wp_enqueue_script( 'top_deals_js', plugin_dir_url(__FILE__ ) . 'js/top-deals.js' );
 
@@ -205,7 +213,7 @@ class AnbProduct
             </div>
              */
             $priceHtml = '';
-            if(isset($prd['monthly_price_promo_chunk'])) {
+            if(isset($prd['monthly_promo_price_chunk'])) {
                 $priceHtml .= '<div class="oldPrice">
                                 <span class="amount">'.$prd['monthly_price_chunk']['price'].'</span>';
                 if(isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
@@ -214,9 +222,9 @@ class AnbProduct
                 $priceHtml .= '</div>';
 
                 $priceHtml .= '<div class="newPrice">
-                                <span class="amount">'.$prd['monthly_price_chunk']['price'];
+                                <span class="amount">'.$prd['monthly_promo_price_chunk']['price'];
                 if(isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
-                    $priceHtml .= '<span class="cents">'.$prd['monthly_price_chunk']['cents'].'</span>';
+                    $priceHtml .= '<span class="cents">'.$prd['monthly_promo_price_chunk']['cents'].'</span>';
                 }
                 $priceHtml .= '<span class="recursion">/mth</span></span>
                                </div>';
@@ -232,21 +240,33 @@ class AnbProduct
 
             //Promotions, Installation/Activation HTML
             $promotionHtml = '';
-            //print_r($prd[$idx]['promotions']);
-            if(!isset($prd['promotions'])) {
-                //in case of no promotions, display installation and activation price
-                if($prd['price_detail']['installation_full'] >= 0.5) {
-                    $promotionHtml .= '<li>'.pll__('Installation').' '.$prd['price_detail']['installation_full'].'</li>';
-                }
-                if($prd['price_detail']['activation'] >= 0.5) {
-                    $promotionHtml .= '<li>'.pll__('Activation').' '.$prd['price_detail']['activation'].'</li>';
-                }
-            } else {
-                //display only promotions
-                foreach($prd['promotions'] as $promotion) {
-                    $promotionHtml .= '<li class="prominent">'.$promotion.'</li>';
-                }
+            //display installation and activation price
+            if($prd['price_detail']['installation_full'] >= 0.5) {
+                $promotionHtml .= '<li>'.pll__('Installation').' '.$prd['price_detail']['installation_full'].'</li>';
             }
+            if($prd['price_detail']['activation'] >= 0.5) {
+                $promotionHtml .= '<li>'.pll__('Activation').' '.$prd['price_detail']['activation'].'</li>';
+            }
+
+            //display promotions
+            foreach($prd['promotions'] as $promotion) {
+                $promotionHtml .= '<li class="prominent">'.$promotion.'</li>';
+            }
+
+            $advPrice = '&nbsp;';
+
+            if(!empty($prd['advantage_price'])) {
+                $advPrice = "-" . $prd['advantage_price'] . getCurrencySymbol($prd['currency_unit']) . ' ' . pll__('advantage');
+            }
+
+            $monthDurationPromo = '&nbsp;';
+            //sprintf
+            if(!empty($prd['monthly_promo_duration'])) {
+                $monthDurationPromo = sprintf(pll__('the first %d months'), $prd['monthly_promo_duration']);
+            }
+
+            $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . $prd['1st_year_price'];
+
 
             $navContent .= '<div class="col-md-4 offer '.$boxClass.'">
                                 <div class="dealDetails">
@@ -272,16 +292,16 @@ class AnbProduct
                                 </div>
                                 <div class="dealPrice">
                                     '.$priceHtml.'
-                                    <!--div class="priceInfo">
+                                    <div class="priceInfo">
                                         <ul class="list-unstyled">
-                                            <li>the first 6 months</li>
-                                            <li>€ 1200 the first year
+                                            <li>'.$monthDurationPromo.'</li>
+                                            <li>'.$firstYearPrice . ' ' . pll__('the first year').'
                                                 <span class="calc">
                                                     <a href="#"><i class="fa fa-calculator"></a></i>
                                                 </span>
                                             </li>
                                         </ul>
-                                    </div-->
+                                    </div>
                                 </div>
                                 <div class="dealFeatures">
                                     <div class="extras">
@@ -289,11 +309,11 @@ class AnbProduct
                                             '.$promotionHtml.'
                                         </ul>
                                     </div>
-                                    <!--div class="advantages">
-                                        <p>&nbsp;</p>
-                                    </div-->
+                                    <div class="advantages">
+                                        <p>'.$advPrice.'</p>
+                                    </div>
                                 </div>
-                                <a href="#" class="btn btn-primary">Info and options</a>
+                                <a href="#" class="btn btn-primary">'.pll__('Info and options').'</a>
                             </div>';
         }
         $navContent .= '</div>';
