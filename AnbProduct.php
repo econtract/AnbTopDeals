@@ -176,22 +176,22 @@ class AnbProduct
             $servicesHtml = '';
             if(in_array("internet", $prd['services'])) {
                 $servicesHtml .= '<li>
-                                    <i class="fa fa-wifi"></i>
+                                    <i class="service-icons wifi"></i>
                                   </li>';
             }
             if(in_array("mobile", $prd['services'])) {
                 $servicesHtml .= '<li>
-                                    <i class="fa fa-mobile"></i>
+                                    <i class="service-icons mobile"></i>
                                   </li>';
             }
             if(in_array("telephony", $prd['services'])) {
                 $servicesHtml .= '<li>
-                                    <i class="fa fa-phone"></i>
+                                    <i class="service-icons phone"></i>
                                   </li>';
             }
             if(in_array("idtv", $prd['services'])) {
                 $servicesHtml .= '<li>
-                                    <i class="fa fa-tv"></i>
+                                    <i class="service-icons tv"></i>
                                   </li>';
             }
 
