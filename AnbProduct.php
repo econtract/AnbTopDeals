@@ -242,10 +242,10 @@ class AnbProduct
             $promotionHtml = '';
             //display installation and activation price
             if($prd['price_detail']['installation_full'] >= 0.5) {
-                $promotionHtml .= '<li>'.pll__('Installation').' '.$prd['price_detail']['installation_full'].'</li>';
+                $promotionHtml .= '<li>'.pll__('Installation').' '.round($prd['price_detail']['installation_full']) . getCurrencySymbol($prd['currency_unit']).'</li>';
             }
             if($prd['price_detail']['activation'] >= 0.5) {
-                $promotionHtml .= '<li>'.pll__('Activation').' '.$prd['price_detail']['activation'].'</li>';
+                $promotionHtml .= '<li>'.pll__('Activation').' '.round($prd['price_detail']['activation']) . getCurrencySymbol($prd['currency_unit']).'</li>';
             }
 
             //display promotions
@@ -265,7 +265,7 @@ class AnbProduct
                 $monthDurationPromo = sprintf(pll__('the first %d months'), $prd['monthly_promo_duration']);
             }
 
-            $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . $prd['1st_year_price'];
+            $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . intval($prd['1st_year_price']);
 
 
             $navContent .= '<div class="col-md-4 offer '.$boxClass.'">
