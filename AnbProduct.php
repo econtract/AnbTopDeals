@@ -265,8 +265,11 @@ class AnbProduct
                 $monthDurationPromo = sprintf(pll__('the first %d months'), $prd['monthly_promo_duration']);
             }
 
-            $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . intval($prd['1st_year_price']);
-
+            $firstYearPrice = '';
+            if(intval($prd['1st_year_price']) > 0) {
+                $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . intval($prd['1st_year_price']);
+                $firstYearPrice = $firstYearPrice . ' ' . pll__('the first year');
+            }
 
             $navContent .= '<div class="col-md-4 offer '.$boxClass.'">
                                 <div class="dealDetails">
@@ -295,10 +298,10 @@ class AnbProduct
                                     <div class="priceInfo">
                                         <ul class="list-unstyled">
                                             <li>'.$monthDurationPromo.'</li>
-                                            <li>'.$firstYearPrice . ' ' . pll__('the first year').'
-                                                <span class="calc">
+                                            <li>'.$firstYearPrice.'
+                                                <!--span class="calc">
                                                     <a href="#"><i class="fa fa-calculator"></a></i>
-                                                </span>
+                                                </span-->
                                             </li>
                                         </ul>
                                     </div>
