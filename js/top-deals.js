@@ -3,7 +3,7 @@
  */
 
 function appendToSelector(selector, html) {
-    $(selector).append(html);
+    jQuery(selector).append(html);
 }
 
 // function appendToSelector(selector, htmlJSON) {
@@ -12,10 +12,10 @@ function appendToSelector(selector, html) {
 // }
 
 function appendNav(selector, html) {
-    $(selector).append(html);
+    jQuery(selector).append(html);
 }
 
-$(document).ready(function(){
+jQuery(document).ready(function($){
     $('.topDeals .filterDeals ul li a').on('click', function() {
         $('.topDeals .filterDeals ul li.active').removeClass('active');//remove previous active class
 

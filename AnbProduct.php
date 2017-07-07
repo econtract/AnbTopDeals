@@ -325,7 +325,7 @@ class AnbProduct
 
         //$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
         $script = '<script>
-                    $(document).ready(function(){
+                    jQuery(document).ready(function($){
                         appendToSelector(".topDeals .filterDeals ul",  \''.$navHtml.'\'); 
                         appendToSelector(".topDeals .dealsTable", \''.$this->minifyHtml($navContent).'\')
                     });
