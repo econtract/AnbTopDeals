@@ -41,7 +41,7 @@ class AnbProduct
 
         ), $atts, 'anb_top_deal_products');
 
-        if (!empty($atts['detaillevel'])) {
+        if (!empty($atts['detaillevel']) && !is_array($atts['detaillevel'])) {
             $atts['detaillevel'] = explode(',', $atts['detaillevel']);
         }
 
@@ -85,6 +85,13 @@ class AnbProduct
         $data = [];
         //for now hardcoded decimal separator to coma
         foreach($products as $idx => $product) {
+            //Pack type: 'int_tel', 'tv_tel', 'int_tel_tv', 'gsm_int_tel_tv', 'int_tv', 'gsm_int_tv'
+            $data[$idx]['product_type'] = $product->producttype;
+
+            if($product->producttype == "packs") {
+                $data[$idx]['pack_type'] = $product->packtype;
+            }
+
             $data[$idx]['name'] = $product->product_name;
             $data[$idx]['tagline'] = isset($product->texts->tagline) ? $product->texts->tagline : "";
             $data[$idx]['price_detail'] = (array)$product->price;
@@ -134,7 +141,7 @@ class AnbProduct
             }
         }
 
-        /*echo "<pre>";
+        /*echo "<pre>DATA>>>";
         print_r($data);
         echo "</pre>";*/
 
@@ -182,22 +189,26 @@ class AnbProduct
 
             //Services HTML
             $servicesHtml = '';
-            if(in_array("internet", $prd['services'])) {
+
+            $prdOrPckTypes = ($prd['product_type'] == 'packs') ? $prd['pack_type'] : $prd['product_type'];
+            $prdOrPckTypes = strtolower($prdOrPckTypes);
+
+            if(strpos($prdOrPckTypes,"int") !== false) {
                 $servicesHtml .= '<li>
                                     <i class="service-icons wifi"></i>
                                   </li>';
             }
-            if(in_array("mobile", $prd['services'])) {
+            if(strpos($prdOrPckTypes, "gsm") !== false) {
                 $servicesHtml .= '<li>
                                     <i class="service-icons mobile"></i>
                                   </li>';
             }
-            if(in_array("telephony", $prd['services'])) {
+            if(strpos($prdOrPckTypes,"tel") !== false) {
                 $servicesHtml .= '<li>
                                     <i class="service-icons phone"></i>
                                   </li>';
             }
-            if(in_array("idtv", $prd['services'])) {
+            if(strpos($prdOrPckTypes,"tv") !== false) {
                 $servicesHtml .= '<li>
                                     <i class="service-icons tv"></i>
                                   </li>';
