@@ -251,13 +251,10 @@ class AnbProduct
 
             //Promotions, Installation/Activation HTML
             $promotionHtml = '';
+
             //display installation and activation price
-            if($prd['price_detail']['installation_full'] >= 0.5) {
-                $promotionHtml .= '<li>'.pll__('Installation').' '.round($prd['price_detail']['installation_full']) . getCurrencySymbol($prd['currency_unit']).'</li>';
-            }
-            if($prd['price_detail']['activation'] >= 0.5) {
-                $promotionHtml .= '<li>'.pll__('Activation').' '.round($prd['price_detail']['activation']) . getCurrencySymbol($prd['currency_unit']).'</li>';
-            }
+            $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price_detail'], 'installation_full', getCurrencySymbol($prd['currency_unit']));
+            $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price_detail'], 'activation', getCurrencySymbol($prd['currency_unit']));
 
             //display promotions
             foreach($prd['promotions'] as $promotion) {
@@ -365,5 +362,31 @@ class AnbProduct
         $buffer = preg_replace($search, $replace, $buffer);
 
         return $buffer;
+    }
+
+    function getActivationOrInstPriceHtml($priceDetailArray, $key, $currencySymbol) {
+        //translations in function: pll__('Free installation'), pll__('Free activation'), pll__('Installation'), pll__('t.w.v')
+        $html = '';
+        $firstTerm = explode('_', $key)[0];//first term before underscore like installation from installation_full
+        $firstTermLbl = ucfirst($firstTerm);
+        //display installation and activation price
+        if($priceDetailArray[$key] > 0) {
+            if($priceDetailArray[$key.'_promo'] > 0
+                && $priceDetailArray[$key.'_promo'] != $priceDetailArray[$key]) {//there is a promotional price as well
+                $html .= '<li class="prominent">'.pll__($firstTermLbl).' '.$priceDetailArray[$key.'_promo'].
+                    $currencySymbol. ' '.pll__('t.w.v').' '.$priceDetailArray[$key].
+                    $currencySymbol.'</li>';
+            } elseif($priceDetailArray[$key.'_promo'] == 0) {
+                $html .= '<li class="prominent">'.pll__('Free '.$firstTerm). ' '.pll__('t.w.v').
+                    ' '.$priceDetailArray[$key].$currencySymbol.'</li>';
+            } else {
+                $html .= '<li>'.pll__($firstTermLbl).' '.round($priceDetailArray[$key]).
+                    $currencySymbol.'</li>';
+            }
+        } else {
+            $html .= '<li class="prominent">'.pll__('Free '.$firstTerm).'</li>';
+        }
+
+        return $html;
     }
 }
