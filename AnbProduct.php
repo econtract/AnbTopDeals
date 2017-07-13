@@ -86,10 +86,10 @@ class AnbProduct
         //for now hardcoded decimal separator to coma
         foreach($products as $idx => $product) {
             //Pack type: 'int_tel', 'tv_tel', 'int_tel_tv', 'gsm_int_tel_tv', 'int_tv', 'gsm_int_tv'
-            $data[$idx]['product_type'] = $product->producttype;
+            $data[$idx]['producttype'] = $product->producttype;
 
             if($product->producttype == "packs") {
-                $data[$idx]['pack_type'] = $product->packtype;
+                $data[$idx]['packtype'] = $product->packtype;
             }
 
             $data[$idx]['name'] = $product->product_name;
@@ -188,31 +188,7 @@ class AnbProduct
             }
 
             //Services HTML
-            $servicesHtml = '';
-
-            $prdOrPckTypes = ($prd['product_type'] == 'packs') ? $prd['pack_type'] : $prd['product_type'];
-            $prdOrPckTypes = strtolower($prdOrPckTypes);
-
-            if(strpos($prdOrPckTypes,"int") !== false) {
-                $servicesHtml .= '<li>
-                                    <i class="service-icons wifi"></i>
-                                  </li>';
-            }
-            if(strpos($prdOrPckTypes, "gsm") !== false) {
-                $servicesHtml .= '<li>
-                                    <i class="service-icons mobile"></i>
-                                  </li>';
-            }
-            if(strpos($prdOrPckTypes,"tel") !== false) {
-                $servicesHtml .= '<li>
-                                    <i class="service-icons phone"></i>
-                                  </li>';
-            }
-            if(strpos($prdOrPckTypes,"tv") !== false) {
-                $servicesHtml .= '<li>
-                                    <i class="service-icons tv"></i>
-                                  </li>';
-            }
+            $servicesHtml = $this->getServicesHtml($prd);
 
             //Price HTML
             /**
@@ -388,5 +364,39 @@ class AnbProduct
         }
 
         return $html;
+    }
+
+    /**
+     * @param array $prd
+     * @return string
+     */
+    function getServicesHtml(array $prd) {
+        $servicesHtml = '';
+
+        $prdOrPckTypes = ($prd['producttype'] == 'packs') ? $prd['packtype'] : $prd['producttype'];
+        $prdOrPckTypes = strtolower($prdOrPckTypes);
+
+        if(strpos($prdOrPckTypes,"int") !== false) {
+            $servicesHtml .= '<li>
+                                    <i class="service-icons wifi"></i>
+                                  </li>';
+        }
+        if(strpos($prdOrPckTypes, "gsm") !== false) {
+            $servicesHtml .= '<li>
+                                    <i class="service-icons mobile"></i>
+                                  </li>';
+        }
+        if(strpos($prdOrPckTypes,"tel") !== false) {
+            $servicesHtml .= '<li>
+                                    <i class="service-icons phone"></i>
+                                  </li>';
+        }
+        if(strpos($prdOrPckTypes,"tv") !== false) {
+            $servicesHtml .= '<li>
+                                    <i class="service-icons tv"></i>
+                                  </li>';
+        }
+
+        return $servicesHtml;
     }
 }
