@@ -30,7 +30,7 @@ class AnbProduct
     {
         $atts = shortcode_atts(array(
             'cat' => '',
-            'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts'],//specifications, logo
+            'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions'],//specifications, logo
             'sg' => 'consumer',
             'product_1' => [],
             'product_2' => [],
@@ -41,7 +41,7 @@ class AnbProduct
 
         ), $atts, 'anb_top_deal_products');
 
-        if (!empty($atts['detaillevel']) && !is_array($atts['detaillevel'])) {
+        if (!empty($atts['detaillevel']) && is_string($atts['detaillevel'])) {
             $atts['detaillevel'] = explode(',', $atts['detaillevel']);
         }
 
