@@ -390,6 +390,11 @@ class AnbProduct
     public function getPriceHtml(array $prd)
     {
         $priceHtml = '';
+
+        if($prd['monthly_price_chunk']['cents'] == "000") {
+            $prd['monthly_price_chunk']['cents'] = "00";
+        }
+
         if (isset($prd['monthly_promo_price_chunk'])) {
             $priceHtml .= '<div class="oldPrice">
                                 <span class="amount">' . $prd['monthly_price_chunk']['price'] . '</span>';
