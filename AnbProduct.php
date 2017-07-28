@@ -520,11 +520,14 @@ class AnbProduct
 
     public function getCustomerRatingSection($prd)
     {
-        $custRatSec = '<div class="customerRating">
+        $custRatSec = '';
+        if((float)$prd['score'] > 0) {
+            $custRatSec = '<div class="customerRating">
                             <div class="stamp">
                                 ' . $prd['score'] . '
                             </div>
                        </div>';
+        }
         return $custRatSec;
     }
 
