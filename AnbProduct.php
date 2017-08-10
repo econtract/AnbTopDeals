@@ -286,61 +286,6 @@ class AnbProduct
         //for now hardcoded decimal separator to coma
         foreach ($products as $idx => $product) {
             $data[$idx] = $this->prepareProductData($product);
-
-            //Pack type: 'int_tel', 'tv_tel', 'int_tel_tv', 'gsm_int_tel_tv', 'int_tv', 'gsm_int_tv'
-            $data[$idx]['producttype'] = $product->producttype;
-
-            if ($product->producttype == "packs") {
-                $data[$idx]['packtype'] = $product->packtype;
-            }
-
-            $data[$idx]['product_name'] = $product->product_name;
-            $data[$idx]['tagline'] = isset($product->texts->tagline) ? $product->texts->tagline : "";
-            $data[$idx]['price'] = (array)$product->price;
-            $data[$idx]['monthly_fee'] = (array)$product->monthly_fee;
-            $data[$idx]['advantage'] = $product->price->advantage;
-            $data[$idx]['currency_unit'] = $data[$idx]['monthly_fee']['unit'];
-            $data[$idx]['year_1_promo'] = $product->price->year_1_promo;
-            //break price into chunks like price, cents and currency
-            $monthlyPrice = $data[$idx]['monthly_fee']['value'];
-            $monthlyPriceArr = explode(".", $monthlyPrice);
-            if (!isset($monthlyPriceArr[1])) {
-                $monthlyPriceArr[1] = 0;
-            }
-            $data[$idx]['monthly_price_chunk'] = [
-                'price' => $monthlyPriceArr[0],
-                'cents' => ($monthlyPriceArr[1] < 10 ? '0' . $monthlyPriceArr[1] : "00"),
-                'unit' => $data[$idx]['monthly_fee']['unit']
-            ];
-//            echo "+++".print_r($product->price, true)."<br>";
-            $data[$idx]['monthly_promo'] = isset($product->price->monthly_promo) ? $product->price->monthly_promo : 0;
-            $data[$idx]['monthly_promo_duration'] = isset($product->price->monthly_promo_duration) ? $product->price->monthly_promo_duration : 0;
-
-            //in case normal price and promo price are not same
-            if ($product->price->monthly_promo != $product->price->monthly) {
-                //break price into chunks like price, cents and currency
-                $monthlyPricePromo = $data[$idx]['monthly_promo'];
-                $monthlyPricePromoArr = explode(".", $monthlyPricePromo);
-
-                if (!isset($monthlyPricePromoArr[1])) {
-                    $monthlyPricePromoArr[1] = 0;
-                }
-                $data[$idx]['monthly_promo_price_chunk'] = [
-                    'price' => $monthlyPricePromoArr[0],
-                    'cents' => ($monthlyPricePromoArr[1] < 10 ? '0' . $monthlyPricePromoArr[1] : "00"),
-                    'unit' => $data[$idx]['monthly_price_chunk']['unit'],//use unit of normal monthly price
-                    'duration' => $data[$idx]['monthly_promo_duration']
-                ];
-                //echo "+++".print_r($data[$idx]['monthly_promo_price_chunk'], true)."<br>";
-            }
-
-            $data[$idx]['services'] = (array)$product->supplier->services;
-            $data[$idx]['logo'] = (array)$product->supplier->logo;
-            $data[$idx]['score'] = str_replace(",", ".", $product->reviews->score);
-            $promotions = (array)$product->promotions;
-            foreach ($promotions as $promotion) {
-                $data[$idx]['promotions'][] = $promotion->texts->name;
-            }
         }
         return $data;
     }
