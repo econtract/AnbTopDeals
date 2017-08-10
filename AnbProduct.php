@@ -14,6 +14,7 @@ class AnbProduct
 {
 
     public $crmApiEndpoint = "http://api.econtract.be/";//Better to take it from Admin settings
+	/** @var $anbApi \AnbApiClient\Aanbieders */
     public $anbApi;
     public $apiConf = [
         'staging' => ANB_API_STAGING,
@@ -685,4 +686,15 @@ class AnbProduct
         }
         return array($advPrice, $monthDurationPromo, $firstYearPrice);
     }
+
+	/**
+	 * Wrapper for Aanbieders API getProducts method
+	 * @param array $params
+	 * @param array|int $productId
+	 *
+	 * @return array
+	 */
+	public function getProducts(array $params, $productId = null) {
+		return $this->anbApi->getProducts($params, $productId);
+	}
 }
