@@ -690,11 +690,17 @@ class AnbProduct
 	/**
 	 * Wrapper for Aanbieders API getProducts method
 	 * @param array $params
-	 * @param array|int $productId
+	 * @param array|int|string $productId
 	 *
 	 * @return array
 	 */
 	public function getProducts(array $params, $productId = null) {
+		if(is_string($productId) && !is_numeric($productId)) {
+			//extract productId from it internet-plus-tv-39-3098
+			$slugArr = explode('-', $productId);
+			$productId = $slugArr[count($slugArr)-1];
+			echo "Processing >>> $productId <br>";
+		}
 		return $this->anbApi->getProducts($params, $productId);
 	}
 }
