@@ -307,6 +307,8 @@ class AnbProduct
         }
 
         $data['product_name'] = $product->product_name;
+	    $data['product_slug'] = $product->product_slug;
+	    $data['supplier_slug'] = $product->supplier_slug;
         $data['product_id'] = $product->product_id;
         $data['tagline'] = isset($product->texts->tagline) ? $product->texts->tagline : "";
         $data['price'] = (array)$product->price;
@@ -696,10 +698,9 @@ class AnbProduct
 	 */
 	public function getProducts(array $params, $productId = null) {
 		if(is_string($productId) && !is_numeric($productId)) {
-			//extract productId from it internet-plus-tv-39-3098
-			$slugArr = explode('-', $productId);
-			$productId = $slugArr[count($slugArr)-1];
-			echo "Processing >>> $productId <br>";
+			//make it part of params instead of passing directly to the API
+			$params['productid'] = $productId;
+			$productId = null;
 		}
 		return $this->anbApi->getProducts($params, $productId);
 	}
