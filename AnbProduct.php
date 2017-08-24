@@ -150,7 +150,7 @@ class AnbProduct {
                                 ' . $this->getProductDetailSection( $prd, $servicesHtml ) .
 			               $this->priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice ) .
 			               $this->getPromoSection( $promotionHtml, $advPrice ) . '
-                                <a href="#" class="btn btn-primary">' . pll__( 'Info and options' ) . '</a>
+                                <a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary">' . pll__( 'Info and options' ) . '</a>
                             </div>';
 		}
 		$navContent .= '</div>';
