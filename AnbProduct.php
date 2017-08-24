@@ -189,7 +189,7 @@ class AnbProduct
         return $buffer;
     }
 
-    function getActivationOrInstPriceHtml($priceDetailArray, $key, $currencySymbol = '', $onlyArray = false)
+    function getActivationOrInstPriceHtml($priceDetailArray, $key, $currencySymbol = '', $onlyArray = false, $withFirstTerm = true)
     {
         //translations in function: pll__('Free installation'), pll__('Free activation'), pll__('Installation'), pll__('t.w.v')
         $html = '';
@@ -198,7 +198,7 @@ class AnbProduct
 
         if ($onlyArray){
             $prices = [];
-
+	        $prices[$key.'_actual'] = $priceDetailArray[$key];
             if ($priceDetailArray[$key] > 0) {
                 if ($priceDetailArray[$key . '_promo'] > 0
                     && $priceDetailArray[$key . '_promo'] != $priceDetailArray[$key]
@@ -208,12 +208,21 @@ class AnbProduct
                     $prices[$key . '_promo'] = $priceDetailArray[$key . '_promo'];
 
                 } elseif ($priceDetailArray[$key . '_promo'] == 0) {
-                    $prices[$key] = $priceDetailArray[$key];
+	                if($withFirstTerm) {
+		                $prices[$key] = pll__('Free');
+	                } else {
+		                $prices[$key] = pll__('Free' . (!empty($firstTerm)) ? ' ' . $firstTerm : '');
+	                }
+	                $prices[$key . '_free'] = true;
                 } else {
                     $prices[$key] = round($priceDetailArray[$key]);
                 }
             } else {
-                $prices[$key] = pll__('Free ' . $firstTerm);
+            	if($withFirstTerm) {
+		            $prices[$key] = pll__('Free');
+	            } else {
+		            $prices[$key] = pll__('Free' . (!empty($firstTerm)) ? ' ' . $firstTerm : '');
+	            }
                 $prices[$key . '_free'] = true;
             }
 
@@ -240,6 +249,26 @@ class AnbProduct
         }
 
         return $html;
+    }
+
+    function getActOrInstPriceBreakDownHtml($priceArray, $key, $currencySymbol = '') {
+    	if(empty($priceArray[$key])) {
+    		return '';
+	    }
+
+	    $firstTerm = explode('_', $key)[0];//first term before underscore like installation from installation_full
+
+    	$promoPriceHtml = (!empty($priceArray[$key.'_promo']) && $priceArray[$key.'_promo'] != $priceArray[$key.'_actual']) ? '<span class="saving-price">'.$currencySymbol.' '. $priceArray[$key.'_actual'] .'</span>' : '';
+	    $html = '<li>'.pll__(ucfirst($firstTerm) . ' cost').'
+					'.$promoPriceHtml.'
+                    <span class="cost-price">'.$currencySymbol.' '. $priceArray[$key] .'</span>
+                 </li>';
+
+	    if ($priceArray[$key.'_free'] === true) {
+		    $html = '<li class="prominent">'.pll__(ucfirst($firstTerm) . ' cost').'<span class="cost-price">' . pll__('Free') .'</span></li>';
+	    }
+
+	    return $html;
     }
 
     /**
@@ -351,8 +380,8 @@ class AnbProduct
 
         $data['services'] = (array)$product->supplier->services;
         $data['logo'] = (array)$product->supplier->logo;
-        $data['score'] = str_replace(",", ".", $product->reviews->score);
-        $promotions = (array)$product->promotions;
+	    $data['score'] = convertToSiteScore( $product->reviews->score );
+	    $promotions = (array)$product->promotions;
         foreach ($promotions as $promotion) {
             $data['promotions'][] = $promotion->texts->name;
         }
@@ -487,37 +516,8 @@ class AnbProduct
      */
     public function calculatorPopup($productData)
     {
-
-        $advHtml = '';
-
-        $currency = getCurrencySymbol($productData['currency_unit']);
-        $yearlyPrice =  !empty($productData['year_1_promo']) ? $productData['year_1_promo'] : $productData['year_1'];
-        $monthlyFee = str_replace('.', ',', $productData['monthly_fee']['value']);
-
-        if (!empty($prd['advantage'])) {
-            $advPrice = "-" . str_replace('.', ',', $productData['advantage']) . $currency ;
-
-            $advHtml = '<li><div class="total-advantage">
-                            '.pll__('Total advantage').'<span class="cost-price">'.$advPrice.'</span>
-                            </div>
-                       </li>';
-        }
-
-        $activation = $this->getActivationOrInstPriceHtml($productData['price'], 'activation','', true);
-
-        if ($activation) {
-
-            $activationMarkup = '<li>'.pll__('Activation costs').'
-                                        <span class="cost-price">'.$currency.' '. $activation['activation'] .'</span>
-                                    </li>';
-
-            if ($activation['activation_free']) {
-                $activationMarkup = '<li class="prominent">'.$activation['activation'].'</li>';
-            }
-        }
-
         $html  = "<div class='modal borderLess fade' id='calcBreakdown{$productData['product_id']}'  tabindex='-1' role='dialog' aria-labelledby='calcBreakdownLabel'>";
-
+	    $priceBreakDownHtml = $this->getProductPriceBreakdownHtml($productData);
         $html  .= '<div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -538,57 +538,7 @@ class AnbProduct
                 <div class="modal-body">
                     <!--AllCosts-->
                     <div class="CostWrap">
-
-                        <div class="AboutAllCosts">
-                            <div class="MonthlyCost">
-                                <h5>'.pll__('Costs monthly').'</h5>
-                                <ul class="list-unstyled">
-                                    <li>'.$productData['product_name'].'<span class="cost-price">'.$currency .' '.$monthlyFee.'</span></li>
-                                    <!--<li>First 6 months € 79,95 <span class="cost-price">€ 24,00</span></li>-->
-                                </ul>
-                            </div>
-
-                            <div class="MonthlyCost FirstCost">
-                                <h5>'.pll__('First costs').'</h5>
-                                <ul class="list-unstyled">
-                                   <!--<li class="prominent">Free Delivery
-                                        <span class="saving-price">€ 50,00</span>
-                                        <span class="cost-price">€ 0,00</span>
-                                    </li>-->
-
-                                    '.$activationMarkup.'
-
-                                    <!--<li class="prominent">Free Decoder
-                                        <span class="saving-price">€ 85,00</span>
-                                        <span class="cost-price">€ 0,00</span>
-                                    </li>-->
-                                </ul>
-                            </div>
-
-                            <div class="MonthlyCost CostAdvantage">
-                                <ul class="list-unstyled">
-                                    <!--<li>
-                                        <div class="total-advantage">
-                                            Total advantage<span class="cost-price">- € 155</span>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="monthly-advantage">
-                                            Total monthly<span class="cost-price">€ 99,95</span>
-                                        </div>
-                                    </li>-->
-                                    '. $advHtml.'
-                                    <li>
-                                        <div class="yearly-advantage">
-                                            '.pll__('Total per year').'<span class="cost-price">'.$currency .' '. str_replace('.', ',', $yearlyPrice) .'</span>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <a class="btn btn-primary all-caps">'.pll__('configure your pack').'</a>
-
-                        </div>
+                    '.$priceBreakDownHtml.'
                     </div>
                     <!--AllCosts-->
                 </div>
@@ -598,6 +548,67 @@ class AnbProduct
 
     print $html;
 
+    }
+
+    public function getProductPriceBreakdownHtml($productData) {
+	    $currency = getCurrencySymbol($productData['currency_unit']);
+	    $monthlyFee = convertToEuPrice( $productData['monthly_fee']['value'] );
+	    list($advPrice, $monthDurationPromo, $firstYearPrice) = $this->getPriceInfo($productData, true);
+	    if($monthDurationPromo == '&nbsp;') {
+		    $monthDurationPromo = pll__('Monthly promo price');
+	    }
+
+	    $actPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'activation','', true, false);
+	    $actPriceHtml = $this->getActOrInstPriceBreakDownHtml($actPrice, 'activation',  $currency);
+
+	    $instPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'installation_full','', true, false);
+	    $instPriceHtml = $this->getActOrInstPriceBreakDownHtml($instPrice, 'installation_full',  $currency);
+
+	    $advHtml = '';
+	    if (!empty($productData['advantage'])) {
+		    $advPrice = "-" . $currency . ' ' . convertToEuPrice($advPrice) ;
+
+		    $advHtml = '<li><div class="total-advantage">
+                            '.pll__('Total advantage').'<span class="cost-price">'.$advPrice.'</span>
+                            </div>
+                       </li>';
+	    }
+
+	    $monthlyPromoPriceHtml = '';
+
+	    if(!empty($productData['price']['monthly_promo']) &&
+	       ($productData['price']['monthly_promo'] != $productData['price']['monthly'])) {
+		    $monthlyPromoPriceHtml = '<li>'.sprintf(pll__('First %d months'), $monthDurationPromo).'<span class="cost-price">' . $currency . ' ' . convertToEuPrice($productData['price']['monthly_promo']) . '</span></li>';
+	    }
+
+    	$html = '<div class="AboutAllCosts">
+                    <div class="MonthlyCost">
+                        <h5>'.pll__('Costs monthly').'</h5>
+                        <ul class="list-unstyled">
+                            <li>'.$productData['product_name'].'<span class="cost-price">'.$currency .' '.$monthlyFee.'</span></li>
+                            '.$monthlyPromoPriceHtml.'
+                        </ul>
+                    </div>
+                    <div class="MonthlyCost FirstCost">
+                        <h5>'.pll__('First costs').'</h5>
+                        <ul class="list-unstyled">
+                            '.$actPriceHtml.$instPriceHtml.'
+                        </ul>
+                    </div>
+                    <div class="MonthlyCost CostAdvantage">
+                        <ul class="list-unstyled">
+                            '. $advHtml.'
+                            <li>
+                                <div class="yearly-advantage">
+                                    ' . pll__('Total first year') . '<span class="cost-price">' . $currency . ' ' . convertToEuPrice($firstYearPrice) . '</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <a class="btn btn-primary all-caps">'.pll__('configure your pack').'</a>
+                </div>';
+
+	    return $html;
     }
 
     /**
@@ -664,27 +675,40 @@ class AnbProduct
     }
 
     /**
-     * @param $prd
+     * @param array $prd
+     * @param boolean $onlyNumericData
      * @return array
      */
-    public function getPriceInfo(array $prd)
+    public function getPriceInfo(array $prd, $onlyNumericData = false)
     {
         $advPrice = '&nbsp;';
 
         if (!empty($prd['advantage'])) {
-            $advPrice = "-" . $prd['advantage'] . getCurrencySymbol($prd['currency_unit']) . ' ' . pll__('advantage');
+        	if($onlyNumericData) {
+		        $advPrice = $prd['advantage'];
+	        } else {
+		        $advPrice = "-" . $prd['advantage'] . getCurrencySymbol($prd['currency_unit']) . ' ' . pll__('advantage');
+	        }
         }
 
         $monthDurationPromo = '&nbsp;';
         //sprintf
         if (!empty($prd['monthly_promo_duration'])) {
-            $monthDurationPromo = sprintf(pll__('the first %d months'), $prd['monthly_promo_duration']);
+	        if($onlyNumericData) {
+		        $monthDurationPromo = $prd['monthly_promo_duration'];
+	        } else {
+		        $monthDurationPromo = sprintf(pll__('the first %d months'), $prd['monthly_promo_duration']);
+	        }
         }
 
         $firstYearPrice = '';
         if (intval($prd['year_1_promo']) > 0) {
-            $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . intval($prd['year_1_promo']);
-            $firstYearPrice = $firstYearPrice . ' ' . pll__('the first year');
+	        if($onlyNumericData) {
+		        $firstYearPrice = $prd['year_1_promo'];
+	        } else {
+		        $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . intval($prd['year_1_promo']);
+		        $firstYearPrice = $firstYearPrice . ' ' . pll__('the first year');
+	        }
         }
         return array($advPrice, $monthDurationPromo, $firstYearPrice);
     }
