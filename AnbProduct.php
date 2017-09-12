@@ -552,7 +552,13 @@ class AnbProduct {
 
 	}
 
-	public function getProductPriceBreakdownHtml( $productData ) {
+	/**
+	 * @param $productData
+	 * @param string $triggerSomeModalHtml e.g. data-toggle="modal" data-target="#ModalCheckAvailability"
+	 *
+	 * @return string
+	 */
+	public function getProductPriceBreakdownHtml( $productData, $triggerSomeModalHtml='' ) {
 		$currency   = getCurrencySymbol( $productData['currency_unit'] );
 		$monthlyFee = convertToEuPrice( $productData['monthly_fee']['value'] );
 		list( $advPrice, $monthDurationPromo, $firstYearPrice ) = $this->getPriceInfo( $productData, true );
@@ -607,7 +613,7 @@ class AnbProduct {
                             </li>
                         </ul>
                     </div>
-                    <a class="btn btn-primary all-caps">' . pll__( 'configure your pack' ) . '</a>
+                    <a class="btn btn-primary all-caps" '.$triggerSomeModalHtml.'>' . pll__( 'configure your pack' ) . '</a>
                 </div>';
 
 		return $html;
