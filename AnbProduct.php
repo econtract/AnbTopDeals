@@ -354,7 +354,7 @@ class AnbProduct {
 		}
 		$data['monthly_price_chunk'] = [
 			'price' => $monthlyPriceArr[0],
-			'cents' => ( $monthlyPriceArr[1] < 10 ? '0' . $monthlyPriceArr[1] : "00" ),
+			'cents' => ( $monthlyPriceArr[1] < 10 ? '0' . $monthlyPriceArr[1] : $monthlyPriceArr[1] ),
 			'unit'  => $data['monthly_fee']['unit']
 		];
 //            echo "+++".print_r($product->price, true)."<br>";
@@ -372,7 +372,7 @@ class AnbProduct {
 			}
 			$data['monthly_promo_price_chunk'] = [
 				'price'    => $monthlyPricePromoArr[0],
-				'cents'    => ( $monthlyPricePromoArr[1] < 10 ? '0' . $monthlyPricePromoArr[1] : "00" ),
+				'cents'    => ( $monthlyPricePromoArr[1] < 10 ? '0' . $monthlyPricePromoArr[1] : $monthlyPriceArr[1] ),
 				'unit'     => $data['monthly_price_chunk']['unit'],//use unit of normal monthly price
 				'duration' => $data['monthly_promo_duration']
 			];
