@@ -740,4 +740,100 @@ class AnbProduct {
 
 		return $this->anbApi->getProducts( $params, $productId );
 	}
+
+
+    /**
+     * @param $array
+     * @param $key
+     * @param $value
+     * @return array
+     */
+    private function searchMultidimensional($array, $key, $value)
+    {
+
+        if (is_object($array)) {
+            $array = json_decode(json_encode($array), true);
+        }
+
+        $results = array();
+
+        if (is_array($array)) {
+            if (isset($array[$key]) && $array[$key] == $value) {
+                $results[] = $array;
+            }
+
+            foreach ($array as $subArray) {
+                $results = array_merge($results, searchMultidimensional($subArray, $key, $value));
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * @param null $options
+     * @param null $groupOptions
+     * @return array
+     */
+	public function prepareProductRecommendedOptions ($options = null, $groupOptions = null)
+    {
+
+        $groupOptionsArray = $optionsArray = [];
+        $excludeFromOptions = [];
+        $minFee = 0;
+
+        foreach ($groupOptions as $groupOption) {
+            if ($groupOption->is_recommended) {
+
+                $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id] = [
+                    'name' => $groupOption->texts->name,
+                    'description' => $groupOption->texts->description,
+                    'banner' => $groupOption->links->banner,
+                ];
+
+                foreach ($groupOption->options as $listOption) {
+                    $optionSpecification = $this->searchMultidimensional($options, 'option_id', $listOption);
+
+
+                    if ($optionSpecification) {
+                        $optionSpecification = (is_array($optionSpecification)) ? array_pop($optionSpecification) : $optionSpecification;
+
+                        if ($minFee == 0) {
+                            $minFee = $optionSpecification['price'];
+                        }
+
+                        if ($optionSpecification['price'] < $minFee) {
+                            $minFee = $optionSpecification['price'];
+                        }
+
+                        $excludeFromOptions[] = $optionSpecification['option_id'];
+                        $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id]['options'][] = [
+                            'id' => $optionSpecification['option_id'],
+                            'price' => $optionSpecification['price'],
+                            'name' => $optionSpecification['texts']['name'],
+                            'description' => $optionSpecification['texts']['description'],
+                            'banner' => $optionSpecification['links']['banner'],
+                        ];
+                    }
+                }
+                $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id]['minPrice'] = $minFee;
+            }
+
+        }
+
+        foreach ($options as $listOption) {
+            if ($listOption->is_recommended && !in_array($listOption->option_id, $excludeFromOptions)) {
+
+                $optionsArray['options'][$listOption->option_id] = [
+                    'price' => $listOption->price,
+                    'name' => $listOption->texts->name,
+                    'description' => $listOption->texts->description,
+                ];
+            }
+
+        }
+
+        return array_merge($groupOptionsArray , $optionsArray);
+    }
+
 }
