@@ -773,9 +773,10 @@ class AnbProduct {
     /**
      * @param null $options
      * @param null $groupOptions
+     * @param boolean $isRecommendedRequired
      * @return array
      */
-	public function prepareProductRecommendedOptions ($options = null, $groupOptions = null)
+	public function prepareProductRecommendedOptions ($options = null, $groupOptions = null, $isRecommendedRequired = true)
     {
 
         $groupOptionsArray = $optionsArray = [];
@@ -783,7 +784,10 @@ class AnbProduct {
         $minFee = 0;
 
         foreach ($groupOptions as $groupOption) {
-            if ($groupOption->is_recommended) {
+        	if(is_array($groupOption)) {
+		        $groupOption = (object)$groupOption;
+	        }
+            if ($groupOption->is_recommended || $isRecommendedRequired === false) {
 
                 $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id] = [
                     'name' => $groupOption->texts->name,
@@ -822,12 +826,17 @@ class AnbProduct {
         }
 
         foreach ($options as $listOption) {
-            if ($listOption->is_recommended && !in_array($listOption->option_id, $excludeFromOptions)) {
+        	if(is_array($listOption)) {
+		        $listOption = (object)$listOption;
+	        }
+            if (($listOption->is_recommended || $isRecommendedRequired === false) && !in_array($listOption->option_id, $excludeFromOptions)) {
 
                 $optionsArray['options'][$listOption->option_id] = [
+                	'id' => $listOption->option_id,
                     'price' => $listOption->price,
                     'name' => $listOption->texts->name,
                     'description' => $listOption->texts->description,
+	                'banner' => $listOption->links->banner
                 ];
             }
 
