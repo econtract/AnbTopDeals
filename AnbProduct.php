@@ -338,7 +338,9 @@ class AnbProduct {
 
 		$data['product_name']  = $product->product_name;
 		$data['product_slug']  = $product->product_slug;
+		$data['supplier_id']   = $product->supplier_id;
 		$data['supplier_slug'] = $product->supplier_slug;
+		$data['supplier_name'] = $product->supplier_name;
 		$data['product_id']    = $product->product_id;
 		$data['tagline']       = isset( $product->texts->tagline ) ? $product->texts->tagline : "";
 		$data['price']         = (array) $product->price;
@@ -554,11 +556,11 @@ class AnbProduct {
 
 	/**
 	 * @param $productData
-	 * @param string $triggerSomeModalHtml e.g. data-toggle="modal" data-target="#ModalCheckAvailability"
+	 * @param string $someHtml e.g. data-toggle="modal" data-target="#ModalCheckAvailability" or any link like href="/testit.php"
 	 *
 	 * @return string
 	 */
-	public function getProductPriceBreakdownHtml( $productData, $triggerSomeModalHtml='' ) {
+	public function getProductPriceBreakdownHtml( $productData, $someHtml='', $withoutOrderBtn = false) {
 		$currency   = getCurrencySymbol( $productData['currency_unit'] );
 		$monthlyFee = convertToEuPrice( $productData['monthly_fee']['value'] );
 		list( $advPrice, $monthDurationPromo, $firstYearPrice ) = $this->getPriceInfo( $productData, true );
@@ -589,6 +591,11 @@ class AnbProduct {
 			$monthlyPromoPriceHtml = '<li>' . sprintf( pll__( 'First %d months' ), $monthDurationPromo ) . '<span class="cost-price">' . $currency . ' ' . convertToEuPrice( $productData['price']['monthly_promo'] ) . '</span></li>';
 		}
 
+		$orderBtn = '';
+		if(!$withoutOrderBtn) {
+			$orderBtn = '<a class="btn btn-primary all-caps" ' . $someHtml . '>' . pll__( 'configure your pack' ) . '</a>';
+		}
+
 		$html = '<div class="AboutAllCosts">
                     <div class="MonthlyCost">
                         <h5>' . pll__( 'Costs monthly' ) . '</h5>
@@ -613,7 +620,7 @@ class AnbProduct {
                             </li>
                         </ul>
                     </div>
-                    <a class="btn btn-primary all-caps" '.$triggerSomeModalHtml.'>' . pll__( 'configure your pack' ) . '</a>
+                    '.$orderBtn.'
                 </div>';
 
 		return $html;
