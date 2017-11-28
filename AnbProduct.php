@@ -738,14 +738,33 @@ class AnbProduct {
 	 *
 	 * @return array
 	 */
-	public function getProducts( array $params, $productId = null ) {
-		if ( is_string( $productId ) && ! is_numeric( $productId ) ) {
-			//make it part of params instead of passing directly to the API
-			$params['productid'] = $productId;
-			$productId           = null;
-		}
+	public function getProducts( array $params, $productId = null, $enableCache = true, $cacheDurationSeconds = 600 ) {
+	    if(defined('PRODUCT_API_CACHE_DURATION')) {
+	        $cacheDurationSeconds = PRODUCT_API_CACHE_DURATION;
+        }
+        if ( is_string( $productId ) && ! is_numeric( $productId ) ) {
+            //make it part of params instead of passing directly to the API
+            $params['productid'] = $productId;
+            $productId           = null;
+        }
 
-		return $this->anbApi->getProducts( $params, $productId );
+        //generate key from params to store in cache
+        if ($enableCache) {
+            $keyParams = $params + ['indv_product_id' => $productId];
+            $cacheKey = md5(implode(",", $keyParams)) . ":getProducts";
+            $cacheKey = md5(implode(",", $keyParams)) . ":getProducts";
+
+            $result = get_transient($cacheKey);
+
+            if($result === false) {
+                $result = $this->anbApi->getProducts( $params, $productId );
+                set_transient($cacheKey, $result, $cacheDurationSeconds);
+            }
+        } else {
+            $result = $this->anbApi->getProducts( $params, $productId );
+        }
+
+		return $result;
 	}
 
 
