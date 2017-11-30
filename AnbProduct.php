@@ -756,7 +756,7 @@ class AnbProduct {
 
             $result = get_transient($cacheKey);
 
-            if($result === false) {
+            if($result === false || empty($result)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
                 set_transient($cacheKey, $result, $cacheDurationSeconds);
             }
