@@ -70,13 +70,19 @@ class AnbProduct {
 
 		$cats = array_unique( $cats );
 
-		$products = $this->anbApi->getProducts( array(
-			'cat'         => $cats,
-			'sg'          => $atts['sg'],
-			'lang'        => $atts['lang'],
-			'productid'   => array( $atts['product_1'], $atts['product_2'], $atts['product_3'] ),
-			'detaillevel' => $atts['detaillevel']
-		) );
+		$cacheTime = 86400;
+
+		if(defined('TOP_DEALS_PRODUCT_CACHE_DURATION')) {
+            $cacheTime = TOP_DEALS_PRODUCT_CACHE_DURATION;
+        }
+
+        $products = $this->getProducts( array(
+            'cat'         => $cats,
+            'sg'          => $atts['sg'],
+            'lang'        => $atts['lang'],
+            'productid'   => array( $atts['product_1'], $atts['product_2'], $atts['product_3'] ),
+            'detaillevel' => $atts['detaillevel']
+        ), null, true, $cacheTime );
 
 		$products = json_decode( $products );
 
@@ -749,9 +755,11 @@ class AnbProduct {
         }
 
         //generate key from params to store in cache
-        if ($enableCache) {
+        displayParams($params);
+        $start = getStartTime();
+        $displayText = "Time API (Product) inside getProducts";
+        if ($enableCache && !isset($_GET['no_cache'])) {
             $keyParams = $params + ['indv_product_id' => $productId];
-            $cacheKey = md5(implode(",", $keyParams)) . ":getProducts";
             $cacheKey = md5(implode(",", $keyParams)) . ":getProducts";
 
             $result = get_transient($cacheKey);
@@ -759,10 +767,14 @@ class AnbProduct {
             if($result === false || empty($result)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
                 set_transient($cacheKey, $result, $cacheDurationSeconds);
+            } else {
+                $displayText = "Time Cached API Data (Product) inside getProducts";
             }
         } else {
             $result = $this->anbApi->getProducts( $params, $productId );
         }
+        $finish = getEndTime();
+        displayCallTime($start, $finish, $displayText);
 
 		return $result;
 	}
