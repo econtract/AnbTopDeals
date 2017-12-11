@@ -760,7 +760,7 @@ class AnbProduct {
         $displayText = "Time API (Product) inside getProducts";
         if ($enableCache && !isset($_GET['no_cache'])) {
             $keyParams = $params + ['indv_product_id' => $productId];
-            $cacheKey = md5(implode(",", $keyParams)) . ":getProducts";
+            $cacheKey = md5(implode(",", $keyParams) . $_SERVER['REQUEST_URI']) . ":getProducts";
 
             $result = get_transient($cacheKey);
 
