@@ -426,6 +426,7 @@ class AnbProduct {
 			$priceHtml .= '<span class="recursion">/mth</span></span>
                                </div>';
 		} else {
+            $priceHtml .= '<div class="oldPrice"></div>';
 			$priceHtml .= '<div class="newPrice">
                                 <span class="amount">' . $prd['monthly_price_chunk']['price'];
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
