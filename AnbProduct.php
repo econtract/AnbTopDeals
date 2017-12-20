@@ -82,7 +82,7 @@ class AnbProduct {
             'lang'        => $atts['lang'],
             'productid'   => array( $atts['product_1'], $atts['product_2'], $atts['product_3'] ),
             'detaillevel' => $atts['detaillevel']
-        ), null, true, $cacheTime );
+        ), null, false, 0 );//don't cache top deals
 
 		$products = json_decode( $products );
 
