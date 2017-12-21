@@ -634,6 +634,90 @@ class AnbProduct {
 		return $html;
 	}
 
+    /**
+     * This method is same as getProductPriceBreakdownHtml but it'll call API to render the break-down instead of what is available in product data
+     *
+     * @param array $apiParams these will be API Params
+     * @param string $someHtml
+     * @param bool $withoutOrderBtn
+     * @return string
+     */
+    public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false) {
+        $html = '';
+        $apiParamsHtml = http_build_query($apiParams, "&");
+        $apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
+        $apiRes = file_get_contents($apiUrl);
+
+        $totalMonthly = '';
+        $totalYearly = '';
+        $totalAdv = '';
+        $totalAdvPrice = 0;
+
+        if($apiRes) {
+            $apiRes = json_decode($apiRes);
+
+            $orderBtn = '';
+            if(!$withoutOrderBtn) {
+                $orderBtn = $someHtml;
+            }
+
+            $html = '<div class="AboutAllCosts">';
+            foreach($apiRes as $key => $priceSec) {
+                $totalMonthly = $priceSec->monthly_costs->subtotal->display_value;
+                $totalYearly = $priceSec->total->display_value;
+                $totalAdv = $priceSec->total_discount->display_value;
+                $totalAdvPrice = $priceSec->total_discount->value;
+                foreach($priceSec as $pKey => $pVal) {
+                    if(strpos($pKey, 'total') !== false) {
+                        break;//don't include the totals in loop
+                    }
+                    $html .= '<div class="MonthlyCost">';
+                    $html .= '<h5>' . $pVal->label . '</h5>';
+                    $html .= '<ul class="list-unstyled">';
+                    foreach($pVal->lines as $lineKey => $lineVal) {
+                        $priceDisplayVal = $lineVal->product->display_value;
+                        $extraClass = '';
+                        if($lineVal->product->value == 0) {
+                            $extraClass = 'class="prominent"';
+                            $priceDisplayVal = pll__('Free');
+                        }
+                        $html .= '<li '.$extraClass.'>' . $lineVal->label . '<span class="cost-price">' . $priceDisplayVal . '</span></li>';
+                    }
+                    $html .= '</ul>';
+                    $html .= '</div>';
+                }
+            }
+
+            $advHtml = '';
+
+            if($totalAdvPrice < 0) {
+                $advHtml = '<li><div class="total-advantage">
+                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . $totalAdv . '</span>
+                            </div></li>';
+            }
+
+            $html .=     '<div class="MonthlyCost CostAdvantage">
+                            <ul class="list-unstyled">
+                                '.$advHtml.'
+                                <li>
+                                    <div class="total-monthly">
+                                        ' . pll__( 'Total monthly' ) . '<span class="cost-price">' . $totalMonthly . '</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="yearly-advantage">
+                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . $totalYearly . '</span>
+                                    </div>
+                                </li>
+                            </ul>
+                          </div>';
+            $html .= $orderBtn.
+                '</div>';
+        }
+
+        return ['html' => $html, 'monthly' => $totalMonthly, 'first_year' => $totalYearly];
+    }
+
 	/**
 	 * @param array $prd
 	 *
