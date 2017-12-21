@@ -601,7 +601,7 @@ class AnbProduct {
 
 		$orderBtn = '';
 		if(!$withoutOrderBtn) {
-			$orderBtn = '<a class="btn btn-primary all-caps" ' . $someHtml . '>' . pll__( 'configure your pack' ) . '</a>';
+			$orderBtn = $someHtml;
 		}
 
 		$html = '<div class="AboutAllCosts">
