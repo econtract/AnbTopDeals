@@ -354,7 +354,7 @@ class AnbProduct {
 		$data['advantage']     = $product->price->advantage;
 		$data['currency_unit'] = $data['monthly_fee']['unit'];
 		$data['year_1_promo']  = $product->price->year_1_promo;
-		$data['supplier_is_partner'] = $product->supplier->is_partner;
+        $data['supplier_is_partner']  = $product->supplier->is_partner;
 		//break price into chunks like price, cents and currency
 		$monthlyPrice    = $data['monthly_fee']['value'];
 		$monthlyPriceArr = explode( ".", $monthlyPrice );
