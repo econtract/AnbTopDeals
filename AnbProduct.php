@@ -636,13 +636,14 @@ class AnbProduct {
 
     /**
      * This method is same as getProductPriceBreakdownHtml but it'll call API to render the break-down instead of what is available in product data
+     * E.g. Link for API: https://www.aanbieders.be/rpc?&lang_mod=nl&action=load_calc_json&pid=2855&prt=packs&opt[]‌=280&opt[]‌=425&it=full&extra_pid[]=mobile|643
      *
      * @param array $apiParams these will be API Params
      * @param string $someHtml
      * @param bool $withoutOrderBtn
      * @return string
      */
-    public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false) {
+    public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true) {
         $html = '';
         $apiParamsHtml = http_build_query($apiParams, "&");
         $apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
@@ -652,6 +653,8 @@ class AnbProduct {
         $totalYearly = '';
         $totalAdv = '';
         $totalAdvPrice = 0;
+        $grandTotal = 0;
+        $productCount = 0;
 
         if($apiRes) {
             $apiRes = json_decode($apiRes);
@@ -667,25 +670,31 @@ class AnbProduct {
                 $totalYearly = $priceSec->total->display_value;
                 $totalAdv = $priceSec->total_discount->display_value;
                 $totalAdvPrice = $priceSec->total_discount->value;
-                foreach($priceSec as $pKey => $pVal) {
-                    if(strpos($pKey, 'total') !== false) {
-                        break;//don't include the totals in loop
-                    }
-                    $html .= '<div class="MonthlyCost">';
-                    $html .= '<h5>' . $pVal->label . '</h5>';
-                    $html .= '<ul class="list-unstyled">';
-                    foreach($pVal->lines as $lineKey => $lineVal) {
-                        $priceDisplayVal = $lineVal->product->display_value;
-                        $extraClass = '';
-                        if($lineVal->product->value == 0) {
-                            $extraClass = 'class="prominent"';
-                            $priceDisplayVal = pll__('Free');
+                $grandTotal += $priceSec->monthly_costs->subtotal->value;
+
+                if($productCount === 0) {
+                    foreach($priceSec as $pKey => $pVal) {
+                        if(strpos($pKey, 'total') !== false) {
+                            break;//don't include the totals in loop
                         }
-                        $html .= '<li '.$extraClass.'>' . $lineVal->label . '<span class="cost-price">' . $priceDisplayVal . '</span></li>';
+                        $html .= '<div class="MonthlyCost">';
+                        $html .= '<h5>' . $pVal->label . '</h5>';
+                        $html .= '<ul class="list-unstyled">';
+                        foreach($pVal->lines as $lineKey => $lineVal) {
+                            $priceDisplayVal = $lineVal->product->display_value;
+                            $extraClass = '';
+                            if($lineVal->product->value == 0) {
+                                $extraClass = 'class="prominent"';
+                                $priceDisplayVal = pll__('Free');
+                            }
+                            $html .= '<li '.$extraClass.'>' . $lineVal->label . '<span class="cost-price">' . $priceDisplayVal . '</span></li>';
+                        }
+                        $html .= '</ul>';
+                        $html .= '</div>';
                     }
-                    $html .= '</ul>';
-                    $html .= '</div>';
                 }
+
+                $productCount++;
             }
 
             $advHtml = '';
@@ -715,7 +724,56 @@ class AnbProduct {
                 '</div>';
         }
 
-        return ['html' => $html, 'monthly' => $totalMonthly, 'first_year' => $totalYearly];
+        return ['html' => $html, 'monthly' => $totalMonthly, 'first_year' => $totalYearly, 'grand_total' => $grandTotal];
+    }
+
+    function ajaxProductPriceBreakdownHtml() {
+        $apiData = [
+            'pid' => $_POST['pid'],
+            'prt' => $_POST['prt'],//product type like internet, packs or energy
+            'it'  => $_POST['it'],//Installation type like full/diy
+            'opt' => $_POST['opt'],//array options
+            'extra_pid' => $_POST['extra_pid'],//array extra PIDs like extra_pid[]=mobile]|643
+        ];
+
+        list($toCartPage) = $this->getToCartAnchorHtml($_POST['parent_segment'], $_POST['product_id'], $_POST['supplier_id']);
+
+        $priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
+
+        echo '<div class="CostWrap">
+            <div class="TotalCostBox">
+                <svg class="calculator" height="30px" viewBox="0 0 291 393" fill="#FFF">
+                    <path d="M232.806181,0 L58.193819,0 C26.1918543,0 0,26.2144262 0,58.2096279 L0,334.790372 C0,366.80103 26.1918543,393 58.193819,393 L232.806181,393 C264.808146,393 291,366.80103 291,334.790372 L291,58.2096279 C291,26.2144262 264.808146,0 232.806181,0 Z M93.5644116,334.790372 C93.5644116,342.765988 86.9816801,349.350507 78.946421,349.350507 L58.193819,349.350507 C50.1585599,349.350507 43.6376381,342.765988 43.6376381,334.790372 L43.6376381,313.970306 C43.6376381,305.99469 50.1585599,299.410171 58.193819,299.410171 L78.946421,299.410171 C86.9816801,299.410171 93.5644116,305.99469 93.5644116,313.970306 L93.5644116,334.790372 Z M93.5644116,257.816408 C93.5644116,265.838394 86.9816801,272.361087 78.946421,272.361087 L58.193819,272.361087 C50.1585599,272.361087 43.6376381,265.838394 43.6376381,257.816408 L43.6376381,237.042712 C43.6376381,229.082553 50.1585599,222.498034 58.193819,222.498034 L78.946421,222.498034 C86.9816801,222.498034 93.5644116,229.082553 93.5644116,237.042712 L93.5644116,257.816408 Z M93.5644116,180.888815 C93.5644116,188.926257 86.9816801,195.44895 78.946421,195.44895 L58.193819,195.44895 C50.1585599,195.44895 43.6376381,188.926257 43.6376381,180.888815 L43.6376381,160.130575 C43.6376381,152.093133 50.1585599,145.508613 58.193819,145.508613 L78.946421,145.508613 C86.9816801,145.508613 93.5644116,152.093133 93.5644116,160.130575 L93.5644116,180.888815 Z M170.455661,334.790372 C170.455661,342.765988 163.872929,349.350507 155.914932,349.350507 L135.085068,349.350507 C127.127071,349.350507 120.544339,342.765988 120.544339,334.790372 L120.544339,313.970306 C120.544339,305.99469 127.127071,299.410171 135.085068,299.410171 L155.914932,299.410171 C163.872929,299.410171 170.455661,305.99469 170.455661,313.970306 L170.455661,334.790372 Z M170.455661,257.816408 C170.455661,265.838394 163.872929,272.361087 155.914932,272.361087 L135.085068,272.361087 C127.127071,272.361087 120.544339,265.838394 120.544339,257.816408 L120.544339,237.042712 C120.544339,229.082553 127.127071,222.498034 135.085068,222.498034 L155.914932,222.498034 C163.872929,222.498034 170.455661,229.082553 170.455661,237.042712 L170.455661,257.816408 Z M170.455661,180.888815 C170.455661,188.926257 163.872929,195.44895 155.914932,195.44895 L135.085068,195.44895 C127.127071,195.44895 120.544339,188.926257 120.544339,180.888815 L120.544339,160.130575 C120.544339,152.093133 127.127071,145.508613 135.085068,145.508613 L155.914932,145.508613 C163.872929,145.508613 170.455661,152.093133 170.455661,160.130575 L170.455661,180.888815 Z M247.362362,334.790372 C247.362362,342.765988 240.77963,349.350507 232.806181,349.350507 L211.991769,349.350507 C204.01832,349.350507 197.435588,342.765988 197.435588,334.790372 L197.435588,313.970306 C197.435588,305.99469 204.01832,299.410171 211.991769,299.410171 L232.806181,299.410171 C240.77963,299.410171 247.362362,305.99469 247.362362,313.970306 L247.362362,334.790372 Z M247.362362,257.816408 C247.362362,265.838394 240.77963,272.361087 232.806181,272.361087 L211.991769,272.361087 C204.01832,272.361087 197.435588,265.838394 197.435588,257.816408 L197.435588,237.042712 C197.435588,229.082553 204.01832,222.498034 211.991769,222.498034 L232.806181,222.498034 C240.77963,222.498034 247.362362,229.082553 247.362362,237.042712 L247.362362,257.816408 Z M247.362362,180.888815 C247.362362,188.926257 240.77963,195.44895 232.806181,195.44895 L211.991769,195.44895 C204.01832,195.44895 197.435588,188.926257 197.435588,180.888815 L197.435588,160.130575 C197.435588,152.093133 204.01832,145.508613 211.991769,145.508613 L232.806181,145.508613 C240.77963,145.508613 247.362362,152.093133 247.362362,160.130575 L247.362362,180.888815 Z M247.362362,101.920947 C247.362362,109.896563 240.77963,116.465626 232.806181,116.465626 L58.193819,116.465626 C50.2203696,116.465626 43.6376381,109.896563 43.6376381,101.920947 L43.6376381,66.5407457 C43.6376381,58.5651302 50.2203696,51.9806104 58.193819,51.9806104 L232.806181,51.9806104 C240.84144,51.9806104 247.362362,58.5033037 247.362362,66.5407457 L247.362362,101.920947 Z"
+                          id="Fill-1"></path>
+                    <path d="M151.187305,64 C140.932362,64 136,73.0626662 136,84.5545006 C136.062435,95.7504747 140.635796,105 150.87513,105 C161.052029,105 166,96.5446259 166,84.3209267 C166,73.4208128 161.848075,64 151.187305,64 Z M151.12487,97.9460691 C147.519251,97.9460691 145.334027,93.6171667 145.396462,84.5545006 C145.334027,75.3205469 147.644121,70.9916445 151.062435,70.9916445 C154.777315,70.9916445 156.728408,75.6164071 156.728408,84.4454994 C156.665973,93.4458792 154.71488,97.9460691 151.12487,97.9460691 Z"
+                          id="Fill-2"></path>
+                    <path d="M185.171696,64 C174.869927,64 170,73.0626662 170,84.5545006 C170.062435,95.7504747 174.573361,105 184.87513,105 C194.989594,105 200,96.5446259 200,84.3209267 C200,73.4208128 195.848075,64 185.171696,64 Z M185.12487,97.9460691 C181.519251,97.9460691 179.318418,93.6171667 179.380853,84.5545006 C179.318418,75.3205469 181.644121,70.9916445 185.062435,70.9916445 C188.777315,70.9916445 190.665973,75.6164071 190.665973,84.4454994 C190.665973,93.4458792 188.71488,97.9460691 185.12487,97.9460691 Z"
+                          id="Fill-3"></path>
+                    <path d="M218.179594,64 C207.93493,64 203,73.0626662 203,84.5545006 C203.046851,95.7504747 207.575742,105 217.882874,105 C228.002603,105 233,96.5446259 233,84.3209267 C233,73.4208128 228.86153,64 218.179594,64 Z M218.117126,97.9460691 C214.525247,97.9460691 212.323269,93.6171667 212.385737,84.5545006 C212.323269,75.3205469 214.650182,70.9916445 218.054659,70.9916445 C221.78709,70.9916445 223.676731,75.6164071 223.676731,84.4454994 C223.676731,93.4458792 221.724623,97.9460691 218.117126,97.9460691 Z"
+                          id="Fill-4"></path>
+                </svg>
+                <span class="total-price">'.$priceBreakdown['monthly'].'</span>
+            </div>';
+
+            echo $priceBreakdown['html'];
+        echo '</div>';
+
+        wp_die();
+    }
+
+    function getToCartAnchorHtml($parentSegment, $productId, $supplierId) {
+        $domain = explode('//', WP_HOME)[1];
+        $directLandOrExt = (strpos($_SERVER['HTTP_REFERER'], $domain) === false || empty($_SESSION['product']['zip'])) ? true : false;
+
+        $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__( 'checkout' );
+        $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
+            "&provider_id=" . $supplierId . "'";
+        if($directLandOrExt) {
+            $toCartLinkHtml = 'data-toggle="modal" data-target="#ModalCheckAvailability"';
+        }
+        $toCartLinkHtml = '<a '.$toCartLinkHtml.' class="btn btn-default all-caps">'.pll__('configure your pack').'</a>';
+
+        return [$toCartLinkHtml, $directLandOrExt];
     }
 
 	/**

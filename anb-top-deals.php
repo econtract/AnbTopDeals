@@ -25,3 +25,6 @@ include(__DIR__ . '/pll-register-trans.php');
 $result = wpal_create_instance(AnbProduct::class);
 
 add_shortcode( 'anb_top_deal_products', [$result, 'topDealProducts'] );
+
+add_action('wp_ajax_ajaxProductPriceBreakdownHtml', array($result, 'ajaxProductPriceBreakdownHtml'));
+add_action( 'wp_ajax_nopriv_ajaxProductPriceBreakdownHtml', array($result, 'ajaxProductPriceBreakdownHtml'));
