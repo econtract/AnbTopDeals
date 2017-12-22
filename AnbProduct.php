@@ -764,10 +764,6 @@ class AnbProduct {
     function getToCartAnchorHtml($parentSegment, $productId, $supplierId) {
         $domain = explode('//', WP_HOME)[1];
         $directLandOrExt = (strpos($_SERVER['HTTP_REFERER'], $domain) === false || empty($_SESSION['product']['zip'])) ? true : false;
-        echo "<pre>";
-        print_r($_SESSION);
-        echo "</pre>";
-        var_dump($directLandOrExt);
 
         $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__( 'checkout' );
         $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
