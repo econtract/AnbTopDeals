@@ -643,7 +643,7 @@ class AnbProduct {
      * @param bool $withoutOrderBtn
      * @return string
      */
-    public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true) {
+    public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = false) {
         $html = '';
         $apiParamsHtml = http_build_query($apiParams, "&");
         $apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
@@ -655,6 +655,8 @@ class AnbProduct {
         $totalAdvPrice = 0;
         $grandTotal = 0;
         $productCount = 0;
+	    $monthlyTotal = 0;
+	    $yearlyTotal = 0;
 
         if($apiRes) {
             $apiRes = json_decode($apiRes);
@@ -670,9 +672,16 @@ class AnbProduct {
                 $totalYearly = $priceSec->total->display_value;
                 $totalAdv = $priceSec->total_discount->display_value;
                 $totalAdvPrice = $priceSec->total_discount->value;
+	            $monthlyTotal += $priceSec->monthly_costs->subtotal->value;
+                $yearlyTotal += $priceSec->total->value;
                 $grandTotal += $priceSec->monthly_costs->subtotal->value;
 
-                if($productCount === 0) {
+                if($productCount !== 0) {
+	                $html .= '<hr class="product-break" />';
+                }
+
+                //either display only first product or display them all, default is displaying them all
+                if(($productCount === 0 && $displayFirstProductOnly === true) || $displayFirstProductOnly === false) {
                     foreach($priceSec as $pKey => $pVal) {
                         if(strpos($pKey, 'total') !== false) {
                             break;//don't include the totals in loop
@@ -724,12 +733,19 @@ class AnbProduct {
                 '</div>';
         }
 
-        return ['html' => $html, 'monthly' => $totalMonthly, 'first_year' => $totalYearly, 'grand_total' => $grandTotal];
+        return [
+        	'html' => $html,
+	        'monthly' => $totalMonthly,
+	        'first_year' => $totalYearly,
+	        'grand_total' => $grandTotal,
+	        'yearly_total' => $yearlyTotal,
+	        'monthly_total' => $monthlyTotal
+        ];
     }
 
     function ajaxProductPriceBreakdownHtml() {
         $apiData = [
-            'pid' => $_POST['pid'],
+            'pid' => $_POST['pid'],//product id
             'prt' => $_POST['prt'],//product type like internet, packs or energy
             'it'  => $_POST['it'],//Installation type like full/diy
             'opt' => $_POST['opt'],//array options
