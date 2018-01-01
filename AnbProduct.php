@@ -644,9 +644,16 @@ class AnbProduct {
      * @return string
      */
     public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = false) {
+	    //if language is missing get that automatically
+	    if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
+		    /** @var \AnbSearch\AnbCompare $anbComp */
+		    $anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
+		    $apiParams['lang_mod'] = $anbComp->getCurrentLang();
+	    }
         $html = '';
         $apiParamsHtml = http_build_query($apiParams, "&");
         $apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
+
         $apiRes = file_get_contents($apiUrl);
 
         $totalMonthly = '';
@@ -657,6 +664,7 @@ class AnbProduct {
         $productCount = 0;
 	    $monthlyTotal = 0;
 	    $yearlyTotal = 0;
+	    $advTotal = 0;
 
         if($apiRes) {
             $apiRes = json_decode($apiRes);
@@ -675,10 +683,7 @@ class AnbProduct {
 	            $monthlyTotal += $priceSec->monthly_costs->subtotal->value;
                 $yearlyTotal += $priceSec->total->value;
                 $grandTotal += $priceSec->monthly_costs->subtotal->value;
-
-                if($productCount !== 0) {
-	                $html .= '<hr class="product-break" />';
-                }
+                $advTotal += $priceSec->total_discount->value;
 
                 //either display only first product or display them all, default is displaying them all
                 if(($productCount === 0 && $displayFirstProductOnly === true) || $displayFirstProductOnly === false) {
@@ -710,7 +715,7 @@ class AnbProduct {
 
             if($totalAdvPrice < 0) {
                 $advHtml = '<li><div class="total-advantage">
-                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . $totalAdv . '</span>
+                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
                             </div></li>';
             }
 
@@ -719,12 +724,12 @@ class AnbProduct {
                                 '.$advHtml.'
                                 <li>
                                     <div class="total-monthly">
-                                        ' . pll__( 'Total monthly' ) . '<span class="cost-price">' . $totalMonthly . '</span>
+                                        ' . pll__( 'Total monthly' ) . '<span class="cost-price">' . formatPrice($monthlyTotal) . '</span>
                                     </div>
                                 </li>
                                 <li>
                                     <div class="yearly-advantage">
-                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . $totalYearly . '</span>
+                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($yearlyTotal) . '</span>
                                     </div>
                                 </li>
                             </ul>
@@ -752,7 +757,11 @@ class AnbProduct {
             'extra_pid' => $_POST['extra_pid'],//array extra PIDs like extra_pid[]=mobile]|643
         ];
 
-        list($toCartPage) = $this->getToCartAnchorHtml($_POST['parent_segment'], $_POST['product_id'], $_POST['supplier_id']);
+        $apiData = array_filter($apiData);//cleaning empty values
+
+        //list($toCartPage) = $this->getToCartAnchorHtml($_POST['parent_segment'], $_POST['product_id'], $_POST['supplier_id']);
+
+        //echo "toCartPage: $toCartPage";
 
         $priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
 
@@ -768,7 +777,7 @@ class AnbProduct {
                     <path d="M218.179594,64 C207.93493,64 203,73.0626662 203,84.5545006 C203.046851,95.7504747 207.575742,105 217.882874,105 C228.002603,105 233,96.5446259 233,84.3209267 C233,73.4208128 228.86153,64 218.179594,64 Z M218.117126,97.9460691 C214.525247,97.9460691 212.323269,93.6171667 212.385737,84.5545006 C212.323269,75.3205469 214.650182,70.9916445 218.054659,70.9916445 C221.78709,70.9916445 223.676731,75.6164071 223.676731,84.4454994 C223.676731,93.4458792 221.724623,97.9460691 218.117126,97.9460691 Z"
                           id="Fill-4"></path>
                 </svg>
-                <span class="total-price">'.$priceBreakdown['monthly'].'</span>
+                <span class="total-price">'.formatPrice($priceBreakdown['monthly_total']).'</span>
             </div>';
 
             echo $priceBreakdown['html'];
@@ -869,7 +878,7 @@ class AnbProduct {
 			if ( $onlyNumericData ) {
 				$advPrice = $prd['advantage'];
 			} else {
-				$advPrice = "-" . $prd['advantage'] . getCurrencySymbol( $prd['currency_unit'] ) . ' ' . pll__( 'advantage' );
+				$advPrice = formatPrice($prd['advantage'], 2, getCurrencySymbol( $prd['currency_unit'] )) . ' ' . pll__( 'advantage' );
 			}
 		}
 
@@ -888,7 +897,7 @@ class AnbProduct {
 			if ( $onlyNumericData ) {
 				$firstYearPrice = $prd['year_1_promo'];
 			} else {
-				$firstYearPrice = getCurrencySymbol( $prd['currency_unit'] ) . ' ' . intval( $prd['year_1_promo'] );
+				$firstYearPrice = formatPrice(intval( $prd['year_1_promo'] ), 0, getCurrencySymbol( $prd['currency_unit'] ));
 				$firstYearPrice = $firstYearPrice . ' ' . pll__( 'the first year' );
 			}
 		}
