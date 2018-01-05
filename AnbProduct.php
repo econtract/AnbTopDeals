@@ -240,15 +240,14 @@ class AnbProduct {
 			if ( $priceDetailArray[ $key . '_promo' ] > 0
 			     && $priceDetailArray[ $key . '_promo' ] != $priceDetailArray[ $key ]
 			) {//there is a promotional price as well
-				$html .= '<li class="prominent">' . pll__( $firstTermLbl ) . ' ' . $priceDetailArray[ $key . '_promo' ] .
-				         $currencySymbol . ' ' . pll__( 't.w.v' ) . ' ' . $priceDetailArray[ $key ] .
+				$html .= '<li class="prominent">' . pll__( $firstTermLbl ) . ' ' . formatPrice($priceDetailArray[ $key . '_promo' ], 2, $currencySymbol) .
+				         ' ' . pll__( 't.w.v' ) . ' ' . $priceDetailArray[ $key ] .
 				         $currencySymbol . '</li>';
 			} elseif ( $priceDetailArray[ $key . '_promo' ] == 0 ) {
 				$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . ' ' . pll__( 't.w.v' ) .
-				         ' ' . $priceDetailArray[ $key ] . $currencySymbol . '</li>';
+				         ' ' . formatPrice($priceDetailArray[ $key ], 2, $currencySymbol) . '</li>';
 			} else {
-				$html .= '<li>' . pll__( $firstTermLbl ) . ' ' . round( $priceDetailArray[ $key ] ) .
-				         $currencySymbol . '</li>';
+				$html .= '<li>' . pll__( $firstTermLbl ) . ' ' . formatPrice(round( $priceDetailArray[ $key ] ), 2, $currencySymbol) . '</li>';
 			}
 		} else {
 			$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . '</li>';
@@ -264,10 +263,10 @@ class AnbProduct {
 
 		$firstTerm = explode( '_', $key )[0];//first term before underscore like installation from installation_full
 
-		$promoPriceHtml = ( ! empty( $priceArray[ $key . '_promo' ] ) && $priceArray[ $key . '_promo' ] != $priceArray[ $key . '_actual' ] ) ? '<span class="saving-price">' . $currencySymbol . ' ' . $priceArray[ $key . '_actual' ] . '</span>' : '';
+		$promoPriceHtml = ( ! empty( $priceArray[ $key . '_promo' ] ) && $priceArray[ $key . '_promo' ] != $priceArray[ $key . '_actual' ] ) ? '<span class="saving-price">' . formatPrice($priceArray[ $key ], 2, $priceArray[ $key . '_actual' ]) . '</span>' : '';
 		$html           = '<li>' . pll__( ucfirst( $firstTerm ) . ' cost' ) . '
 					' . $promoPriceHtml . '
-                    <span class="cost-price">' . $currencySymbol . ' ' . $priceArray[ $key ] . '</span>
+                    <span class="cost-price">' . formatPrice($priceArray[ $key ], 2, $currencySymbol) . '</span>
                  </li>';
 
 		if ( $priceArray[ $key . '_free' ] === true ) {
