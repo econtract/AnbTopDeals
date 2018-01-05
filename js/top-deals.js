@@ -3,7 +3,11 @@
  */
 
 function appendToSelector(selector, html) {
-    jQuery(selector).append(html);
+    jQuery(selector).append(html).promise().done(function () {
+        if(selector === ".topDeals .dealsTable"){
+            fixDealsTableHeight(jQuery('.dealsTable.topDealsTable'));
+        }
+    });
 }
 
 // function appendToSelector(selector, htmlJSON) {

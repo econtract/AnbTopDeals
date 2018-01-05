@@ -105,12 +105,12 @@ class AnbProduct {
 			$htmlWrapper = '<section class="topDeals">
                         <div class="container">
                             <div class="topDealsWrapper">
-                                <h3>' . pll__( 'Proximus most popular' ) . '</h3>
+                                <h3>' . $data['supplier_name'] . ' ' . pll__( 'most popular' ) . '</h3>
                                 <div class="filterDeals">
                                     <ul class="list-unstyled list-inline">
                                     </ul>
                                 </div>
-                                <div class="dealsTable">
+                                <div class="dealsTable topDealsTable">
                                     
                                 </div>
                             </div>
@@ -152,7 +152,7 @@ class AnbProduct {
 
 			list( $advPrice, $monthDurationPromo, $firstYearPrice ) = $this->getPriceInfo( $prd );
 
-			$navContent .= '<div class="col-md-4 offer ' . $boxClass . '">
+			$navContent .= '<div class="col-md-4 offer offer-col ' . $boxClass . '">
                                 ' . $this->getProductDetailSection( $prd, $servicesHtml ) .
 			               $this->priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice ) .
 			               $this->getPromoSection( $promotionHtml, $advPrice ) . '
@@ -167,7 +167,7 @@ class AnbProduct {
 		$script = '<script>
                     jQuery(document).ready(function($){
                         appendToSelector(".topDeals .filterDeals ul",  \'' . $navHtml . '\'); 
-                        appendToSelector(".topDeals .dealsTable", \'' . $this->minifyHtml( $navContent ) . '\')
+                        appendToSelector(".topDeals .dealsTable", \'' . $this->minifyHtml( $navContent ) . '\');
                     });
                    </script>';
 		echo $script;
