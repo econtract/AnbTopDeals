@@ -105,7 +105,7 @@ class AnbProduct {
 			$htmlWrapper = '<section class="topDeals">
                         <div class="container">
                             <div class="topDealsWrapper">
-                                <h3>' . $data['supplier_name'] . ' ' . pll__( 'most popular' ) . '</h3>
+                                <h3>' . pll__( 'Most popular' ) . '</h3>	
                                 <div class="filterDeals">
                                     <ul class="list-unstyled list-inline">
                                     </ul>
@@ -583,10 +583,8 @@ class AnbProduct {
 
 		$advHtml = '';
 		if ( ! empty( $productData['advantage'] ) ) {
-			$advPrice = "-" . $currency . ' ' . convertToEuPrice( $advPrice );
-
 			$advHtml = '<li><div class="total-advantage">
-                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . $advPrice . '</span>
+                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advPrice, 2, $currency) . '</span>
                             </div>
                        </li>';
 		}
