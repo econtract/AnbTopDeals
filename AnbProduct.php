@@ -583,10 +583,8 @@ class AnbProduct {
 
 		$advHtml = '';
 		if ( ! empty( $productData['advantage'] ) ) {
-			$advPrice = "-" . $currency . ' ' . convertToEuPrice( $advPrice );
-
 			$advHtml = '<li><div class="total-advantage">
-                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . $advPrice . '</span>
+                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advPrice, 2, $currency) . '</span>
                             </div>
                        </li>';
 		}
