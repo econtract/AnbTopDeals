@@ -750,8 +750,8 @@ class AnbProduct {
             'pid' => $_POST['pid'],//product id
             'prt' => $_POST['prt'],//product type like internet, packs or energy
             'it'  => $_POST['it'],//Installation type like full/diy
-            'opt' => $_POST['opt'],//array options
-            'extra_pid' => $_POST['extra_pid'],//array extra PIDs like extra_pid[]=mobile]|643
+            'opt' => array_filter($_POST['opt']),//array options
+            'extra_pid' => array_filter($_POST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
         ];
 
         $apiData = array_filter($apiData);//cleaning empty values
