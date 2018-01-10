@@ -412,16 +412,16 @@ class AnbProduct {
 
 		if ( isset( $prd['monthly_promo_price_chunk'] ) ) {
 			$priceHtml .= '<div class="oldPrice">
-                                <span class="amount">' . $prd['monthly_price_chunk']['price'] . '</span>';
+                                <span class="amount">' . getCurrencySymbol($prd['currency_unit']) . $prd['monthly_price_chunk']['price'] . '</span>';
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
-				$priceHtml .= '<span class="cents">' . $prd['monthly_price_chunk']['cents'] . '</span>';
+				$priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
 			}
 			$priceHtml .= '</div>';
 
 			$priceHtml .= '<div class="newPrice">
                                 <span class="amount">' . $prd['monthly_promo_price_chunk']['price'];
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
-				$priceHtml .= '<span class="cents">' . $prd['monthly_promo_price_chunk']['cents'] . '</span>';
+				$priceHtml .= '<span class="cents">' . substr($prd['monthly_promo_price_chunk']['cents'], 0, 2) . '</span>';
 			}
 			$priceHtml .= '<span class="recursion">/mth</span></span>
                                </div>';
@@ -430,7 +430,7 @@ class AnbProduct {
 			$priceHtml .= '<div class="newPrice">
                                 <span class="amount">' . $prd['monthly_price_chunk']['price'];
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
-				$priceHtml .= '<span class="cents">' . $prd['monthly_price_chunk']['cents'] . '</span>';
+				$priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
 			}
 			$priceHtml .= '<span class="recursion">/mth</span></span>
                                </div>';
@@ -528,7 +528,16 @@ class AnbProduct {
 	 */
 	public function calculatorPopup( $productData ) {
 		$html               = "<div class='modal borderLess fade' id='calcBreakdown{$productData['product_id']}'  tabindex='-1' role='dialog' aria-labelledby='calcBreakdownLabel'>";
-		$priceBreakDownHtml = $this->getProductPriceBreakdownHtml( $productData );
+		/** @var \AnbSearch\AnbCompare $anbComp */
+		/*$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
+		$priceBreakdown = $this->getProductPriceBreakdownHtmlApi( [
+			'lang_mod' => $anbComp->getCurrentLang(),
+			'pid' => $productData['product_id'],
+			'prt' => $productData['producttype']
+		]);*/
+
+		$priceBreakdownHtml = $this->getProductPriceBreakdownHtml($productData);
+
 		$html               .= '<div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -549,7 +558,7 @@ class AnbProduct {
                 <div class="modal-body">
                     <!--AllCosts-->
                     <div class="CostWrap">
-                    ' . $priceBreakDownHtml . '
+                    ' . $priceBreakdownHtml . '
                     </div>
                     <!--AllCosts-->
                 </div>
@@ -593,7 +602,7 @@ class AnbProduct {
 
 		if ( ! empty( $productData['price']['monthly_promo'] ) &&
 		     ( $productData['price']['monthly_promo'] != $productData['price']['monthly'] ) ) {
-			$monthlyPromoPriceHtml = '<li>' . sprintf( pll__( 'First %d months' ), $monthDurationPromo ) . '<span class="cost-price">' . $currency . ' ' . convertToEuPrice( $productData['price']['monthly_promo'] ) . '</span></li>';
+			$monthlyPromoPriceHtml = '<li>' . sprintf( pll__( 'First %d months' ), $monthDurationPromo ) . '<span class="cost-price">' . formatPrice($productData['price']['monthly_promo'], 2, $currency)  . '</span></li>';
 		}
 
 		$orderBtn = '';
@@ -605,7 +614,7 @@ class AnbProduct {
                     <div class="MonthlyCost">
                         <h5>' . pll__( 'Costs monthly' ) . '</h5>
                         <ul class="list-unstyled">
-                            <li>' . $productData['product_name'] . '<span class="cost-price">' . $currency . ' ' . $monthlyFee . '</span></li>
+                            <li>' . $productData['product_name'] . '<span class="cost-price">' . formatPrice($monthlyFee, 2, $currency) . '</span></li>
                             ' . $monthlyPromoPriceHtml . '
                         </ul>
                     </div>
@@ -620,7 +629,7 @@ class AnbProduct {
                             ' . $advHtml . '
                             <li>
                                 <div class="yearly-advantage">
-                                    ' . pll__( 'Total first year' ) . '<span class="cost-price">' . $currency . ' ' . convertToEuPrice( $firstYearPrice ) . '</span>
+                                    ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($firstYearPrice, 2, $currency) . '</span>
                                 </div>
                             </li>
                         </ul>
@@ -647,6 +656,10 @@ class AnbProduct {
 		    $anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
 		    $apiParams['lang_mod'] = $anbComp->getCurrentLang();
 	    }
+
+	    $apiParams['opt'] = array_filter($apiParams['opt']);
+	    $apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
+
         $html = '';
         $apiParamsHtml = http_build_query($apiParams, "&");
         $apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
