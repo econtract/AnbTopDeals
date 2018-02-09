@@ -342,6 +342,7 @@ class AnbProduct {
 		}
 
 		$data['product_name']  = $product->product_name;
+		$data['sg']            = $product->segment;
 		$data['product_slug']  = $product->product_slug;
 		$data['supplier_id']   = $product->supplier_id;
 		$data['supplier_slug'] = $product->supplier_slug;
@@ -796,13 +797,13 @@ class AnbProduct {
         wp_die();
     }
 
-    function getToCartAnchorHtml($parentSegment, $productId, $supplierId) {
+    function getToCartAnchorHtml($parentSegment, $productId, $supplierId, $sg='', $productType='') {
         $domain = explode('//', WP_HOME)[1];
         $directLandOrExt = (strpos($_SERVER['HTTP_REFERER'], $domain) === false || empty($_SESSION['product']['zip'])) ? true : false;
 
         $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__( 'checkout' );
         $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
-            "&provider_id=" . $supplierId . "'";
+            "&provider_id=" . $supplierId . "&sg=$sg&producttype=$productType'";
         if($directLandOrExt) {
             $toCartLinkHtml = 'data-toggle="modal" data-target="#ModalCheckAvailability"';
         }
