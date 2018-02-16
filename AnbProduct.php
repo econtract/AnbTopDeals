@@ -759,6 +759,139 @@ class AnbProduct {
         ];
     }
 
+	/**
+	 * This method is same as getProductPriceBreakdownHtmlApi, but it'll generate HTML in a different organized manner which is more readable,
+	 * another difference is it'll generate first product by default and loop over the child products inside that to display them in a specific place
+	 * E.g. Link for API: https://www.aanbieders.be/rpc?&lang_mod=nl&action=load_calc_json&pid=2855&prt=packs&opt[]‌=280&opt[]‌=425&it=full&extra_pid[]=mobile|643
+	 *
+	 * @param array $apiParams these will be API Params
+	 * @param string $someHtml
+	 * @param bool $withoutOrderBtn
+	 * @return string
+	 */
+	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true) {
+		//if language is missing get that automatically
+		if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
+			/** @var \AnbSearch\AnbCompare $anbComp */
+			$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
+			$apiParams['lang_mod'] = $anbComp->getCurrentLang();
+		}
+
+		$apiParams['opt'] = array_filter($apiParams['opt']);
+		$apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
+
+		$html = '';
+		$apiParamsHtml = http_build_query($apiParams, "&");
+		$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
+
+		$apiRes = file_get_contents($apiUrl);
+
+		$totalMonthly = '';
+		$totalYearly = '';
+		$totalAdv = '';
+		$totalAdvPrice = 0;
+		$grandTotal = 0;
+		$productCount = 0;
+		$monthlyTotal = 0;
+		$yearlyTotal = 0;
+		$advTotal = 0;
+
+		$monthlyDisc = 0;
+		$yearlyDisc = 0;
+
+		$yearlyAdvCollection = [];
+
+		if($apiRes) {
+			$apiRes = json_decode($apiRes);
+
+			$orderBtn = '';
+			if(!$withoutOrderBtn) {
+				$orderBtn = $someHtml;
+			}
+
+			$html = '<div class="AboutAllCosts">';
+			//Generate the main HTML only for main/base product
+			$oneTimeHtml = '';
+			$html        .= '<div class="MonthlyCost">';
+			$html        .= '<h5>' . $pVal->label . '</h5>';
+			$html        .= '<ul class="list-unstyled">';
+
+			foreach($apiRes as $key => $priceSec) {
+				$totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
+				$totalYearly   = $priceSec->total->display_value;
+				$totalAdv      = $priceSec->total_discount->display_value;
+				$totalAdvPrice = $priceSec->total_discount->value;
+				$monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
+				$monthlyDisc   += $priceSec->monthly_costs->subtotal_discount->value;
+				$yearlyTotal   += $priceSec->total->value;
+				$yearlyDisc    += abs( $priceSpec->total_discount );//if number is negative convert that to +ve
+				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
+				$advTotal      += $priceSec->total_discount->value;
+				$html          .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec->monthly_costs, $productCount, $yearlyAdvCollection );
+
+				if(isset($priceSec->oneoff_costs)) {
+					$oneTimeHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec->oneoff_costs, $productCount, $yearlyAdvCollection );
+				}
+				$productCount++;
+			}
+
+			$html .= '</ul>';
+			$html .= '</div>';
+
+			$html .= '<div class="MonthlyCost">';
+			$html .= '<h5>' . $pVal->label . '</h5>';
+			$html .= '<ul class="list-unstyled">';
+			$html .= $oneTimeHtml;
+			$html .= '</ul>';
+			$html .= '</div>';
+
+			$advHtml = '';
+
+			if($totalAdvPrice < 0) {
+				$advHtml = '<li><div class="total-advantage">
+                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
+                            </div></li>';
+			}
+
+			$yearlyAdvHtml = '';
+			if(!empty($yearlyAdvCollection)) {
+				foreach($yearlyAdvCollection as $adv) {
+					$yearlyAdvHtml .= '<li>
+                                     <div class="yearly-advantage">
+                                        ' . $adv['label'] . '<span class="cost-price">' . $adv['price_multiplied_display_val'] . '</span>
+                                     </div>
+                                    </li>';
+				}
+			}
+
+			//$advHtml was part of it now removing it
+			$html .=     '<div class="MonthlyCost CostAdvantage">
+                            <ul class="list-unstyled">
+                                '.$yearlyAdvHtml.'
+                                <li>
+                                    <div class="yearly-advantage">
+                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($yearlyTotal) . '</span>
+                                    </div>
+                                </li>
+                            </ul>
+                          </div>';
+			$html .= $orderBtn.
+			         '</div>';
+		}
+
+		return [
+			'html'                  => $html,
+			'monthly'               => $totalMonthly,
+			'first_year'            => $totalYearly,
+			'grand_total'           => $grandTotal,
+			'yearly_total'          => $yearlyTotal,
+			'monthly_total'         => $monthlyTotal,
+			'monthly_disc'          => $monthlyDisc,
+			'yearly_disc'           => $yearlyDisc,
+			'yearly_adv_collection' => $yearlyAdvCollection
+		];
+	}
+
     function ajaxProductPriceBreakdownHtml() {
         $apiData = [
             'pid' => $_POST['pid'],//product id
@@ -774,7 +907,8 @@ class AnbProduct {
 
         //echo "toCartPage: $toCartPage";
 
-        $priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
+        //$priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
+	    $priceBreakdown = $this->getPbsOrganizedHtmlApi($apiData);
 
         echo '<div class="CostWrap">
             <div class="TotalCostBox">
@@ -1062,5 +1196,86 @@ class AnbProduct {
 
         return array_merge($groupOptionsArray , $optionsArray);
     }
+
+	/**
+	 * @param $priceSec
+	 * @param $productCount
+	 * @param array $yearlyAdvCollection This will include the values which are negative or zero, to make a collection of all advantages
+	 *
+	 * @return string
+	 */
+	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [] ) {
+		$html = '';
+		$htmlArr = [];
+		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
+			//if some key starts with free then skip it, as it'll be automatically included during processing that specific field
+			if(strpos($lineKey, 'free_') === 0) {
+				continue;
+			}
+			$freeLineVal = $priceSec->lines->{'free_'.$lineKey};
+			$priceDisplayVal = $lineVal->product->display_value;
+			$extraClass      = '';
+			if ( !is_numeric($lineVal->product->value) ) {
+				$extraClass      = 'class="prominent"';
+				$priceDisplayVal = ucfirst($lineVal->product->display_value);
+			}
+			elseif ( $lineVal->product->value === 0 ) {
+				$extraClass      = 'class="prominent"';
+				$priceDisplayVal = pll__( 'Free' );
+			}
+			if( $lineVal->product->value <= 0 || !is_numeric($lineVal->product->value) || isset($freeLineVal) ) {
+				$yearlyLineVal = $lineVal;
+				if(isset($freeLineVal)) {
+					$yearlyLineVal = $freeLineVal;
+				}
+				$yearlyAdvPrice = $yearlyLineVal->product->value*$yearlyLineVal->multiplicand->value;
+				$yearlyAdvDisplayPrice = formatPrice($yearlyAdvPrice, 2, $yearlyLineVal->product->unit);
+				$extraClass      = 'class="prominent"';
+				if(!is_numeric($yearlyLineVal->product->value)) {
+					$yearlyAdvDisplayPrice = ucfirst($yearlyLineVal->product->display_value);
+				}
+
+				$yearlyAdvCollection[] = ['label' => $yearlyLineVal->label,
+				                          'price_value' => $yearlyLineVal->product->value,
+				                          'price_display_value' => $priceDisplayVal,
+				                          'price_multiplied_val' => $yearlyAdvPrice,
+				                          'price_multiplied_display_val' => $yearlyAdvDisplayPrice];
+			}
+
+			if(isset($freeLineVal)) {//its free part exist as well
+				$freeLinePrice = abs($freeLineVal->product->value);
+				$currLinePrice = $lineVal->product->value;
+
+				$remainingPrice = $currLinePrice - $freeLinePrice;
+
+				$priceDisplayVal = formatPrice($remainingPrice, 2, $lineVal->product->unit);
+				$freeLineDisplayPrice = formatPrice($freeLinePrice, 2, $freeLineVal->product->unit);
+
+				$priceDisplayVal = "<span style='text-decoration: line-through'>{$freeLineDisplayPrice}</span> $priceDisplayVal";
+			}
+
+			$htmlArr[] = '<li ' . $extraClass . '>' . $lineVal->label . '<span class="cost-price">' . $priceDisplayVal . '</span></li>';
+
+			if(isset($freeLineVal)) {//its free part exist as well
+				$htmlArr[] = '<li class="prominent">' . $freeLineVal->label . '</span></li>';
+			}
+
+			if($lineKey == 'discount_fee_amount_extra') {//if this exist then move it to 2nd place
+				$tmpHtml = $htmlArr[1];//storing 2nd index value in temp variable
+				$extraClass      = 'class="prominent"';
+				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
+				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
+				$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
+				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
+			}
+			if ( $productCount > 0 ) {
+				//This means that its a child product you can add remove symbol here.
+			}
+		}
+
+		$html = implode('', $htmlArr);
+
+		return $html;
+	}
 
 }
