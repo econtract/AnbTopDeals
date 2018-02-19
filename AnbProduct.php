@@ -759,6 +759,150 @@ class AnbProduct {
         ];
     }
 
+	/**
+	 * This method is same as getProductPriceBreakdownHtmlApi, but it'll generate HTML in a different organized manner which is more readable,
+	 * another difference is it'll generate first product by default and loop over the child products inside that to display them in a specific place
+	 * E.g. Link for API: https://www.aanbieders.be/rpc?&lang_mod=nl&action=load_calc_json&pid=2855&prt=packs&opt[]‌=280&opt[]‌=425&it=full&extra_pid[]=mobile|643
+	 *
+	 * @param array $apiParams these will be API Params
+	 * @param string $someHtml
+	 * @param bool $withoutOrderBtn
+	 * @return string
+	 */
+	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true) {
+		//if language is missing get that automatically
+		if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
+			/** @var \AnbSearch\AnbCompare $anbComp */
+			$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
+			$apiParams['lang_mod'] = $anbComp->getCurrentLang();
+		}
+
+		$apiParams['opt'] = array_filter($apiParams['opt']);
+		$apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
+
+		$html = '';
+		$apiParamsHtml = http_build_query($apiParams, "&");
+		$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
+
+		$apiRes = file_get_contents($apiUrl);
+
+		$totalMonthly = '';
+		$totalYearly = '';
+		$totalAdv = '';
+		$totalAdvPrice = 0;
+		$grandTotal = 0;
+		$productCount = 0;
+		$monthlyTotal = 0;
+		$yearlyTotal = 0;
+		$advTotal = 0;
+
+		$monthlyDisc = 0;
+		$yearlyDisc = 0;
+		$currencyUnit = '';
+
+		$yearlyAdvCollection = [];
+		$sectionsHtml = [];//0 for monthly, 1 for onetime, 2 for yearly
+
+		if($apiRes) {
+			$apiRes = json_decode($apiRes);
+
+			$orderBtn = '';
+			if(!$withoutOrderBtn) {
+				$orderBtn = $someHtml;
+			}
+
+			$html .= '<div class="calculationPanel">';
+			//Generate the main HTML only for main/base product
+			$oneTimeHtml = '';
+			$dynamicHtml = '';//Just to be used as container to combine all HTML
+			foreach($apiRes as $key => $priceSec) {
+				$currencyUnit  = $priceSec->total->unit;
+				$totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
+				$totalYearly   = $priceSec->total->display_value;
+				$totalAdv      = $priceSec->total_discount->display_value;
+				$totalAdvPrice = $priceSec->total_discount->value;
+				$monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
+				$monthlyDisc   += $priceSec->monthly_costs->subtotal_discount->value;
+				$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+				$oneoffDisc    += $priceSec->oneoff_costs->subtotal_discount->value;
+				$yearlyTotal   += $priceSec->total->value;
+				$yearlyDisc    += abs( $priceSpec->total_discount );//if number is negative convert that to +ve
+				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
+				$advTotal      += $priceSec->total_discount->value;
+
+				list( $monthlyHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml(
+					$dynamicHtml,
+					'pbs-monthly',
+					$priceSec->monthly_costs,
+					$productCount,
+					$monthlyTotal,
+					$yearlyAdvCollection,
+					$sectionsHtml,
+					pll__('Monthly total'),
+					pll__('PBS: Monthly total tooltip text')
+				);
+
+				$dynamicHtml .= $monthlyHtml;
+
+				if(isset($priceSec->oneoff_costs)) {
+					list( $oneoffHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml( $dynamicHtml, 'pbs-oneoff', $priceSec->oneoff_costs, $productCount, $oneoffTotal, $yearlyAdvCollection, $sectionsHtml );
+					$dynamicHtml .= $oneoffHtml;
+				}
+
+				$productCount++;
+			}
+
+			//Now use sectionHtml array to render the final HTML at this stage we can unset $dynamicHtml as that's no more required
+			unset($dynamicHtml);
+			$html .= $sectionsHtml['pbs-monthly'];
+			$html .= $sectionsHtml['pbs-oneoff'];
+
+			/*$html .= '<div class="MonthlyCost">';
+			$html .= '<h5>' . $pVal->label . '</h5>';
+			$html .= '<ul class="list-unstyled">';
+			$html .= $oneTimeHtml;
+			$html .= '</ul>';
+			$html .= '</div>';*/
+
+			/*$advHtml = '';
+
+			if($totalAdvPrice < 0) {
+				$advHtml = '<li><div class="total-advantage">
+                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
+                            </div></li>';
+			}*/
+			if(!empty($yearlyAdvCollection)) {
+				$html .= $this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+			}
+
+			//$advHtml was part of it now removing it
+			/*$html .=     '<div class="MonthlyCost CostAdvantage">
+                            <ul class="list-unstyled">
+                                '.$yearlyAdvHtml.'
+                                <li>
+                                    <div class="yearly-advantage">
+                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($yearlyTotal) . '</span>
+                                    </div>
+                                </li>
+                            </ul>
+                          </div>';*/
+			$html .= $orderBtn.
+			         '</div>';
+		}
+
+		return [
+			'html'                  => $html,
+			'monthly'               => $totalMonthly,
+			'first_year'            => $totalYearly,
+			'grand_total'           => $grandTotal,
+			'yearly_total'          => $yearlyTotal,
+			'monthly_total'         => $monthlyTotal,
+			'monthly_disc'          => $monthlyDisc,
+			'yearly_disc'           => $yearlyDisc,
+			'yearly_adv_collection' => $yearlyAdvCollection
+		];
+	}
+
     function ajaxProductPriceBreakdownHtml() {
         $apiData = [
             'pid' => $_POST['pid'],//product id
@@ -774,9 +918,10 @@ class AnbProduct {
 
         //echo "toCartPage: $toCartPage";
 
-        $priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
+        //$priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
+	    $priceBreakdown = $this->getPbsOrganizedHtmlApi($apiData);
 
-        echo '<div class="CostWrap">
+        /*echo '<div class="CostWrap">
             <div class="TotalCostBox">
                 <svg class="calculator" height="30px" viewBox="0 0 291 393" fill="#FFF">
                     <path d="M232.806181,0 L58.193819,0 C26.1918543,0 0,26.2144262 0,58.2096279 L0,334.790372 C0,366.80103 26.1918543,393 58.193819,393 L232.806181,393 C264.808146,393 291,366.80103 291,334.790372 L291,58.2096279 C291,26.2144262 264.808146,0 232.806181,0 Z M93.5644116,334.790372 C93.5644116,342.765988 86.9816801,349.350507 78.946421,349.350507 L58.193819,349.350507 C50.1585599,349.350507 43.6376381,342.765988 43.6376381,334.790372 L43.6376381,313.970306 C43.6376381,305.99469 50.1585599,299.410171 58.193819,299.410171 L78.946421,299.410171 C86.9816801,299.410171 93.5644116,305.99469 93.5644116,313.970306 L93.5644116,334.790372 Z M93.5644116,257.816408 C93.5644116,265.838394 86.9816801,272.361087 78.946421,272.361087 L58.193819,272.361087 C50.1585599,272.361087 43.6376381,265.838394 43.6376381,257.816408 L43.6376381,237.042712 C43.6376381,229.082553 50.1585599,222.498034 58.193819,222.498034 L78.946421,222.498034 C86.9816801,222.498034 93.5644116,229.082553 93.5644116,237.042712 L93.5644116,257.816408 Z M93.5644116,180.888815 C93.5644116,188.926257 86.9816801,195.44895 78.946421,195.44895 L58.193819,195.44895 C50.1585599,195.44895 43.6376381,188.926257 43.6376381,180.888815 L43.6376381,160.130575 C43.6376381,152.093133 50.1585599,145.508613 58.193819,145.508613 L78.946421,145.508613 C86.9816801,145.508613 93.5644116,152.093133 93.5644116,160.130575 L93.5644116,180.888815 Z M170.455661,334.790372 C170.455661,342.765988 163.872929,349.350507 155.914932,349.350507 L135.085068,349.350507 C127.127071,349.350507 120.544339,342.765988 120.544339,334.790372 L120.544339,313.970306 C120.544339,305.99469 127.127071,299.410171 135.085068,299.410171 L155.914932,299.410171 C163.872929,299.410171 170.455661,305.99469 170.455661,313.970306 L170.455661,334.790372 Z M170.455661,257.816408 C170.455661,265.838394 163.872929,272.361087 155.914932,272.361087 L135.085068,272.361087 C127.127071,272.361087 120.544339,265.838394 120.544339,257.816408 L120.544339,237.042712 C120.544339,229.082553 127.127071,222.498034 135.085068,222.498034 L155.914932,222.498034 C163.872929,222.498034 170.455661,229.082553 170.455661,237.042712 L170.455661,257.816408 Z M170.455661,180.888815 C170.455661,188.926257 163.872929,195.44895 155.914932,195.44895 L135.085068,195.44895 C127.127071,195.44895 120.544339,188.926257 120.544339,180.888815 L120.544339,160.130575 C120.544339,152.093133 127.127071,145.508613 135.085068,145.508613 L155.914932,145.508613 C163.872929,145.508613 170.455661,152.093133 170.455661,160.130575 L170.455661,180.888815 Z M247.362362,334.790372 C247.362362,342.765988 240.77963,349.350507 232.806181,349.350507 L211.991769,349.350507 C204.01832,349.350507 197.435588,342.765988 197.435588,334.790372 L197.435588,313.970306 C197.435588,305.99469 204.01832,299.410171 211.991769,299.410171 L232.806181,299.410171 C240.77963,299.410171 247.362362,305.99469 247.362362,313.970306 L247.362362,334.790372 Z M247.362362,257.816408 C247.362362,265.838394 240.77963,272.361087 232.806181,272.361087 L211.991769,272.361087 C204.01832,272.361087 197.435588,265.838394 197.435588,257.816408 L197.435588,237.042712 C197.435588,229.082553 204.01832,222.498034 211.991769,222.498034 L232.806181,222.498034 C240.77963,222.498034 247.362362,229.082553 247.362362,237.042712 L247.362362,257.816408 Z M247.362362,180.888815 C247.362362,188.926257 240.77963,195.44895 232.806181,195.44895 L211.991769,195.44895 C204.01832,195.44895 197.435588,188.926257 197.435588,180.888815 L197.435588,160.130575 C197.435588,152.093133 204.01832,145.508613 211.991769,145.508613 L232.806181,145.508613 C240.77963,145.508613 247.362362,152.093133 247.362362,160.130575 L247.362362,180.888815 Z M247.362362,101.920947 C247.362362,109.896563 240.77963,116.465626 232.806181,116.465626 L58.193819,116.465626 C50.2203696,116.465626 43.6376381,109.896563 43.6376381,101.920947 L43.6376381,66.5407457 C43.6376381,58.5651302 50.2203696,51.9806104 58.193819,51.9806104 L232.806181,51.9806104 C240.84144,51.9806104 247.362362,58.5033037 247.362362,66.5407457 L247.362362,101.920947 Z"
@@ -792,7 +937,39 @@ class AnbProduct {
             </div>';
 
             echo $priceBreakdown['html'];
-        echo '</div>';
+        echo '</div>';*/
+
+	    echo '<div class="newCostCalc">
+                <div class="TotalCostBox">
+                    <svg class="calculator" height="28px" viewBox="0 0 291 393" fill="#FFF">
+                        <path d="M232.806181,0 L58.193819,0 C26.1918543,0 0,26.2144262 0,58.2096279 L0,334.790372 C0,366.80103 26.1918543,393 58.193819,393 L232.806181,393 C264.808146,393 291,366.80103 291,334.790372 L291,58.2096279 C291,26.2144262 264.808146,0 232.806181,0 Z M93.5644116,334.790372 C93.5644116,342.765988 86.9816801,349.350507 78.946421,349.350507 L58.193819,349.350507 C50.1585599,349.350507 43.6376381,342.765988 43.6376381,334.790372 L43.6376381,313.970306 C43.6376381,305.99469 50.1585599,299.410171 58.193819,299.410171 L78.946421,299.410171 C86.9816801,299.410171 93.5644116,305.99469 93.5644116,313.970306 L93.5644116,334.790372 Z M93.5644116,257.816408 C93.5644116,265.838394 86.9816801,272.361087 78.946421,272.361087 L58.193819,272.361087 C50.1585599,272.361087 43.6376381,265.838394 43.6376381,257.816408 L43.6376381,237.042712 C43.6376381,229.082553 50.1585599,222.498034 58.193819,222.498034 L78.946421,222.498034 C86.9816801,222.498034 93.5644116,229.082553 93.5644116,237.042712 L93.5644116,257.816408 Z M93.5644116,180.888815 C93.5644116,188.926257 86.9816801,195.44895 78.946421,195.44895 L58.193819,195.44895 C50.1585599,195.44895 43.6376381,188.926257 43.6376381,180.888815 L43.6376381,160.130575 C43.6376381,152.093133 50.1585599,145.508613 58.193819,145.508613 L78.946421,145.508613 C86.9816801,145.508613 93.5644116,152.093133 93.5644116,160.130575 L93.5644116,180.888815 Z M170.455661,334.790372 C170.455661,342.765988 163.872929,349.350507 155.914932,349.350507 L135.085068,349.350507 C127.127071,349.350507 120.544339,342.765988 120.544339,334.790372 L120.544339,313.970306 C120.544339,305.99469 127.127071,299.410171 135.085068,299.410171 L155.914932,299.410171 C163.872929,299.410171 170.455661,305.99469 170.455661,313.970306 L170.455661,334.790372 Z M170.455661,257.816408 C170.455661,265.838394 163.872929,272.361087 155.914932,272.361087 L135.085068,272.361087 C127.127071,272.361087 120.544339,265.838394 120.544339,257.816408 L120.544339,237.042712 C120.544339,229.082553 127.127071,222.498034 135.085068,222.498034 L155.914932,222.498034 C163.872929,222.498034 170.455661,229.082553 170.455661,237.042712 L170.455661,257.816408 Z M170.455661,180.888815 C170.455661,188.926257 163.872929,195.44895 155.914932,195.44895 L135.085068,195.44895 C127.127071,195.44895 120.544339,188.926257 120.544339,180.888815 L120.544339,160.130575 C120.544339,152.093133 127.127071,145.508613 135.085068,145.508613 L155.914932,145.508613 C163.872929,145.508613 170.455661,152.093133 170.455661,160.130575 L170.455661,180.888815 Z M247.362362,334.790372 C247.362362,342.765988 240.77963,349.350507 232.806181,349.350507 L211.991769,349.350507 C204.01832,349.350507 197.435588,342.765988 197.435588,334.790372 L197.435588,313.970306 C197.435588,305.99469 204.01832,299.410171 211.991769,299.410171 L232.806181,299.410171 C240.77963,299.410171 247.362362,305.99469 247.362362,313.970306 L247.362362,334.790372 Z M247.362362,257.816408 C247.362362,265.838394 240.77963,272.361087 232.806181,272.361087 L211.991769,272.361087 C204.01832,272.361087 197.435588,265.838394 197.435588,257.816408 L197.435588,237.042712 C197.435588,229.082553 204.01832,222.498034 211.991769,222.498034 L232.806181,222.498034 C240.77963,222.498034 247.362362,229.082553 247.362362,237.042712 L247.362362,257.816408 Z M247.362362,180.888815 C247.362362,188.926257 240.77963,195.44895 232.806181,195.44895 L211.991769,195.44895 C204.01832,195.44895 197.435588,188.926257 197.435588,180.888815 L197.435588,160.130575 C197.435588,152.093133 204.01832,145.508613 211.991769,145.508613 L232.806181,145.508613 C240.77963,145.508613 247.362362,152.093133 247.362362,160.130575 L247.362362,180.888815 Z M247.362362,101.920947 C247.362362,109.896563 240.77963,116.465626 232.806181,116.465626 L58.193819,116.465626 C50.2203696,116.465626 43.6376381,109.896563 43.6376381,101.920947 L43.6376381,66.5407457 C43.6376381,58.5651302 50.2203696,51.9806104 58.193819,51.9806104 L232.806181,51.9806104 C240.84144,51.9806104 247.362362,58.5033037 247.362362,66.5407457 L247.362362,101.920947 Z"
+                              id="Fill-1"></path>
+                        <path d="M151.187305,64 C140.932362,64 136,73.0626662 136,84.5545006 C136.062435,95.7504747 140.635796,105 150.87513,105 C161.052029,105 166,96.5446259 166,84.3209267 C166,73.4208128 161.848075,64 151.187305,64 Z M151.12487,97.9460691 C147.519251,97.9460691 145.334027,93.6171667 145.396462,84.5545006 C145.334027,75.3205469 147.644121,70.9916445 151.062435,70.9916445 C154.777315,70.9916445 156.728408,75.6164071 156.728408,84.4454994 C156.665973,93.4458792 154.71488,97.9460691 151.12487,97.9460691 Z"
+                              id="Fill-2"></path>
+                        <path d="M185.171696,64 C174.869927,64 170,73.0626662 170,84.5545006 C170.062435,95.7504747 174.573361,105 184.87513,105 C194.989594,105 200,96.5446259 200,84.3209267 C200,73.4208128 195.848075,64 185.171696,64 Z M185.12487,97.9460691 C181.519251,97.9460691 179.318418,93.6171667 179.380853,84.5545006 C179.318418,75.3205469 181.644121,70.9916445 185.062435,70.9916445 C188.777315,70.9916445 190.665973,75.6164071 190.665973,84.4454994 C190.665973,93.4458792 188.71488,97.9460691 185.12487,97.9460691 Z"
+                              id="Fill-3"></path>
+                        <path d="M218.179594,64 C207.93493,64 203,73.0626662 203,84.5545006 C203.046851,95.7504747 207.575742,105 217.882874,105 C228.002603,105 233,96.5446259 233,84.3209267 C233,73.4208128 228.86153,64 218.179594,64 Z M218.117126,97.9460691 C214.525247,97.9460691 212.323269,93.6171667 212.385737,84.5545006 C212.323269,75.3205469 214.650182,70.9916445 218.054659,70.9916445 C221.78709,70.9916445 223.676731,75.6164071 223.676731,84.4454994 C223.676731,93.4458792 221.724623,97.9460691 218.117126,97.9460691 Z"
+                              id="Fill-4"></path>
+                    </svg>
+                    <div class="totalPriceWrapper">';
+
+	    if ( $priceBreakdown['monthly_disc'] > 0 ):
+		    echo '<div class="oldPrice">
+                <span class="oldPriceWrapper">
+                    <span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
+                </span>
+            </div>';
+	    endif;
+
+	    echo '<div class="totalPrice">';
+	    $priceParts = formatPriceInParts( $priceBreakdown['monthly_total'], 2, '' );
+	    echo '<span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
+                <span class="amount">' . $priceParts['price'] . '</span>
+                <span class="cents">' . $priceParts['cents'] . '</span>
+                <span class="recursion">/mth</span>
+                </div></div></div>';
+	    echo $priceBreakdown['html'];
+	    echo "</div>";
 
         wp_die();
     }
@@ -1062,5 +1239,293 @@ class AnbProduct {
 
         return array_merge($groupOptionsArray , $optionsArray);
     }
+
+	/**
+	 * @param $priceSec
+	 * @param $productCount
+	 * @param array $yearlyAdvCollection This will include the values which are negative or zero, to make a collection of all advantages
+	 *
+	 * @return string
+	 */
+	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [] ) {
+		$html = '';
+		$htmlArr = [];
+		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
+			//if some key starts with free then skip it, as it'll be automatically included during processing that specific field
+			if(strpos($lineKey, 'free_') === 0) {
+				continue;
+			}
+			$freeLineVal = $priceSec->lines->{'free_'.$lineKey};
+			$priceDisplayVal = $lineVal->product->display_value;
+			$extraClass      = '';
+			if ( !is_numeric($lineVal->product->value) ) {
+				$extraClass      = 'class="prominent"';
+				$priceDisplayVal = ucfirst($lineVal->product->display_value);
+			}
+			elseif ( $lineVal->product->value === 0 ) {
+				$extraClass      = 'class="prominent"';
+				$priceDisplayVal = pll__( 'Free' );
+			}
+			if( $lineVal->product->value <= 0 || !is_numeric($lineVal->product->value) || isset($freeLineVal) ) {
+				$yearlyLineVal = $lineVal;
+				if(isset($freeLineVal)) {
+					$yearlyLineVal = $freeLineVal;
+				}
+				$yearlyAdvPrice = $yearlyLineVal->product->value*$yearlyLineVal->multiplicand->value;
+				$yearlyAdvDisplayPrice = formatPrice($yearlyAdvPrice, 2, $yearlyLineVal->product->unit);
+				$extraClass      = 'class="prominent"';
+				if(!is_numeric($yearlyLineVal->product->value)) {
+					$yearlyAdvDisplayPrice = ucfirst($yearlyLineVal->product->display_value);
+				}
+
+				$yearlyAdvCollection[] = ['label' => $yearlyLineVal->label,
+				                          'price_value' => $yearlyLineVal->product->value,
+				                          'price_display_value' => $priceDisplayVal,
+				                          'price_multiplied_val' => $yearlyAdvPrice,
+				                          'price_multiplied_display_val' => $yearlyAdvDisplayPrice];
+			}
+
+			$hasOldPrice = false;
+			$hasOldPriceClass = '';
+			$oldPriceHtml = '';
+			$promoPriceHtml = '';
+			if(isset($freeLineVal)) {//its free part exist as well
+				$hasOldPrice = true;
+				$hasOldPriceClass = 'hasOldPrice';
+				$freeLinePrice = abs($freeLineVal->product->value);
+				$currLinePrice = $lineVal->product->value;
+
+				$remainingPrice = $currLinePrice - $freeLinePrice;
+
+				$priceDisplayVal = formatPrice($remainingPrice, 2, $lineVal->product->unit);
+				$freeLineDisplayPrice = formatPrice($freeLinePrice, 2, $freeLineVal->product->unit);
+
+				//$priceDisplayVal = "<span style='text-decoration: line-through'>{$freeLineDisplayPrice}</span> $priceDisplayVal";
+				$oldPriceHtml = '<span class="oldPrice">'.$freeLineDisplayPrice.'</span>';
+
+				$promoPriceHtml = $this->generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal );
+			}
+
+			$priceDetailHtml = $this->generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml );
+
+			$htmlArr[] = $priceDetailHtml;
+
+			if($lineKey == 'discount_fee_amount_extra') {//if this exist then move it to 2nd place
+				$tmpHtml = $htmlArr[1];//storing 2nd index value in temp variable
+				$extraClass      = 'class="prominent"';
+				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
+				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
+				//$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
+				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal ) );
+				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
+			}
+			if ( $productCount > 0 ) {
+				//This means that its a child product you can add remove symbol here.
+			}
+		}
+
+		$html .= implode( '', $htmlArr );
+
+		return $html;
+	}
+
+	/**
+	 * @param $lineVal
+	 * @param $oldPriceHtml
+	 * @param $hasOldPriceClass
+	 * @param $promoPriceHtml
+	 *
+	 * @return string
+	 */
+	private function generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml ) {
+		$priceText = '';
+		if(!is_numeric($lineVal->product->value)) {
+			$priceText = ucfirst($lineVal->product->value);
+		}
+		$priceArr = formatPriceInParts( $lineVal->product->value, 2, $lineVal->product->unit );
+
+		$currPriceHtml = '<span class="currentPrice">
+					                <span class="currency">' . $priceArr['currency'] . '</span>
+					                <span class="amount">' . $priceArr['price'] . '</span>
+					                <span class="cents">' . $priceArr['cents'] . '</span>
+					            </span>';
+
+		if($priceText) {
+			$currPriceHtml = '<span class="currentPrice">'.$priceText.'</span>';
+		}
+
+		$currOldPriceHtml = '<div class="packagePrice">
+				            ' . $oldPriceHtml . $currPriceHtml . '
+				            </div>';
+
+		$priceDetailHtml = '<li class="packOption">
+								<div class="packageDetail">
+								<div class="packageDesc ' . $hasOldPriceClass . '">' . $lineVal->label . '</div>
+					            ' . $currOldPriceHtml . $promoPriceHtml . '
+					            </div>
+					            </li>';
+
+		return $priceDetailHtml;
+	}
+
+	/**
+	 * @param $freeLineDisplayPrice
+	 * @param $freeLineVal
+	 *
+	 * @return string
+	 */
+	private function generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) {
+		$promoPriceHtml = '<div class="packagePromo">
+					                <ul class="list-unstyled">
+					                    <li class="promo prominent">' . $freeLineDisplayPrice . ' ' . $freeLineVal->label . '</li>
+					                </ul>
+					            </div>';
+
+		return $promoPriceHtml;
+	}
+
+	/**
+	 * @param $total
+	 * @param $priceSec
+	 *
+	 * @return string
+	 */
+	private function generatePbsSectionTotalHtml( $total, $priceSec, $infoTextLabel = '', $infoTextHelpText = '' ) {
+		$sectionTotalPriceArr = formatPriceInParts( $total, 2, $priceSec->subtotal->unit );
+		$infoTextHtml = '';
+		if($infoTextHelpText) {
+			$infoTextHtml = '<div class="additionalInfo">
+                                <p>' . $infoTextLabel . ' <a href="#" class="tip" data-toggle="tooltip" title="<p>' . $infoTextHelpText . '</p>">?</a></p>
+                            </div>';
+		}
+		$sectionTotalHtml     = '<div class="calcPanelTotal">
+			                            <div class="packageTotal">
+			                                <span class="caption">' . $priceSec->label . '</span>
+			                                <span class="price">
+                                                <span class="currency">' . $sectionTotalPriceArr['currency'] . '</span>
+                                                <span class="amount">' . $sectionTotalPriceArr['price'] . '</span>
+                                                <span class="cents">' . $sectionTotalPriceArr['cents'] . '</span>
+                                            </span>
+			                            </div>
+			                            <!-- optional additonal Info -->
+			                            '.$infoTextHtml.'
+			                            <!-- optional additonal Info -->
+			                        </div>';
+
+		return $sectionTotalHtml;
+	}
+
+	/**
+	 * @param $existingHtml
+	 * @param $priceSec
+	 * @param $productCount
+	 * @param $total
+	 * @param $yearlyAdvCollection
+	 * @param string $infoTextLabel
+	 * @param string $infoText
+	 *
+	 * @return array
+	 */
+	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection, &$sectionsHtml, $infoTextLabel='', $infoText='' ) {
+		$html = '<div class="calcSection '.$pbsSectionClass.'">';
+		$html .= '<div class="calcPanelHeader">';
+		$html .= '<h5>' . $priceSec->label . '</h5>';
+		$html .= '<i class="aan-icon panelOpen fa fa-chevron-down"></i>
+                            	 <i class="aan-icon panelClose fa fa-chevron-right"></i>';
+		$html .= '</div>';
+		$html .= '<div class="calcPanelOptions">
+                    <ul class="list-unstyled">';
+		$itemsHtml = '';
+
+		//adjust this new HTML to existing html if some already exists like monthly, that should get generated once
+		if(preg_match('/<div class="calcSection '.$pbsSectionClass.'">/', $existingHtml)) {
+			$d = new \DOMDocument();
+			$d->loadHTML('<?xml encoding="utf-8" ?>' . $existingHtml);//UTF8 encoding is required to keep the data clean
+
+			$xpath = new \DOMXPath($d);
+			$nodes = $xpath->query('//div[contains(@class, "'.$pbsSectionClass.'")]');//searching for the section
+			$nodeDic = [];//ensure duplicates are never added
+			foreach($nodes as $node) {
+				$existingItems = $xpath->query('descendant::li[contains(@class, "packOption")]', $node);//searching for actual items
+				foreach($existingItems as $item) {
+					$nodeHash = crc32($item->textContent);
+					if(!$nodeDic[$nodeHash]) {
+						$itemsHtml .= $item->ownerDocument->saveHTML($item);
+						$nodeDic[$nodeHash] = true;
+					}
+				}
+			}
+		}
+		$itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, $yearlyAdvCollection );
+
+		$html .= $itemsHtml;
+		$html .= '</ul></div>';//end of price section
+
+		$html .= $this->generatePbsSectionTotalHtml( $total, $priceSec );
+		$html .= '</div>';
+
+		$sectionsHtml[$pbsSectionClass] = $html;
+
+		return array( $html, $yearlyAdvCollection, $infoTextLabel, $infoText );
+	}
+
+	/**
+	 * @param $yearlyAdvCollection
+	 */
+	private function generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currency ) {
+		$totalAdv = 0;
+		$html     = '<div class="calcSection blue">
+                        <!--heading-->
+                        <div class="calcPanelHeader">
+                            <h6>' . pll__( 'Year profit' ) . '</h6>
+                            <i class="aan-icon panelOpen fa fa-chevron-down"></i>
+                            <i class="aan-icon panelClose fa fa-chevron-right"></i>
+                        </div>
+                        <!--heading-->
+                        <!--options-->
+                        <div class="calcPanelOptions">
+                            <ul class="list-unstyled">';
+
+		foreach ( $yearlyAdvCollection as $adv ) {
+			$totalAdv += $adv['price_multiplied_val'];
+			$priceArr = formatPriceInParts( $adv['price_multiplied_val'], 2, $currency );
+			$negativeSign = '';
+			if($priceArr['price'] > 0) {
+				$negativeSign = '- ';
+			}
+			$html .= '<li class="packOption">
+                        <div class="packageDetail no-padding">
+                            <div class="packageDesc">' . $adv['label'] . '</div>
+                            <div class="packagePrice">
+                                <span class="currentPrice">
+                                    <span class="currency">' . $negativeSign.$priceArr['currency'] . '</span>
+                                    <span class="amount">' . abs($priceArr['price']) . '</span>
+                                    <span class="cents">' . $priceArr['cents'] . '</span>
+                                </span>
+                            </div>
+                        </div>
+                    </li>';
+		}
+		$advArr   = formatPriceInParts( $totalAdv, 2, $currency );
+		$html     .= '</ul>
+                        </div>
+                        <!--options-->
+
+                        <!--total for section-->
+                        <div class="calcPanelTotal">
+                            <div class="packageTotal">
+                                <span class="caption">' . pll__( 'Your advantage' ) . '</span>
+                                <span class="price">
+                                    <span class="currency">' . $advArr['currency'] . '</span>
+                                    <span class="amount">' . abs($advArr['price']) . '</span>
+                                    <span class="cents">' . $advArr['cents'] . '</span>
+                                </span>
+                            </div>
+                        </div>
+                        <!--total for section-->
+                    </div>';
+
+		return $html;
+	}
 
 }
