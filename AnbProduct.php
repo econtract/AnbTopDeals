@@ -984,9 +984,11 @@ class AnbProduct {
         if($directLandOrExt) {
             $toCartLinkHtml = 'data-toggle="modal" data-target="#ModalCheckAvailability"';
         }
-        $toCartLinkHtml = '<div class="buttonWrapper"><a '.$toCartLinkHtml.' class="btn btn-primary all-caps">'.pll__('configure your pack').'</a></div>';
+	    $justCartLinkHtml = '<a ' . $toCartLinkHtml . ' class="btn btn-primary all-caps">' . pll__( 'configure your pack' ) . '</a>';
+	    $oldCartLinkHtml  = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
+	    $toCartLinkHtml   = '<div class="buttonWrapper">' . $justCartLinkHtml . '</div>';
 
-        return [$toCartLinkHtml, $directLandOrExt];
+        return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml];
     }
 
 	/**
