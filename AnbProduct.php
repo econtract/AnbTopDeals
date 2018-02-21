@@ -9,6 +9,7 @@
 namespace AnbTopDeals;
 
 use AnbApiClient\Aanbieders;
+use AnbSearch\AnbCompare;
 
 class AnbProduct {
 
@@ -498,14 +499,25 @@ class AnbProduct {
 		return $promoSec;
 	}
 
-	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = false, $productData = '' ) {
+	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = false, $productData = [] ) {
 		if ( $calcHtml ) {
-			$calcHtml = '<span class="calc">
-                            <a href="#" data-toggle="modal" data-target="#calcBreakdown' . $productData['product_id'] . '">
-                                    <i class="custom-icons calc"></i>
+			/**
+			'pid' => $_REQUEST['pid'],//product id
+			'prt' => $_REQUEST['prt'],//product type like internet, packs or energy
+			'it'  => $_REQUEST['it'],//Installation type like full/diy
+			'opt' => array_filter($_REQUEST['opt']),//array options
+			'extra_pid' => array_filter($_REQUEST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
+			 */
+			$href = "action=ajaxProductPriceBreakdownHtml&pid={$productData['product_id']}&prt={$productData['producttype']}";
+			//Ref: https://stackoverflow.com/questions/19663555/bootstrap-3-how-to-load-content-in-modal-body-via-ajax
+
+			//old code without ajax call
+			/*$calcHtml = '<span class="calc">
+                            <a href="'.$href.'" data-toggle="modal" data-target="#calcPbsModal">
+                                <i class="custom-icons calc"></i>
                             </a>
                          </span>';
-			$this->calculatorPopup( $productData );
+			$this->calculatorPopup( $productData );*/
 		}
 
 		$priceSec = '<div class="' . $cssClass . '">
@@ -905,11 +917,11 @@ class AnbProduct {
 
     function ajaxProductPriceBreakdownHtml() {
         $apiData = [
-            'pid' => $_POST['pid'],//product id
-            'prt' => $_POST['prt'],//product type like internet, packs or energy
-            'it'  => $_POST['it'],//Installation type like full/diy
-            'opt' => array_filter($_POST['opt']),//array options
-            'extra_pid' => array_filter($_POST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
+            'pid' => $_REQUEST['pid'],//product id
+            'prt' => $_REQUEST['prt'],//product type like internet, packs or energy
+            'it'  => $_REQUEST['it'],//Installation type like full/diy
+            'opt' => array_filter($_REQUEST['opt']),//array options
+            'extra_pid' => array_filter($_REQUEST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
         ];
 
         $apiData = array_filter($apiData);//cleaning empty values
@@ -1431,7 +1443,7 @@ class AnbProduct {
 	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection, &$sectionsHtml, $infoTextLabel='', $infoText='' ) {
 		$html = '<div class="calcSection '.$pbsSectionClass.'">';
 		$html .= '<div class="calcPanelHeader">';
-		$html .= '<h5>' . $priceSec->label . '</h5>';
+		$html .= '<h6>' . $priceSec->label . '</h6>';
 		$html .= '<i class="aan-icon panelOpen fa fa-chevron-down"></i>
                             	 <i class="aan-icon panelClose fa fa-chevron-right"></i>';
 		$html .= '</div>';
