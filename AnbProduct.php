@@ -855,6 +855,7 @@ class AnbProduct {
 					$monthlyTotal,
 					$yearlyAdvCollection,
 					$sectionsHtml,
+					pll__('Monthly costs'),
 					pll__('Monthly total'),
 					pll__('PBS: Monthly total tooltip text')
 				);
@@ -862,7 +863,7 @@ class AnbProduct {
 				$dynamicHtml .= $monthlyHtml;
 
 				if(isset($priceSec->oneoff_costs)) {
-					list( $oneoffHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml( $dynamicHtml, 'pbs-oneoff', $priceSec->oneoff_costs, $productCount, $oneoffTotal, $yearlyAdvCollection, $sectionsHtml );
+					list( $oneoffHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml( $dynamicHtml, 'pbs-oneoff', $priceSec->oneoff_costs, $productCount, $oneoffTotal, $yearlyAdvCollection, $sectionsHtml, pll__('One-time costs') );
 					$dynamicHtml .= $oneoffHtml;
 				}
 
@@ -889,7 +890,10 @@ class AnbProduct {
                             </div></li>';
 			}*/
 			if(!empty($yearlyAdvCollection)) {
-				$html .= $this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+				list($yearlyHtml, $totalAdv) = $this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+				if($totalAdv > 0) {
+					$html .= $yearlyTotal;
+				}
 			}
 
 			//$advHtml was part of it now removing it
@@ -1455,10 +1459,13 @@ class AnbProduct {
 	 *
 	 * @return array
 	 */
-	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection, &$sectionsHtml, $infoTextLabel='', $infoText='' ) {
+	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection, &$sectionsHtml, $sectionTitle = '', $infoTextLabel='', $infoText='' ) {
+		if(empty($sectionTitle)) {
+			$sectionTitle = $priceSec->label;
+		}
 		$html = '<div class="calcSection '.$pbsSectionClass.'">';
 		$html .= '<div class="calcPanelHeader">';
-		$html .= '<h6>' . $priceSec->label . '</h6>';
+		$html .= '<h6>' . $sectionTitle . '</h6>';
 		$html .= '<i class="aan-icon panelOpen fa fa-chevron-down"></i>
                             	 <i class="aan-icon panelClose fa fa-chevron-right"></i>';
 		$html .= '</div>';
@@ -1516,6 +1523,10 @@ class AnbProduct {
                             <ul class="list-unstyled">';
 
 		foreach ( $yearlyAdvCollection as $adv ) {
+			if($adv['price_multiplied_val'] == 0) {
+				continue;
+			}
+
 			$totalAdv += $adv['price_multiplied_val'];
 			$priceArr = formatPriceInParts( $adv['price_multiplied_val'], 2, $currency );
 			$negativeSign = '';
@@ -1554,7 +1565,7 @@ class AnbProduct {
                         <!--total for section-->
                     </div>';
 
-		return $html;
+		return [$html, $totalAdv];
 	}
 
 }
