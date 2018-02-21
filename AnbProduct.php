@@ -797,6 +797,10 @@ class AnbProduct {
 		$apiParamsHtml = http_build_query($apiParams, "&");
 		$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
 
+		if($_GET['debug']) {
+			echo "<pre>$apiUrl</pre>";;
+		}
+
 		$apiRes = file_get_contents($apiUrl);
 
 		$totalMonthly = '';
@@ -835,13 +839,13 @@ class AnbProduct {
 				$totalAdv      = $priceSec->total_discount->display_value;
 				$totalAdvPrice = $priceSec->total_discount->value;
 				$monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
-				$monthlyDisc   += $priceSec->monthly_costs->subtotal_discount->value;
+				$monthlyDisc   += abs($priceSec->monthly_costs->subtotal_discount->value);
 				$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
-				$oneoffDisc    += $priceSec->oneoff_costs->subtotal_discount->value;
+				$oneoffDisc    += abs($priceSec->oneoff_costs->subtotal_discount->value);
 				$yearlyTotal   += $priceSec->total->value;
 				$yearlyDisc    += abs( $priceSpec->total_discount );//if number is negative convert that to +ve
 				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
-				$advTotal      += $priceSec->total_discount->value;
+				$advTotal      += abs($priceSec->total_discount->value);
 
 				list( $monthlyHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml(
 					$dynamicHtml,
@@ -970,6 +974,7 @@ class AnbProduct {
 		    echo '<div class="oldPrice">
                 <span class="oldPriceWrapper">
                     <span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
+                    <span class="amount">'.formatPrice($priceBreakdown['monthly_disc']+$priceBreakdown['monthly_total'], 2, '', '', false, true).'</span>
                 </span>
             </div>';
 	    endif;
@@ -1271,6 +1276,9 @@ class AnbProduct {
 				continue;
 			}
 			$freeLineVal = $priceSec->lines->{'free_'.$lineKey};
+			if($lineKey == 'installation' && empty($freeLineVal)) {
+				$freeLineVal = $priceSec->lines->{'free_install'};//An exception for installation as its keys doesn't match in API when free
+			}
 			$priceDisplayVal = $lineVal->product->display_value;
 			$extraClass      = '';
 			if ( !is_numeric($lineVal->product->value) ) {
@@ -1304,10 +1312,12 @@ class AnbProduct {
 			$hasOldPriceClass = '';
 			$oldPriceHtml = '';
 			$promoPriceHtml = '';
+			$offerPrice = 0;
+			$actualPrice = $lineVal->product->value;
 			if(isset($freeLineVal)) {//its free part exist as well
 				$hasOldPrice = true;
 				$hasOldPriceClass = 'hasOldPrice';
-				$freeLinePrice = abs($freeLineVal->product->value);
+				$offerPrice = $freeLinePrice = abs($freeLineVal->product->value);
 				$currLinePrice = $lineVal->product->value;
 
 				$remainingPrice = $currLinePrice - $freeLinePrice;
@@ -1321,7 +1331,7 @@ class AnbProduct {
 				$promoPriceHtml = $this->generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal );
 			}
 
-			$priceDetailHtml = $this->generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml );
+			$priceDetailHtml = $this->generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice );
 
 			$htmlArr[] = $priceDetailHtml;
 
@@ -1331,7 +1341,7 @@ class AnbProduct {
 				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
 				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
 				//$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
-				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal ) );
+				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal, $actualPrice, $offerPrice ) );
 				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
 			}
 			if ( $productCount > 0 ) {
@@ -1352,12 +1362,16 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	private function generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml ) {
+	private function generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice ) {
 		$priceText = '';
 		if(!is_numeric($lineVal->product->value)) {
 			$priceText = ucfirst($lineVal->product->value);
 		}
-		$priceArr = formatPriceInParts( $lineVal->product->value, 2, $lineVal->product->unit );
+		$priceArr = formatPriceInParts( $lineVal->product->value - $offerPrice, 2, $lineVal->product->unit );
+
+		if($offerPrice == 0) {
+			$oldPriceHtml = '';
+		}
 
 		$currPriceHtml = '<span class="currentPrice">
 					                <span class="currency">' . $priceArr['currency'] . '</span>
