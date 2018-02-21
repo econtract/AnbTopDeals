@@ -890,9 +890,9 @@ class AnbProduct {
                             </div></li>';
 			}*/
 			if(!empty($yearlyAdvCollection)) {
-				list($yearlyHtml, $totalAdv) = $this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
-				if($totalAdv > 0) {
-					$html .= $yearlyTotal;
+				list($yearlyHtml, $yearlyAdvTotal) = $this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+				if($yearlyAdvTotal != 0) {
+					$html .= $yearlyHtml;
 				}
 			}
 
