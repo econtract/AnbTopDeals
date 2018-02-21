@@ -511,13 +511,14 @@ class AnbProduct {
 			$href = "action=ajaxProductPriceBreakdownHtml&pid={$productData['product_id']}&prt={$productData['producttype']}";
 			//Ref: https://stackoverflow.com/questions/19663555/bootstrap-3-how-to-load-content-in-modal-body-via-ajax
 
-			//old code without ajax call
-			/*$calcHtml = '<span class="calc">
+			$calcHtml = '<span class="calc">
                             <a href="'.$href.'" data-toggle="modal" data-target="#calcPbsModal">
                                 <i class="custom-icons calc"></i>
                             </a>
                          </span>';
-			$this->calculatorPopup( $productData );*/
+
+			//old code without ajax call
+			//$this->calculatorPopup( $productData );
 		}
 
 		$priceSec = '<div class="' . $cssClass . '">
