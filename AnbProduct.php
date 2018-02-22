@@ -857,13 +857,15 @@ class AnbProduct {
 					$sectionsHtml,
 					pll__('Monthly costs'),
 					pll__('Monthly total'),
+					pll__('First month'),
 					pll__('PBS: Monthly total tooltip text')
 				);
 
 				$dynamicHtml .= $monthlyHtml;
 
 				if(isset($priceSec->oneoff_costs)) {
-					list( $oneoffHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml( $dynamicHtml, 'pbs-oneoff', $priceSec->oneoff_costs, $productCount, $oneoffTotal, $yearlyAdvCollection, $sectionsHtml, pll__('One-time costs') );
+					list( $oneoffHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml( $dynamicHtml, 'pbs-oneoff', $priceSec->oneoff_costs, $productCount,
+						$oneoffTotal, $yearlyAdvCollection, $sectionsHtml, pll__('One-time costs'), pll__('One-time total') );
 					$dynamicHtml .= $oneoffHtml;
 				}
 
@@ -1423,9 +1425,14 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	private function generatePbsSectionTotalHtml( $total, $priceSec, $infoTextLabel = '', $infoTextHelpText = '' ) {
+	private function generatePbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel, $infoTextLabel = '', $infoTextHelpText = '' ) {
 		$sectionTotalPriceArr = formatPriceInParts( $total, 2, $priceSec->subtotal->unit );
 		$infoTextHtml = '';
+
+		if(empty($sectionTotalLabel)) {
+			$sectionTotalLabel = $priceSec->label;
+		}
+
 		if($infoTextHelpText) {
 			$infoTextHtml = '<div class="additionalInfo">
                                 <p>' . $infoTextLabel . ' <a href="#" class="tip" data-toggle="tooltip" title="<p>' . $infoTextHelpText . '</p>">?</a></p>
@@ -1433,7 +1440,7 @@ class AnbProduct {
 		}
 		$sectionTotalHtml     = '<div class="calcPanelTotal">
 			                            <div class="packageTotal">
-			                                <span class="caption">' . $priceSec->label . '</span>
+			                                <span class="caption">' . $sectionTotalLabel . '</span>
 			                                <span class="price">
                                                 <span class="currency">' . $sectionTotalPriceArr['currency'] . '</span>
                                                 <span class="amount">' . $sectionTotalPriceArr['price'] . '</span>
@@ -1459,7 +1466,8 @@ class AnbProduct {
 	 *
 	 * @return array
 	 */
-	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection, &$sectionsHtml, $sectionTitle = '', $infoTextLabel='', $infoText='' ) {
+	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
+		&$sectionsHtml, $sectionTitle = '', $sectionTotalLabel='', $infoTextLabel='', $infoText='' ) {
 		if(empty($sectionTitle)) {
 			$sectionTitle = $priceSec->label;
 		}
@@ -1497,7 +1505,7 @@ class AnbProduct {
 		$html .= $itemsHtml;
 		$html .= '</ul></div>';//end of price section
 
-		$html .= $this->generatePbsSectionTotalHtml( $total, $priceSec );
+		$html .= $this->generatePbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel, $infoTextLabel, $infoText );
 		$html .= '</div>';
 
 		$sectionsHtml[$pbsSectionClass] = $html;
