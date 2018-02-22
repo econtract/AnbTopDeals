@@ -1281,6 +1281,9 @@ class AnbProduct {
 			if(strpos($lineKey, 'free_') === 0) {
 				continue;
 			}
+			if($lineVal == -1 && $lineKey == 'installation') {//-1 for installation means that this is not possible so skip it
+				continue;
+			}
 			$freeLineVal = $priceSec->lines->{'free_'.$lineKey};
 			if($lineKey == 'installation' && empty($freeLineVal)) {
 				$freeLineVal = $priceSec->lines->{'free_install'};//An exception for installation as its keys doesn't match in API when free
