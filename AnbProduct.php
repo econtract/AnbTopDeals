@@ -922,7 +922,8 @@ class AnbProduct {
 			'monthly_total'         => $monthlyTotal,
 			'monthly_disc'          => $monthlyDisc,
 			'yearly_disc'           => $yearlyDisc,
-			'yearly_adv_collection' => $yearlyAdvCollection
+			'yearly_adv_collection' => $yearlyAdvCollection,
+			'currency_unit'         => $currencyUnit
 		];
 	}
 
@@ -1332,10 +1333,10 @@ class AnbProduct {
 				$remainingPrice = $currLinePrice - $freeLinePrice;
 
 				$priceDisplayVal = formatPrice($remainingPrice, 2, $lineVal->product->unit);
-				$freeLineDisplayPrice = formatPrice($freeLinePrice, 2, $freeLineVal->product->unit);
+				$freeLineDisplayPrice = formatPrice($freeLinePrice, 2, '', '', true, true);
 
 				//$priceDisplayVal = "<span style='text-decoration: line-through'>{$freeLineDisplayPrice}</span> $priceDisplayVal";
-				$oldPriceHtml = '<span class="oldPrice">'.$freeLineDisplayPrice.'</span>';
+				$oldPriceHtml = '<span class="oldPrice">'.$freeLineVal->product->unit.' '.$freeLineDisplayPrice.'</span>';
 
 				$promoPriceHtml = $this->generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal );
 			}
