@@ -1088,7 +1088,7 @@ class AnbProduct {
 	public function getPriceInfo( array $prd, $onlyNumericData = false ) {
 		$advPrice = '&nbsp;';
 
-		if ( ! empty( $prd['advantage'] ) ) {
+		if ( ! empty( $prd['advantage'] ) && $prd['advantage'] > 0 ) {//only include +ve values in advantage
 			if ( $onlyNumericData ) {
 				$advPrice = $prd['advantage'];
 			} else {
