@@ -1351,7 +1351,7 @@ class AnbProduct {
 				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
 				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
 				//$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
-				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal, $actualPrice, $offerPrice ) );
+				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal), $offerPrice );
 				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
 			}
 			if ( $productCount > 0 ) {
