@@ -197,7 +197,7 @@ class AnbProduct {
 		return $buffer;
 	}
 
-	function getActivationOrInstPriceHtml( $priceDetailArray, $key, $currencySymbol = '', $onlyArray = false, $withFirstTerm = true ) {
+	function getActivationOrInstPriceHtml( $priceDetailArray, $key, $currencySymbol = '', $onlyArray = false, $withFirstTerm = true, &$totalOnetimeAmount = 0.00 ) {
 		//translations in function: pll__('Free installation'), pll__('Free activation'), pll__('Installation'), pll__('t.w.v')
 		$html         = '';
 		$firstTerm    = explode( '_', $key )[0];//first term before underscore like installation from installation_full
@@ -238,17 +238,23 @@ class AnbProduct {
 
 		//display installation and activation price
 		if ( $priceDetailArray[ $key ] > 0 ) {
+			$oldPriceArr = formatPriceInParts($priceDetailArray[ $key ], 2, $currencySymbol);
+			$oldPriceHtml = '<span class="cutPrice"><span class="amount">'.$oldPriceArr['currency'].$oldPriceArr['price'].'</span><span class="cents">'.$oldPriceArr['cents'].'</span></span>';
+			$actualPriceArr = formatPriceInParts($priceDetailArray[ $key ], 2, $currencySymbol);
+			$actualPriceHtml = '<span class="bold"><span class="amount">'.$actualPriceArr['currency'].$actualPriceArr['price'].'</span><span class="cents">'.$actualPriceArr['cents'].'</span></span>';
+			$promoPriceArr = formatPriceInParts($priceDetailArray[ $key . '_promo' ], 2, $currencySymbol);
+			$promoPriceHtml = '<span class="bold"><span class="amount">'.$promoPriceArr['currency'].$promoPriceArr['price'].'</span><span class="cents">'.$promoPriceArr['cents'].'</span></span>';
 			if ( $priceDetailArray[ $key . '_promo' ] > 0
 			     && $priceDetailArray[ $key . '_promo' ] != $priceDetailArray[ $key ]
 			) {//there is a promotional price as well
-				$html .= '<li class="prominent">' . pll__( $firstTermLbl ) . ' ' . formatPrice($priceDetailArray[ $key . '_promo' ], 2, $currencySymbol) .
-				         ' ' . pll__( 't.w.v' ) . ' ' . $priceDetailArray[ $key ] .
-				         $currencySymbol . '</li>';
+				$totalOnetimeAmount += $priceDetailArray[ $key . '_promo' ];
+				$html .= '<li class="prominent">' . pll__( $firstTermLbl ) . ' ' . $promoPriceHtml .
+				         ' ' . $oldPriceHtml . '</li>';
 			} elseif ( $priceDetailArray[ $key . '_promo' ] == 0 ) {
-				$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . ' ' . pll__( 't.w.v' ) .
-				         ' ' . formatPrice($priceDetailArray[ $key ], 2, $currencySymbol) . '</li>';
+				$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . ' ' . $oldPriceHtml . '</li>';
 			} else {
-				$html .= '<li>' . pll__( $firstTermLbl ) . ' ' . formatPrice(round( $priceDetailArray[ $key ] ), 2, $currencySymbol) . '</li>';
+				$totalOnetimeAmount += $priceDetailArray[ $key ];
+				$html .= '<li class="bulletTick">' . pll__( $firstTermLbl ) . ' ' . $actualPriceHtml . '</li>';
 			}
 		} else {
 			$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . '</li>';
@@ -405,8 +411,19 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	public function getPriceHtml( array $prd ) {
+	public function getPriceHtml( array $prd, $withCalcHtml = false ) {
 		$priceHtml = '';
+		$calcHtml = '';
+
+		if ( $withCalcHtml ) {
+			$href = "action=ajaxProductPriceBreakdownHtml&pid={$prd['product_id']}&prt={$prd['producttype']}";
+
+			$calcHtml = '<span class="calc">
+                    <a href="'.$href.'" data-toggle="modal" data-target="#calcPbsModal">
+                        <i class="custom-icons calc"></i>
+                    </a>
+                 </span>';
+		}
 
 		if ( $prd['monthly_price_chunk']['cents'] == "000" ) {
 			$prd['monthly_price_chunk']['cents'] = "00";
@@ -425,8 +442,10 @@ class AnbProduct {
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
 				$priceHtml .= '<span class="cents">' . substr($prd['monthly_promo_price_chunk']['cents'], 0, 2) . '</span>';
 			}
-			$priceHtml .= '<span class="recursion">/mth</span></span>
-                               </div>';
+			$priceHtml .= '<span class="recursion">/mth</span>
+						   '.$calcHtml.'
+						</span>
+                       </div>';
 		} else {
             $priceHtml .= '<div class="oldPrice"></div>';
 			$priceHtml .= '<div class="newPrice">
@@ -434,8 +453,10 @@ class AnbProduct {
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
 				$priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
 			}
-			$priceHtml .= '<span class="recursion">/mth</span></span>
-                               </div>';
+			$priceHtml .= '<span class="recursion">/mth</span>
+						   '.$calcHtml.'
+						</span>
+                       </div>';
 		}
 
 		return $priceHtml;
@@ -462,15 +483,19 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	public function getPromoInternalSection( array $prd, $withoutPromoList = false ) {
+	public function getPromoInternalSection( array $prd, $withoutPromoList = false, $withTotalOnetimeCost = false ) {
 		$promotionHtml = '';
-		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'installation_full', getCurrencySymbol( $prd['currency_unit'] ) );
-		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'activation', getCurrencySymbol( $prd['currency_unit'] ) );
+		$totalOnetimeAmount = 0;
+		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'installation_full', getCurrencySymbol( $prd['currency_unit'] ), false, true, $totalOnetimeAmount );
+		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'activation', getCurrencySymbol( $prd['currency_unit'] ), false, true, $totalOnetimeAmount );
+		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'modem', getCurrencySymbol( $prd['currency_unit'] ), false, true, $totalOnetimeAmount );
+
+		//will block other promtions except from one-off costs like installation and activation
 		if ( ! $withoutPromoList ) {
 			$promotionHtml .= $this->getPromoHtml( $prd );
 		}
 
-		return $promotionHtml;
+		return ($withTotalOnetimeCost) ? [$promotionHtml, $totalOnetimeAmount] : $promotionHtml;
 	}
 
 	public function getServiceIconsSection( $servicesHtml ) {
@@ -483,54 +508,60 @@ class AnbProduct {
 		return $serviceSec;
 	}
 
-	public function getPromoSection( $promotionHtml, $advPrice, $cssClass = 'dealFeatures', $appendHtml = '' ) {
+	public function getPromoSection( $promotionHtml, $advPrice, $cssClass = 'dealFeatures', $appendHtml = '', $withOnetimeCostLabel = false, $oneTimeTotalCost = 0 ) {
+		$oneTimeCostLabel = '';
+		if($withOnetimeCostLabel) {
+			$oneTimeCostLabel = '<h6>'.pll__('One-time costs').'</h6>';
+		}
+		$advHtml = '';
+		if(is_numeric($advPrice) && $advPrice > 0) {
+			$advPriceArr = formatPriceInParts($advPrice, 2);
+			$advHtml = '<div class="calcPanelTotal blue">
+                            <div class="packageTotal">
+                                <span class="caption">'.pll__('Your advantage').'</span>
+                                <span class="price">
+                                <span class="currency">'.$advPriceArr['currency'].'</span>
+                                <span class="amount">'.$advPriceArr['price'].'</span>
+                                <span class="cents">'.$advPriceArr['cents'].'</span>
+                            </span>
+                            </div>
+                        </div>';
+		}
+
 		$promoSec = '<div class="' . $cssClass . '">
                         <div class="extras">
+                        	'.$oneTimeCostLabel.'
                             <ul class="list-unstyled">
                                 ' . $promotionHtml . '
                             </ul>
                         </div>
-                        <div class="advantages">
-                            <p>' . $advPrice . '</p>
-                        </div>
+                        ' . $advHtml . '
                         ' . $appendHtml . '
                     </div>';
 
 		return $promoSec;
 	}
 
-	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = false, $productData = [] ) {
-		if ( $calcHtml ) {
-			/**
-			'pid' => $_REQUEST['pid'],//product id
-			'prt' => $_REQUEST['prt'],//product type like internet, packs or energy
-			'it'  => $_REQUEST['it'],//Installation type like full/diy
-			'opt' => array_filter($_REQUEST['opt']),//array options
-			'extra_pid' => array_filter($_REQUEST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
-			 */
-			$href = "action=ajaxProductPriceBreakdownHtml&pid={$productData['product_id']}&prt={$productData['producttype']}";
-			//Ref: https://stackoverflow.com/questions/19663555/bootstrap-3-how-to-load-content-in-modal-body-via-ajax
+	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = '', $productData = [] ) {
+		$prominentClass = '';
+		if($firstYearPrice) {
+			$prominentClass = 'class="prominent"';
+		}
 
-			$calcHtml = '<span class="calc">
-                            <a href="'.$href.'" data-toggle="modal" data-target="#calcPbsModal">
-                                <i class="custom-icons calc"></i>
-                            </a>
-                         </span>';
-
-			//old code without ajax call
-			//$this->calculatorPopup( $productData );
+		if(!empty($firstYearPrice) || !empty($monthDurationPromo) || !empty($calcHtml)) {
+			$priceInfoHtml = '<div class="priceInfo">
+                            <ul class="list-unstyled">
+                                <li>' . $monthDurationPromo . '</li>
+                                <li '.$prominentClass.'>' . $firstYearPrice
+			                 . $calcHtml .
+			                 '</li>
+                            </ul>
+                        </div>';
 		}
 
 		$priceSec = '<div class="' . $cssClass . '">
                         ' . $priceHtml . '
-                        <div class="priceInfo">
-                            <ul class="list-unstyled">
-                                <li>' . $monthDurationPromo . '</li>
-                                <li>' . $firstYearPrice
-		            . $calcHtml .
-		            '</li>
-                            </ul>
-                        </div>
+                        ' . $priceInfoHtml . '
                         ' . html_entity_decode( $appendHtml ) . '
                      </div>';
 
@@ -1088,6 +1119,7 @@ class AnbProduct {
 	 */
 	public function getPriceInfo( array $prd, $onlyNumericData = false ) {
 		$advPrice = '&nbsp;';
+		$totalAdv = 0;
 
 		if ( ! empty( $prd['advantage'] ) && $prd['advantage'] > 0 ) {//only include +ve values in advantage
 			if ( $onlyNumericData ) {
@@ -1095,6 +1127,7 @@ class AnbProduct {
 			} else {
 				$advPrice = formatPrice($prd['advantage'], 2, getCurrencySymbol( $prd['currency_unit'] )) . ' ' . pll__( 'advantage' );
 			}
+			$totalAdv = $prd['advantage'];
 		}
 
 		$monthDurationPromo = '&nbsp;';
@@ -1112,12 +1145,12 @@ class AnbProduct {
 			if ( $onlyNumericData ) {
 				$firstYearPrice = $prd['year_1_promo'];
 			} else {
-				$firstYearPrice = formatPrice(intval( $prd['year_1_promo'] ), 0, getCurrencySymbol( $prd['currency_unit'] ));
+				$firstYearPrice = getCurrencySymbol( $prd['currency_unit'] ) . ' ' . formatPrice(intval( $prd['year_1_promo'] ), 0, '');
 				$firstYearPrice = $firstYearPrice . ' ' . pll__( 'the first year' );
 			}
 		}
 
-		return array( $advPrice, $monthDurationPromo, $firstYearPrice );
+		return array( $advPrice, $monthDurationPromo, $firstYearPrice, $totalAdv );
 	}
 
 	/**
@@ -1351,7 +1384,7 @@ class AnbProduct {
 				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
 				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
 				//$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
-				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal, $actualPrice, $offerPrice ) );
+				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal), $offerPrice );
 				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
 			}
 			if ( $productCount > 0 ) {
