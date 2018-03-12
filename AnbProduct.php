@@ -350,6 +350,7 @@ class AnbProduct {
 
 		$data['product_name']  = $product->product_name;
 		$data['sg']            = $product->segment;
+		$data['last_update']   = $product->last_update;
 		$data['product_slug']  = $product->product_slug;
 		$data['supplier_id']   = $product->supplier_id;
 		$data['supplier_slug'] = $product->supplier_slug;
