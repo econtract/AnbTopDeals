@@ -350,6 +350,7 @@ class AnbProduct {
 
 		$data['product_name']  = $product->product_name;
 		$data['sg']            = $product->segment;
+		$data['last_update']   = $product->last_update;
 		$data['product_slug']  = $product->product_slug;
 		$data['supplier_id']   = $product->supplier_id;
 		$data['supplier_slug'] = $product->supplier_slug;
@@ -515,17 +516,8 @@ class AnbProduct {
 		}
 		$advHtml = '';
 		if(is_numeric($advPrice) && $advPrice > 0) {
-			$advPriceArr = formatPriceInParts($advPrice, 2);
-			$advHtml = '<div class="calcPanelTotal blue">
-                            <div class="packageTotal">
-                                <span class="caption">'.pll__('Your advantage').'</span>
-                                <span class="price">
-                                <span class="currency">'.$advPriceArr['currency'].'</span>
-                                <span class="amount">'.$advPriceArr['price'].'</span>
-                                <span class="cents">'.$advPriceArr['cents'].'</span>
-                            </span>
-                            </div>
-                        </div>';
+
+			$advHtml     = $this->getTotalAdvHtml( $advPrice );
 		}
 
 		$promoSec = '<div class="' . $cssClass . '">
@@ -1052,9 +1044,13 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	public function getTitleSection( array $prd ) {
+	public function getTitleSection( array $prd, $listView = false ) {
 		$titleSec = '<h4>' . $prd['product_name'] . '</h4>
                      <p class="slogan">' . $prd['tagline'] . '</p>';
+
+		if($listView) {
+			$titleSec = '<h5>' . $prd['product_name'] . '</h5>';
+		}
 
 		return $titleSec;
 	}
@@ -1067,7 +1063,7 @@ class AnbProduct {
 		return $logoSec;
 	}
 
-	public function getCustomerRatingSection( $prd ) {
+	public function getCustomerRatingSection( $prd, $listView = false ) {
 		$custRatSec = '';
 		if ( (float) $prd['score'] > 0 ) {
 			$custRatSec = '<div class="customerRating">
@@ -1075,6 +1071,13 @@ class AnbProduct {
                                 ' . $prd['score'] . '
                             </div>
                        </div>';
+
+			if($listView) {
+				$custRatSec = '<div class="recCustomerRating">
+	                                <span class="ratingCount">' . $prd['score'] . '</span>
+	                                <span class="labelHolder">'.pll__('Customer Score').'</span>
+	                            </div>';
+			}
 		}
 
 		return $custRatSec;
@@ -1094,17 +1097,23 @@ class AnbProduct {
 		return $revSec;
 	}
 
-	public function getProductDetailSection( $prd, $servicesHtml, $includeBadge = false, $badgeTxt = '' ) {
+	public function getProductDetailSection( $prd, $servicesHtml, $includeBadge = false, $badgeTxt = '', $listView = false ) {
 		$detailsSec = '<div class="dealDetails">';
 
 		if ( $includeBadge && ! empty( $badgeTxt ) ) {
 			$detailsSec = $this->getBadgeSection( $badgeTxt );
 		}
 
-		$detailsSec .= $this->getCustomerRatingSection( $prd ) .
-		               $this->getLogoSection( $prd ) .
-		               $this->getTitleSection( $prd ) .
-		               $this->getServiceIconsSection( $servicesHtml );
+		if($listView) {
+			$detailsSec .= $this->getLogoSection( $prd, $listView ) .
+			               $this->getTitleSection( $prd,  $listView) .
+			               $this->getCustomerRatingSection( $prd, $listView );
+		} else {
+			$detailsSec .= $this->getCustomerRatingSection( $prd ) .
+			               $this->getLogoSection( $prd ) .
+			               $this->getTitleSection( $prd ) .
+			               $this->getServiceIconsSection( $servicesHtml );
+		}
 
 		$detailsSec .= '</div>';
 
@@ -1611,6 +1620,27 @@ class AnbProduct {
                     </div>';
 
 		return [$html, $totalAdv];
+	}
+
+	/**
+	 * @param $advPrice
+	 *
+	 * @return string
+	 */
+	public function getTotalAdvHtml( $advPrice ) {
+		$advPriceArr = formatPriceInParts($advPrice, 2);
+		$advHtml = '<div class="calcPanelTotal blue">
+                            <div class="packageTotal">
+                                <span class="caption">' . pll__( 'Your advantage' ) . '</span>
+                                <span class="price">
+                                <span class="currency">' . $advPriceArr['currency'] . '</span>
+                                <span class="amount">' . $advPriceArr['price'] . '</span>
+                                <span class="cents">' . $advPriceArr['cents'] . '</span>
+                            </span>
+                            </div>
+                        </div>';
+
+		return $advHtml;
 	}
 
 }
