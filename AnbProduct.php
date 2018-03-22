@@ -534,19 +534,32 @@ class AnbProduct {
 		return $promoSec;
 	}
 
-	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = '', $productData = [] ) {
+	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = '', $productData = [], $withoutYearlyCost = false ) {
 		$prominentClass = '';
 		if($firstYearPrice) {
 			$prominentClass = 'class="prominent"';
 		}
 
+		$yearlyPriceHtml = '';
+		if($withoutYearlyCost) {
+			$promoPrice = $productData['price']['monthly'] - $productData['price']['monthly_promo'];
+			if($productData['monthly_promo_duration'] > 0 && $promoPrice > 0) {
+				$formatedPromoPrice = getCurrencySymbol($productData['currency_unit']) . ' ' . formatPrice($promoPrice, 2, '');
+				$yearlyPriceHtml = "<li $prominentClass>".pll__(sprintf('%s discount for %d months', $formatedPromoPrice, $productData['monthly_promo_duration'])) ."</li>";
+			} else {
+				$yearlyPriceHtml = "<li>&nbsp;</li>";
+			}
+		} else {
+			$yearlyPriceHtml = '<li>' . $monthDurationPromo . '</li>
+                                <li '.$prominentClass.'>' . $firstYearPrice
+			                   . $calcHtml .
+			                   '</li>';
+		}
+
 		if(!empty($firstYearPrice) || !empty($monthDurationPromo) || !empty($calcHtml)) {
 			$priceInfoHtml = '<div class="priceInfo">
                             <ul class="list-unstyled">
-                                <li>' . $monthDurationPromo . '</li>
-                                <li '.$prominentClass.'>' . $firstYearPrice
-			                 . $calcHtml .
-			                 '</li>
+                                '.$yearlyPriceHtml.'
                             </ul>
                         </div>';
 		}
