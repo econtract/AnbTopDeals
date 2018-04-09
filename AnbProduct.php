@@ -545,7 +545,7 @@ class AnbProduct {
 			$promoPrice = $productData['price']['monthly'] - $productData['price']['monthly_promo'];
 			if($productData['monthly_promo_duration'] > 0 && $promoPrice > 0) {
 				$formatedPromoPrice = getCurrencySymbol($productData['currency_unit']) . ' ' . formatPrice($promoPrice, 2, '');
-				$yearlyPriceHtml = "<li $prominentClass>".pll__(sprintf('%s discount for %d months', $formatedPromoPrice, $productData['monthly_promo_duration'])) ."</li>";
+				$yearlyPriceHtml = "<li $prominentClass>".sprintf(pll__('%s discount for %d months'), $formatedPromoPrice, $productData['monthly_promo_duration']) ."</li>";
 			} else {
 				$yearlyPriceHtml = "<li>&nbsp;</li>";
 			}
