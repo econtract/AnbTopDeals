@@ -295,22 +295,22 @@ class AnbProduct {
 		$prdOrPckTypes = strtolower( $prdOrPckTypes );
 
 		if ( strpos( $prdOrPckTypes, "int" ) !== false ) {
-			$servicesHtml .= '<li>
+			$servicesHtml .= '<li class="wifi">
                                 <i class="service-icons wifi"></i>
                               </li>';
 		}
 		if ( strpos( $prdOrPckTypes, "gsm" ) !== false ) {
-			$servicesHtml .= '<li>
+			$servicesHtml .= '<li class="mobile">
                                 <i class="service-icons mobile"></i>
                               </li>';
 		}
 		if ( strpos( $prdOrPckTypes, "tel" ) !== false ) {
-			$servicesHtml .= '<li>
+			$servicesHtml .= '<li class="phone">
                                 <i class="service-icons phone"></i>
                               </li>';
 		}
 		if ( strpos( $prdOrPckTypes, "tv" ) !== false ) {
-			$servicesHtml .= '<li>
+			$servicesHtml .= '<li class="tv">
                                 <i class="service-icons tv"></i>
                               </li>';
 		}
