@@ -29,7 +29,7 @@ class AnbProduct {
 	function topDealProducts( $atts, $nav = "" ) {
 		$atts = shortcode_atts( array(
 			'cat'         => '',
-			'detaillevel' => [ 'supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions' ],
+			'detaillevel' => [ 'supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features' ],
 			//specifications, logo
 			'sg'          => 'consumer',
 			'product_1'   => [],
@@ -144,21 +144,44 @@ class AnbProduct {
 			$servicesHtml = $this->getServicesHtml( $prd );
 
 			//Price HTML
-			$priceHtml = $this->getPriceHtml( $prd );
+			$priceHtml = $this->getPriceHtml( $prd, true );
 
 			//Promotions, Installation/Activation HTML
 			//display installation and activation price
-			$promotionHtml = $this->getPromoInternalSection( $prd );
+			list($promotionHtml, $totalOnetimeCost) = $this->getPromoInternalSection( $prd, true, true );//True here will drop promotions
 
 
 			list( $advPrice, $monthDurationPromo, $firstYearPrice ) = $this->getPriceInfo( $prd );
+			//Commented as product info link is now not there, kept as it has useful information
+			//<a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary">' . pll__( 'Info and options' ) . '</a>
+			$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
+
+			$parentSegment = getSectorOnCats( $cats );
+			$checkoutPageLink = '/' . $parentSegment . '/' . pll__( 'checkout' );
+
+			$toCartLinkHtml = 'href="' . $checkoutPageLink . '?product_to_cart&product_id='.$prd['product_id'] .
+			                  '&provider_id=' . $prd['supplier_id'] . '&sg=' . $prd['sg'] . '&producttype=' . $prd['producttype'] . '"';
+			$toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link block-link">' . pll__( 'Order Now' ) . '</a>';
+			$btnHtml = '<div class="buttonWrapper">
+                            <a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary ">' . pll__( 'Info and options' ) . '</a>
+                            '.$toCartLinkHtml.'
+                        </div>';
+
+			$infoOptionsHtml = '<div class="lastOrder" style="height: 37px;">
+                                    <p>'.decorateLatestOrderByProduct($prd->product_id).'</p>
+                                </div>' . $btnHtml;
+			//echo $this->priceSection( '', '', '', 'dealPrice last', $infoOptionsHtml, false, $productData );
 
 			$navContent .= '<div class="col-md-4 offer offer-col ' . $boxClass . '">
                                 ' . $this->getProductDetailSection( $prd, $servicesHtml ) .
-			               $this->priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice ) .
-			               $this->getPromoSection( $promotionHtml, $advPrice ) . '
-                                <a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary">' . pll__( 'Info and options' ) . '</a>
-                            </div>';
+			               $this->priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, 'dealPrice', '', '', $prd, true ) .
+			               $this->getPromoSection( $promotionHtml, $prd['advantage'], 'dealFeatures', '', true, $totalOnetimeCost ) .
+			                 '<div class="packageInfo">' .
+                                '<h6>' . pll__('Features') . '</h6>' .
+								$anbComp->getServiceDetail( $products[$idx] ) .
+							 '</div>' .
+			                 $this->priceSection( '', '', '', 'dealPrice last', $infoOptionsHtml, false, $prd ) .
+			               '</div>';
 		}
 		$navContent .= '</div>';
 
