@@ -570,7 +570,7 @@ class AnbProduct {
 				$formatedPromoPrice = getCurrencySymbol($productData['currency_unit']) . ' ' . formatPrice($promoPrice, 2, '');
 				$yearlyPriceHtml = "<li $prominentClass>".sprintf(pll__('%s discount for %d months'), $formatedPromoPrice, $productData['monthly_promo_duration']) ."</li>";
 			} else {
-				$yearlyPriceHtml = "<li>&nbsp;</li>";
+				$yearlyPriceHtml = "<li></li>";
 			}
 		} else {
 			$yearlyPriceHtml = '<li>' . $monthDurationPromo . '</li>
