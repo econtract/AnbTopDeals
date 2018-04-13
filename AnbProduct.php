@@ -1058,21 +1058,22 @@ class AnbProduct {
         wp_die();
     }
 
-    function getToCartAnchorHtml($parentSegment, $productId, $supplierId, $sg='', $productType='') {
+    function getToCartAnchorHtml($parentSegment, $productId, $supplierId, $sg='', $productType='', $forceCheckAvailability = false) {
         $domain = explode('//', WP_HOME)[1];
         $directLandOrExt = (strpos($_SERVER['HTTP_REFERER'], $domain) === false || empty($_SESSION['product']['zip'])) ? true : false;
 
         $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__( 'checkout' );
         $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
             "&provider_id=" . $supplierId . "&sg=$sg&producttype=$productType'";
-        if($directLandOrExt) {
-            $toCartLinkHtml = 'data-toggle="modal" data-target="#ModalCheckAvailability"';
+        if($directLandOrExt || $forceCheckAvailability) {
+            $toCartLinkHtml = 'data-pid="'.$productId.'" data-sid="'.$supplierId.'" data-sg="'.$sg.'" data-prt="'.$productType.'"';
         }
+	    $toCartInternalLink = $toCartLinkHtml;
 	    $justCartLinkHtml = '<a ' . $toCartLinkHtml . ' class="btn btn-primary all-caps">' . pll__( 'configure your pack' ) . '</a>';
 	    $oldCartLinkHtml  = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
 	    $toCartLinkHtml   = '<div class="buttonWrapper">' . $justCartLinkHtml . '</div>';
 
-        return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml];
+        return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml, $toCartInternalLink];
     }
 
 	/**
