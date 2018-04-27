@@ -1076,9 +1076,11 @@ class AnbProduct {
         $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__( 'checkout' );
         $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
             "&provider_id=" . $supplierId . "&sg=$sg&producttype=$productType'";
-        if($directLandOrExt || $forceCheckAvailability) {
-            $toCartLinkHtml = 'data-pid="'.$productId.'" data-sid="'.$supplierId.'" data-sg="'.$sg.'" data-prt="'.$productType.'"';
-        }
+
+	    if ( ( $directLandOrExt && ! isset( $_GET['zip'] ) && ! empty( $_GET['zip'] ) ) || $forceCheckAvailability ) {
+		    $toCartLinkHtml = 'data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $sg . '" data-prt="' . $productType . '"';
+	    }
+
 	    $toCartInternalLink = $toCartLinkHtml;
 	    $justCartLinkHtml = '<a ' . $toCartLinkHtml . ' class="btn btn-primary all-caps">' . pll__( 'configure your pack' ) . '</a>';
 	    $oldCartLinkHtml  = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
