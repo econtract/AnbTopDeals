@@ -1066,7 +1066,7 @@ class AnbProduct {
         $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
             "&provider_id=" . $supplierId . "&sg=$sg&producttype=$productType'";
 
-	    if ( ( $directLandOrExt && ! isset( $_GET['zip'] ) && ! empty( $_GET['zip'] ) ) || $forceCheckAvailability ) {
+	    if ( ( $directLandOrExt && ! isset( $_GET['zip'] ) && empty( $_GET['zip'] ) ) || $forceCheckAvailability ) {
 		    $toCartLinkHtml = 'data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $sg . '" data-prt="' . $productType . '"';
 	    }
 
