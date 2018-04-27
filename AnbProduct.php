@@ -159,20 +159,9 @@ class AnbProduct {
 			$parentSegment = getSectorOnCats( $cats );
 			$checkoutPageLink = '/' . $parentSegment . '/' . pll__( 'checkout' );
 
-            $forceCheckAvailability = false;
-
-            $missingZipClass = '';
-
-            if(empty($_GET['zip'])) {
-                $forceCheckAvailability = true;
-                $missingZipClass = 'missing-zip';
-            }
-
-            list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $prd['product_id'], $prd['supplier_id'], $prd['sg'], $prd['producttype'], $forceCheckAvailability);
-
-			/*$toCartLinkHtml = 'href="' . $checkoutPageLink . '?product_to_cart&product_id='.$prd['product_id'] .
-			                  '&provider_id=' . $prd['supplier_id'] . '&sg=' . $prd['sg'] . '&producttype=' . $prd['producttype'] . '"';*/
-			$toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link block-link '.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
+			$toCartLinkHtml = 'href="' . $checkoutPageLink . '?product_to_cart&product_id='.$prd['product_id'] .
+			                  '&provider_id=' . $prd['supplier_id'] . '&sg=' . $prd['sg'] . '&producttype=' . $prd['producttype'] . '"';
+			$toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link block-link">' . pll__( 'Order Now' ) . '</a>';
 			$btnHtml = '<div class="buttonWrapper">
                             <a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary ">' . pll__( 'Info and options' ) . '</a>
                             '.$toCartLinkHtml.'
