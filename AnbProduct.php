@@ -994,7 +994,7 @@ class AnbProduct {
                             ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
                             </div></li>';
 			}*/
-			if(!empty($yearlyAdvCollection)) {//TODO: don't generating it for PDF for now
+			if(!empty($yearlyAdvCollection)) {
 				list( $yearlyHtml, $yearlyAdvTotal ) = ( $pdfHtml ) ? $this->generatePdfPbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit ) :
 					$this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
 
