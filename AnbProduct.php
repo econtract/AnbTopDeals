@@ -849,7 +849,7 @@ class AnbProduct {
 	 * @param bool $withoutOrderBtn
 	 * @return string
 	 */
-	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true) {
+	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true, $pdfHtml = false) {
 		//if language is missing get that automatically
 		if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
 			/** @var \AnbSearch\AnbCompare $anbComp */
@@ -895,7 +895,12 @@ class AnbProduct {
 				$orderBtn = $someHtml;
 			}
 
-			$html .= '<div class="calculationPanel">';
+			if($pdfHtml) {
+				$html .= '<div class="order-selected followed">';
+			} else {
+				$html .= '<div class="calculationPanel">';
+			}
+
 			//Generate the main HTML only for main/base product
 			$oneTimeHtml = '';
 			$dynamicHtml = '';//Just to be used as container to combine all HTML
@@ -914,7 +919,7 @@ class AnbProduct {
 				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
 				$advTotal      += abs($priceSec->total_discount->value);
 
-				list( $monthlyHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml(
+				list( $monthlyHtml, $yearlyAdvCollection ) = ( $pdfHtml ) ? $this->generatePdfPbsSectionHtml(
 					$dynamicHtml,
 					'pbs-monthly',
 					$priceSec->monthly_costs,
@@ -922,17 +927,48 @@ class AnbProduct {
 					$monthlyTotal,
 					$yearlyAdvCollection,
 					$sectionsHtml,
-					pll__('Monthly costs'),
-					pll__('Monthly total'),
-					pll__('First month'),
-					pll__('PBS: Monthly total tooltip text')
+					pll__( 'Monthly costs' ),
+					pll__( 'Monthly total' )
+				) : $this->generatePbsSectionHtml(
+					$dynamicHtml,
+					'pbs-monthly',
+					$priceSec->monthly_costs,
+					$productCount,
+					$monthlyTotal,
+					$yearlyAdvCollection,
+					$sectionsHtml,
+					pll__( 'Monthly costs' ),
+					pll__( 'Monthly total' ),
+					pll__( 'First month' ),
+					pll__( 'PBS: Monthly total tooltip text' )
 				);
 
 				$dynamicHtml .= $monthlyHtml;
 
-				if(isset($priceSec->oneoff_costs)) {
-					list( $oneoffHtml, $yearlyAdvCollection ) = $this->generatePbsSectionHtml( $dynamicHtml, 'pbs-oneoff', $priceSec->oneoff_costs, $productCount,
-						$oneoffTotal, $yearlyAdvCollection, $sectionsHtml, pll__('One-time costs'), pll__('One-time total') );
+				if ( isset( $priceSec->oneoff_costs ) ) {
+					list( $oneoffHtml, $yearlyAdvCollection ) = ( $pdfHtml ) ?
+						$this->generatePdfPbsSectionHtml(
+							$dynamicHtml,
+							'pbs-oneoff',
+							$priceSec->oneoff_costs,
+							$productCount,
+							$oneoffTotal,
+							$yearlyAdvCollection,
+							$sectionsHtml,
+							pll__( 'One-time costs' ),
+							pll__( 'One-time total' )
+						) : $this->generatePbsSectionHtml(
+							$dynamicHtml,
+							'pbs-oneoff',
+							$priceSec->oneoff_costs,
+							$productCount,
+							$oneoffTotal,
+							$yearlyAdvCollection,
+							$sectionsHtml,
+							pll__( 'One-time costs' ),
+							pll__( 'One-time total' )
+						);
+
 					$dynamicHtml .= $oneoffHtml;
 				}
 
@@ -958,8 +994,10 @@ class AnbProduct {
                             ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
                             </div></li>';
 			}*/
-			if(!empty($yearlyAdvCollection)) {
-				list($yearlyHtml, $yearlyAdvTotal) = $this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+			if(!empty($yearlyAdvCollection)) {//TODO: don't generating it for PDF for now
+				list( $yearlyHtml, $yearlyAdvTotal ) = ( $pdfHtml ) ? $this->generatePdfPbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit ) :
+					$this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+
 				if($yearlyAdvTotal != 0) {
 					$html .= $yearlyHtml;
 				}
@@ -1363,7 +1401,7 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [] ) {
+	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [], $pdfHtml = false ) {
 		$html = '';
 		$htmlArr = [];
 		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
@@ -1422,15 +1460,17 @@ class AnbProduct {
 				$remainingPrice = $currLinePrice - $freeLinePrice;
 
 				$priceDisplayVal = formatPrice($remainingPrice, 2, $lineVal->product->unit);
-				$freeLineDisplayPrice = formatPrice($freeLinePrice, 2, '', '', true, true);
+				$freeLineDisplayPrice = ( $pdfHtml ) ? formatPrice( $freeLinePrice, 2, $lineVal->product->unit . ' ', '', true, true ) :
+					formatPrice( $freeLinePrice, 2, $freeLineVal->product->unit . ' ', '', true, true );
 
 				//$priceDisplayVal = "<span style='text-decoration: line-through'>{$freeLineDisplayPrice}</span> $priceDisplayVal";
-				$oldPriceHtml = '<span class="oldPrice">'.$freeLineVal->product->unit.' '.$freeLineDisplayPrice.'</span>';
+				$oldPriceHtml = '<span class="oldPrice">' . $freeLineDisplayPrice . '</span>';
 
-				$promoPriceHtml = $this->generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal );
+				$promoPriceHtml = ( $pdfHtml ) ? $this->generatePdfPbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) :
+					$this->generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal );
 			}
-
-			$priceDetailHtml = $this->generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice );
+			$priceDetailHtml = ( $pdfHtml ) ? $this->generatePdfPbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice ) :
+				$this->generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice );
 
 			$htmlArr[] = $priceDetailHtml;
 
@@ -1440,7 +1480,9 @@ class AnbProduct {
 				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
 				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
 				//$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
-				$htmlArr[1] = $this->generatePbsPackOptionHtml( $lineVal, '', '', $this->generatePbsPromoHtml( $mulValDisplay, $lineVal), $offerPrice );
+				$promoHtml = ($pdfHtml) ? $this->generatePdfPbsPromoHtml( $mulValDisplay, $lineVal) : $this->generatePbsPromoHtml( $mulValDisplay, $lineVal);
+				$htmlArr[1] = ( $pdfHtml ) ? $this->generatePdfPbsPackOptionHtml( $lineVal, '', '', $promoHtml, $offerPrice ) :
+					$this->generatePbsPackOptionHtml( $lineVal, '', '', $promoHtml, $offerPrice );
 				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
 			}
 			if ( $productCount > 0 ) {
@@ -1496,6 +1538,36 @@ class AnbProduct {
 		return $priceDetailHtml;
 	}
 
+	private function generatePdfPbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice ) {
+		$priceText = '';
+		if(!is_numeric($lineVal->product->value)) {
+			$priceText = ucfirst($lineVal->product->value);
+		}
+
+		if($offerPrice == 0) {
+			$oldPriceHtml = '';
+		}
+
+		$currPriceHtml = '<span class="currentPrice">' . $lineVal->subtotal->unit . formatPrice( $lineVal->product->value - $offerPrice, 2, $lineVal->product->unit . ' ' ) . '</span>';
+
+		if($priceText) {
+			$currPriceHtml = '<span class="currentPrice">'.$priceText.'</span>';
+		}
+
+		$currOldPriceHtml = '<div class="packagePrice">
+				            ' . $oldPriceHtml . $currPriceHtml . '
+				            </div>';
+
+		$priceDetailHtml = '<tr class="packOption">
+					            <td class="firstChildCost">' . $lineVal->label . '</td>
+                                <td class="secondChildCost">' . $promoPriceHtml . '</td>
+                                <td class="thirdChildCost">' . $oldPriceHtml . '</td>
+                                <td class="fourthChildCost">' . $currPriceHtml . '</td>
+				            </tr>';
+
+		return $priceDetailHtml;
+	}
+
 	/**
 	 * @param $freeLineDisplayPrice
 	 * @param $freeLineVal
@@ -1508,6 +1580,12 @@ class AnbProduct {
 					                    <li class="promo prominent">' . $freeLineDisplayPrice . ' ' . $freeLineVal->label . '</li>
 					                </ul>
 					            </div>';
+
+		return $promoPriceHtml;
+	}
+
+	private function generatePdfPbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) {
+		$promoPriceHtml = $freeLineDisplayPrice . ' ' . $freeLineVal->label;
 
 		return $promoPriceHtml;
 	}
@@ -1544,6 +1622,24 @@ class AnbProduct {
 			                            '.$infoTextHtml.'
 			                            <!-- optional additonal Info -->
 			                        </div>';
+
+		return $sectionTotalHtml;
+	}
+
+	private function generatePdfPbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel) {
+		$sectionTotalPriceArr = formatPriceInParts( $total, 2, $priceSec->subtotal->unit );
+
+		if(empty($sectionTotalLabel)) {
+			$sectionTotalLabel = $priceSec->label;
+		}
+
+		$sectionTotalHtml = '<tr class="prominent">
+                                <td class="firstChildCost"><strong>' . $sectionTotalLabel . '</strong></td>
+                                <td class="secondChildCost"></td>
+                                <td class="thirdChildCost"></td>
+                                <td class="fourthChildCost"><strong><span class="currentPrice">' . formatPrice($total, 2, $priceSec->subtotal->unit . ' ') . '</span></strong>
+                                </td>
+                            </tr>';
 
 		return $sectionTotalHtml;
 	}
@@ -1606,6 +1702,46 @@ class AnbProduct {
 		return array( $html, $yearlyAdvCollection, $infoTextLabel, $infoText );
 	}
 
+	private function generatePdfPbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
+		&$sectionsHtml, $sectionTitle = '', $sectionTotalLabel='' ) {
+		if(empty($sectionTitle)) {
+			$sectionTitle = $priceSec->label;
+		}
+		$html = '<div class="borderedWrapper '.$pbsSectionClass.'"><h2>' . $sectionTitle . '</h2>';
+		$html .= '<table><tbody>';
+		$itemsHtml = '';
+
+		//adjust this new HTML to existing html if some already exists like monthly, that should get generated once
+		if(preg_match('/<div class="borderedWrapper '.$pbsSectionClass.'">/', $existingHtml)) {
+			$d = new \DOMDocument();
+			$d->loadHTML('<?xml encoding="utf-8" ?>' . $existingHtml);//UTF8 encoding is required to keep the data clean
+
+			$xpath = new \DOMXPath($d);
+			$nodes = $xpath->query('//div[contains(@class, "'.$pbsSectionClass.'")]');//searching for the section
+			$nodeDic = [];//ensure duplicates are never added
+			foreach($nodes as $node) {
+				$existingItems = $xpath->query('descendant::tr[contains(@class, "packOption")]', $node);//searching for actual items
+				foreach($existingItems as $item) {
+					$nodeHash = crc32($item->textContent);
+					if(!$nodeDic[$nodeHash]) {
+						$itemsHtml .= $item->ownerDocument->saveHTML($item);
+						$nodeDic[$nodeHash] = true;
+					}
+				}
+			}
+		}
+		$itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, $yearlyAdvCollection, true );
+
+		$html .= $itemsHtml;
+		$html .= $this->generatePdfPbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel);
+
+		$html .= '</tbody></table></div>';//end of price section
+
+		$sectionsHtml[$pbsSectionClass] = $html;
+
+		return array( $html, $yearlyAdvCollection );
+	}
+
 	/**
 	 * @param $yearlyAdvCollection
 	 */
@@ -1665,6 +1801,47 @@ class AnbProduct {
                         </div>
                         <!--total for section-->
                     </div>';
+
+		return [$html, $totalAdv];
+	}
+
+	private function generatePdfPbsYearlyBreakdownHtml( $yearlyAdvCollection, $currency ) {
+		$totalAdv = 0;
+		$html = '<h2>' . pll__( 'Year profit' ) . '</h2>
+					<div class="borderedWrapper secondary">
+                        <table>
+                            <tbody>';
+
+		foreach ( $yearlyAdvCollection as $adv ) {
+			if($adv['price_multiplied_val'] == 0) {
+				continue;
+			}
+
+			$totalAdv += $adv['price_multiplied_val'];
+			$priceArr = formatPriceInParts( $adv['price_multiplied_val'], 2, $currency );
+			$negativeSign = '';
+			if($priceArr['price'] > 0) {
+				$negativeSign = '- ';
+			}
+			$html .= '<tr>
+	                        <td class="firstChildCost">' . $adv['label'] . '</td>
+	                        <td class="secondChildCost"></td>
+	                        <td class="thirdChildCost"></td>
+	                        <td class="fourthChildCost">' . $negativeSign. formatPrice($adv['price_multiplied_val'], 2, $currency . ' ', '', true) . '</td>
+                    	</tr>';
+		}
+
+		$html .= '<tr class="prominent">
+                        <td class="firstChildCost"><strong>' . pll__( 'Your advantage' ) . '</strong></td>
+                        <td class="secondChildCost"></td>
+                        <td class="thirdChildCost"></td>
+                        <td class="fourthChildCost"><strong><span class="currentPrice">'. formatPrice($totalAdv, 2, $currency . ' ', '', true) .'</span></strong>
+                        </td>
+                    </tr>';
+
+        $html .= '</tbody>
+                </table>
+            </div>';
 
 		return [$html, $totalAdv];
 	}
