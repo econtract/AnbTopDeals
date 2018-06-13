@@ -94,4 +94,49 @@ class AnbProductEnergy extends AnbProduct {
                         </div>';
         return $greenPeace;
     }
+
+	function getServicesHtml( $product ) {
+		$servicesHtml = '';
+
+		if ( strpos( $product->producttype, "electricity" ) !== false || $product->producttype == 'dualfuel_pack') {
+			$specs = $product->electricity->specifications;
+			$greenOriginHtml = $this->greenOriginHtmlFromSpecs( $specs );
+			$servicesHtml .= '<li>
+	                                <span class="icons"><i class="plug-leaf"></i></span>
+	                                '.$greenOriginHtml.'
+	                                <span class="desc">'.$specs->tariff_type->label.'</span>
+	                                <span class="price yearly">'.formatPrice($product->electricity->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                                <span class="price monthly hide">'.formatPrice($product->electricity->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                            </li>';
+		}
+
+		if ( strpos( $product->producttype, "gas" ) !== false || $product->producttype == 'dualfuel_pack') {
+			$specs = $product->gas->specifications;
+			$greenOriginHtml = $this->greenOriginHtmlFromSpecs( $specs );
+			$servicesHtml .= '<li>
+	                                <span class="icons"><i class="gas-leaf"></i></span>
+	                                '.$greenOriginHtml.'
+	                                <span class="desc">'.$specs->tariff_type->label.'</span>
+	                                <span class="price yearly">'.formatPrice($product->gas->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                                <span class="price monthly hide">'.formatPrice($product->gas->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                            </li>';
+		}
+
+		return $servicesHtml;
+	}
+
+	/**
+	 * @param $specs
+	 *
+	 * @return string
+	 */
+	protected function greenOriginHtmlFromSpecs( $specs ): string {
+		$greenOrigin     = $specs->green_origin;
+		$greenOriginHtml = '<span class="color-green"></span>';
+		if ( $greenOrigin ) {
+			$greenOriginHtml = '<span class="color-green">' . intval( $greenOrigin->value ) . $greenOrigin->unit . '</span>';
+		}
+
+		return $greenOriginHtml;
+	}
 }
