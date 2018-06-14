@@ -182,13 +182,7 @@ class AnbProductEnergy extends AnbProduct
         $calcHtml = '';
 
         if ($withCalcHtml) {
-            $href = "action=ajaxProductPriceBreakdownHtml&pid={$prd['product_id']}&prt={$prd['producttype']}";
-
-            $calcHtml = '<span class="calc">
-                    <a href="' . $href . '" data-toggle="modal" data-target="#calcPbsModal">
-                        <i class="custom-icons calc"></i>
-                    </a>
-                 </span>';
+            $calcHtml = '<a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview'.$prd['product_id'].'"></a>';
         }
 
         $oldPriceYearlyHtml = '<span class="yearly"></span>';
@@ -213,7 +207,7 @@ class AnbProductEnergy extends AnbProduct
 	                        <span class="actual-price">
 	                            ' . $oldPriceYearlyHtml . '
 	                            ' . $oldPriceMonthlyHtml . '
-	                            <a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview"></a>
+	                            ' . $calcHtml . '
 	                        </span>
 	                        <div class="current-price yearly">
 	                            <span class="super">' . $promoPriceYearlyArr['currency'] . '</span>
