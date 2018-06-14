@@ -227,6 +227,7 @@ class AnbProductEnergy extends AnbProduct
     }
 
     public function getLastUpdateDate( $product ){
+        print_r($product);
         return pll__('Last update') .' '. date('H:i', strtotime($product['last_update']));
 
     }
