@@ -103,33 +103,35 @@ class AnbProductEnergy extends AnbProduct
         return $greenPeace;
     }
 
-    function getServicesHtml($product)
+    function getServicesHtml($product, $pricing)
     {
         $servicesHtml = '';
 
         if ($product->producttype == 'dualfuel_pack' || strpos($product->producttype, "electricity") !== false) {
             $currProduct = ($product->electricity) ?: $product;
+            $currPricing = ($product->pricing) ?: $pricing;
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $servicesHtml .= '<li>
 	                                <span class="icons"><i class="plug-leaf"></i></span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
-	                                <span class="price yearly">' . formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ') . '</span>
-	                                <span class="price monthly hide">' . formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
         }
 
         if ($product->producttype == 'dualfuel_pack' || strpos($product->producttype, "gas") !== false) {
             $currProduct = ($product->gas) ?: $product;
+	        $currPricing = ($product->pricing) ?: $pricing;
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $servicesHtml .= '<li>
 	                                <span class="icons"><i class="gas-leaf"></i></span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
-	                                <span class="price yearly">' . formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ') . '</span>
-	                                <span class="price monthly hide">' . formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
         }
 
