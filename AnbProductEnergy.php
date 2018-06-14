@@ -98,27 +98,29 @@ class AnbProductEnergy extends AnbProduct {
 	function getServicesHtml( $product ) {
 		$servicesHtml = '';
 
-		if ( strpos( $product->producttype, "electricity" ) !== false || $product->producttype == 'dualfuel_pack') {
-			$specs = $product->electricity->specifications;
+		if ( $product->producttype == 'dualfuel_pack' || strpos( $product->producttype, "electricity" ) !== false ) {
+			$currProduct = ($product->electricity) ?: $product;
+			$specs = $currProduct->specifications;
 			$greenOriginHtml = $this->greenOriginHtmlFromSpecs( $specs );
 			$servicesHtml .= '<li>
 	                                <span class="icons"><i class="plug-leaf"></i></span>
 	                                '.$greenOriginHtml.'
 	                                <span class="desc">'.$specs->tariff_type->label.'</span>
-	                                <span class="price yearly">'.formatPrice($product->electricity->pricing->yearly->promo_price, 2, '&euro; ').'</span>
-	                                <span class="price monthly hide">'.formatPrice($product->electricity->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                                <span class="price yearly">'.formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                                <span class="price monthly hide">'.formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ').'</span>
 	                            </li>';
 		}
 
-		if ( strpos( $product->producttype, "gas" ) !== false || $product->producttype == 'dualfuel_pack') {
-			$specs = $product->gas->specifications;
+		if ( $product->producttype == 'dualfuel_pack' || strpos( $product->producttype, "gas" ) !== false ) {
+			$currProduct = ($product->gas) ?: $product;
+			$specs = $currProduct->specifications;
 			$greenOriginHtml = $this->greenOriginHtmlFromSpecs( $specs );
 			$servicesHtml .= '<li>
 	                                <span class="icons"><i class="gas-leaf"></i></span>
 	                                '.$greenOriginHtml.'
 	                                <span class="desc">'.$specs->tariff_type->label.'</span>
-	                                <span class="price yearly">'.formatPrice($product->gas->pricing->yearly->promo_price, 2, '&euro; ').'</span>
-	                                <span class="price monthly hide">'.formatPrice($product->gas->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                                <span class="price yearly">'.formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ').'</span>
+	                                <span class="price monthly hide">'.formatPrice($currProduct->pricing->yearly->promo_price, 2, '&euro; ').'</span>
 	                            </li>';
 		}
 
@@ -130,7 +132,7 @@ class AnbProductEnergy extends AnbProduct {
 	 *
 	 * @return string
 	 */
-	protected function greenOriginHtmlFromSpecs( $specs ): string {
+	protected function greenOriginHtmlFromSpecs( $specs ) {
 		$greenOrigin     = $specs->green_origin;
 		$greenOriginHtml = '<span class="color-green"></span>';
 		if ( $greenOrigin ) {
@@ -139,7 +141,6 @@ class AnbProductEnergy extends AnbProduct {
 
 		return $greenOriginHtml;
 	}
-
 
 	public function getPromoSection( $product ){
         $promohtml = '<div class="promo">' . pll__('promo') . '</div>';
@@ -155,4 +156,65 @@ class AnbProductEnergy extends AnbProduct {
         return $promohtml;
     }
 
+	/**
+	 * @param array $prd
+	 * @param object $pricing
+	 * @param bool $withCalcHtml
+	 *
+	 * @return string
+	 */
+	public function getPriceHtml( $prd, $pricing, $withCalcHtml = false ) {
+		$priceHtml = '';
+		$calcHtml = '';
+
+		if ( $withCalcHtml ) {
+			$href = "action=ajaxProductPriceBreakdownHtml&pid={$prd['product_id']}&prt={$prd['producttype']}";
+
+			$calcHtml = '<span class="calc">
+                    <a href="'.$href.'" data-toggle="modal" data-target="#calcPbsModal">
+                        <i class="custom-icons calc"></i>
+                    </a>
+                 </span>';
+		}
+
+		$oldPriceYearlyHtml = '<span class="yearly"></span>';
+
+		if($pricing->yearly->price != $pricing->yearly->promo_price) {
+			$oldPriceYearlyHtml = '<span class="yearly">'.formatPrice($pricing->yearly->price, 2, '').'</span>';
+		}
+
+		$oldPriceMonthlyHtml = '<span class="monthly hide"></span>';
+
+		if($pricing->monthly->price != $pricing->monthly->promo_price) {
+			$oldPriceMonthlyHtml = '<span class="monthly hide">'.formatPrice($pricing->monthly->price, 2, '').'</span>';
+		}
+
+		$promoPriceYearly = $pricing->yearly->promo_price;
+		$promoPriceYearlyArr = formatPriceInParts($promoPriceYearly, 2);
+
+		$promoPriceMonthly = $pricing->monthly->promo_price;
+		$promoPriceMonthlyArr = formatPriceInParts($promoPriceMonthly, 2);
+
+		$priceHtml = '<div class="actual-price-board">
+	                        <span class="actual-price">
+	                            '.$oldPriceYearlyHtml.'
+	                            '.$oldPriceMonthlyHtml.'
+	                            <a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview"></a>
+	                        </span>
+	                        <div class="current-price yearly">
+	                            <span class="super">'.$promoPriceYearlyArr['currency'].'</span>
+	                            <span class="current">'.$promoPriceYearlyArr['price'].'</span>
+	                            <span class="super">,'.$promoPriceYearlyArr['cents'].'</span>
+	                            <small>'.pll__('guaranteed 1st year').'</small>
+	                        </div>
+	                        <div class="current-price monthly hide">
+	                            <span class="super">'.$promoPriceMonthlyArr['currency'].'</span>
+	                            <span class="current">'.$promoPriceMonthlyArr['price'].'</span>
+	                            <span class="super">,'.$promoPriceMonthlyArr['cents'].'</span>
+	                            <small>'.pll__('guaranteed 1st year').'</small>
+	                        </div>
+	                    </div>';
+
+		return $priceHtml;
+	}
 }
