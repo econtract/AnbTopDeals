@@ -225,4 +225,9 @@ class AnbProductEnergy extends AnbProduct
 
         return $priceHtml;
     }
+
+    public function getLastUpdateDate( $product ){
+        return pll__('Last update') .' '. date('H:i', strtotime($product['last_update']));
+
+    }
 }
