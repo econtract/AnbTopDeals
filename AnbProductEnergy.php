@@ -139,4 +139,20 @@ class AnbProductEnergy extends AnbProduct {
 
 		return $greenOriginHtml;
 	}
+
+
+	public function getPromoSection( $product ){
+        $promohtml = '<div class="promo">' . pll__('promo') . '</div>';
+	    if( is_array( $product['promotions'] ) && count( $product['promotions'] ) > 0 ) {
+            $promohtml.= '<ul class="promo-list">';
+	        for( $i = 0; $i < count($product['promotions']); $i++ ) {
+                $promohtml .= '<li>' . $product['promotions'][$i] . '<span>€ 40,<small>00</small></span></li>';
+            }
+            $promohtml.= '</ul>';
+        } else {
+            $promohtml.= pll__('No promos found');
+        }
+        return $promohtml;
+    }
+
 }
