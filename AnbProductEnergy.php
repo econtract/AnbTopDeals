@@ -51,10 +51,10 @@ class AnbProductEnergy extends AnbProduct
 
     public function getTitleSection(array $prd, $listView = false)
     {
-        $titleSec = '<h3>' . $prd['product_name'] . '</h3>';
+        $titleSec = '<h3 class="col_1">' . $prd['product_name'] . '</h3>';
 
         if ($listView) {
-            $titleSec = '<h3>' . $prd['product_name'] . '</h3>';
+            $titleSec = '<h3 class="col_1">' . $prd['product_name'] . '</h3>';
         }
 
         return $titleSec;
@@ -115,7 +115,7 @@ class AnbProductEnergy extends AnbProduct
             $servicesHtml .= '<li>
 	                                <span class="icons"><i class="plug-leaf"></i></span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc">' . $specs->tariff_type->label . '</span>
+	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
@@ -123,13 +123,13 @@ class AnbProductEnergy extends AnbProduct
 
         if ($product->producttype == 'dualfuel_pack' || strpos($product->producttype, "gas") !== false) {
             $currProduct = ($product->gas) ?: $product;
-	        $currPricing = ($product->pricing) ?: $pricing;
+            $currPricing = ($product->pricing) ?: $pricing;
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $servicesHtml .= '<li>
 	                                <span class="icons"><i class="gas-leaf"></i></span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc">' . $specs->tariff_type->label . '</span>
+	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
@@ -156,7 +156,8 @@ class AnbProductEnergy extends AnbProduct
 
     public function getPromoSection($product)
     {
-        $promohtml = '<div class="promo">' . pll__('promo') . '</div>';
+        $promohtml = '<div class="col_3">';
+        $promohtml.= '<div class="promo">' . pll__('promo') . '</div>';
         if (is_array($product['promotions']) && count($product['promotions']) > 0) {
             $promohtml .= '<ul class="promo-list">';
             for ($i = 0; $i < count($product['promotions']); $i++) {
@@ -166,6 +167,7 @@ class AnbProductEnergy extends AnbProduct
         } else {
             $promohtml .= pll__('No promos found');
         }
+        $promohtml.= '</div>';
         return $promohtml;
     }
 
