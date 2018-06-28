@@ -161,7 +161,7 @@ class AnbProductEnergy extends AnbProduct
         if (is_array($product['promotions']) && count($product['promotions']) > 0) {
             $promohtml .= '<ul class="promo-list">';
             for ($i = 0; $i < count($product['promotions']); $i++) {
-                $promohtml .= '<li>' . $product['promotions'][$i] . '<span>€ 40,<small>00</small></span></li>';
+                $promohtml .= '<li>' . $product['promotions'][$i] . '</li>';
             }
             $promohtml .= '</ul>';
         } else {
