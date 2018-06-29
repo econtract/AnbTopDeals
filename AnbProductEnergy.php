@@ -117,7 +117,7 @@ class AnbProductEnergy extends AnbProduct
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
-	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price monthly hide">' . formatPrice($currPricing->monthly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
         }
 
@@ -131,7 +131,7 @@ class AnbProductEnergy extends AnbProduct
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
-	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price monthly hide">' . formatPrice($currPricing->monthly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
         }
 
