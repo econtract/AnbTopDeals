@@ -117,7 +117,7 @@ class AnbProductEnergy extends AnbProduct
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
-	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price monthly hide">' . formatPrice($currPricing->monthly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
         }
 
@@ -131,7 +131,7 @@ class AnbProductEnergy extends AnbProduct
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
-	                                <span class="price monthly hide">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <span class="price monthly hide">' . formatPrice($currPricing->monthly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
         }
 
@@ -154,20 +154,37 @@ class AnbProductEnergy extends AnbProduct
         return $greenOriginHtml;
     }
 
-    public function getPromoSection($product)
+    public function getPromoSection( $product )
     {
-        $promohtml = '<div class="col_3">';
-        $promohtml.= '<div class="promo">' . pll__('promo') . '</div>';
-        if (is_array($product['promotions']) && count($product['promotions']) > 0) {
+        $promotions = array();
+
+        if($product->electricity) {
+            $promotions = array_merge($promotions, $product->electricity->promotions);
+        }
+
+        if($product->gas) {
+            $promotions = array_merge($promotions, $product->gas->promotions);
+        }
+
+        if(empty($promotions)) {
+            $promotions = $product->promotions;
+        }
+        $promohtml = '<div class="col_3">
+                        <div class="promo">' . pll__('promo') . '</div>';
+        if ( count ($promotions) ) {
             $promohtml .= '<ul class="promo-list">';
-            for ($i = 0; $i < count($product['promotions']); $i++) {
-                $promohtml .= '<li>' . $product['promotions'][$i] . '</li>';
+            foreach ($promotions as $promo ) {
+
+                if(!empty($promo->texts->name)) {
+                    $promohtml .= '<li>'.$promo->texts->name.'</li>';
+                }
             }
             $promohtml .= '</ul>';
         } else {
             $promohtml .= pll__('No promos found');
         }
         $promohtml.= '</div>';
+
         return $promohtml;
     }
 
