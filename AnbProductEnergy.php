@@ -232,13 +232,13 @@ class AnbProductEnergy extends AnbProduct
 	                            <span class="super">' . $promoPriceYearlyArr['currency'] . '</span>
 	                            <span class="current">' . $promoPriceYearlyArr['price'] . '</span>
 	                            <span class="super">,' . $promoPriceYearlyArr['cents'] . '</span>
-	                            <small>' . pll__('guaranteed 1st year') . '</small>
+	                            <small>' . pll__('guaranteed 1st year') . '<i class="question-o">?</i></small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
 	                            <span class="current">' . $promoPriceMonthlyArr['price'] . '</span>
 	                            <span class="super">,' . $promoPriceMonthlyArr['cents'] . '</span>
-	                            <small>' . pll__('guaranteed 1st year') . '</small>
+	                            <small>' . pll__('guaranteed 1st year') . '<i class="question-o">?</i> </small>
 	                        </div>
 	                    </div>';
 
