@@ -23,8 +23,10 @@ if ( ! defined( 'WPINC' ) ) {
 include(__DIR__ . '/pll-register-trans.php');
 
 $result = wpal_create_instance(AnbProduct::class);
+$energy = wpal_create_instance(AnbProductEnergy::class);
 
 add_shortcode( 'anb_top_deal_products', [$result, 'topDealProducts'] );
+add_shortcode( 'anb_energy_top_deal_products', [$energy, 'topDealProducts'] );
 
 add_action('wp_ajax_ajaxProductPriceBreakdownHtml', array($result, 'ajaxProductPriceBreakdownHtml'));
 add_action( 'wp_ajax_nopriv_ajaxProductPriceBreakdownHtml', array($result, 'ajaxProductPriceBreakdownHtml'));
