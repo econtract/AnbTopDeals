@@ -81,22 +81,37 @@ class AnbProductEnergy extends AnbProduct
         return $revSec;
     }
 
-    public function getGreenPeaceRating($prd)
+    public function getGreenPeaceRating($product)
     {
+	    $greenpeaceScore = ($product->electricity->specifications->greenpeace_score->value) ?: $product->specifications->greenpeace_score->value;
+	    $greenpeaceScore = ceil($greenpeaceScore/5);
+
+	    $greenpeaceHtml = '';
+	    $counter = 0;
+	    for($i = $greenpeaceScore; $i > 0; $i--) {
+	    	$j = $i;
+	    	$checked = '';
+	    	if($i == $greenpeaceScore) {
+			    $checked = 'checked = "checked"';
+		    }
+		    $greenpeaceHtml .= '<input type="radio" id="deal_'.$product->product_id.'_greenPease_'.$j.'" name="deal'.$j.'" value="'.$j.'" '.$checked.' disabled>
+                                <label class="full" for="deal_'.$product->product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>';
+		    $counter++;
+	    }
+
+	    if($counter < 4) {
+		    for($i = $counter; $i < 4; $i++) {
+			    $j = $i+1;
+			    $greenpeaceHtml = '<input type="radio" id="deal_'.$product->product_id.'_greenPease_'.$j.'" name="deal'.$j.'" value="'.$j.'" disabled>
+                                <label class="full" for="deal_'.$product->product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>'
+			                      . $greenpeaceHtml;
+		    }
+	    }
+
         $greenPeace = '<div class="greenpeace-container">
                             <div class="peace-logo"></div>
                             <fieldset>
-                                <input type="radio" id="deal_1_greenPease_4" name="deal1" value="4" disabled>
-                                <label class="full" for="deal_1_greenPease_4" title="4 star"></label>
-
-                                <input type="radio" id="deal_1_greenPease_3" name="deal1" value="3" disabled>
-                                <label class="full" for="deal_1_greenPease_3" title="3 star"></label>
-
-                                <input type="radio" id="deal_1_greenPease_2" name="deal1" value="2" checked disabled>
-                                <label class="full" for="deal_1_greenPease_2" title="2 star"></label>
-
-                                <input type="radio" id="deal_1_greenPease_1" name="deal1" value="1" disabled>
-                                <label class="full" for="deal_1_greenPease_1" title="1 star"></label>
+                                '.$greenpeaceHtml.'
                                 <div class="clearfix"></div>
                             </fieldset>
                         </div>';
@@ -143,7 +158,7 @@ class AnbProductEnergy extends AnbProduct
      *
      * @return string
      */
-    protected function greenOriginHtmlFromSpecs($specs)
+    public function greenOriginHtmlFromSpecs($specs)
     {
         $greenOrigin = $specs->green_origin;
         $greenOriginHtml = '<span class="color-green"></span>';
