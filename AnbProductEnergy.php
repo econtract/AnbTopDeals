@@ -450,7 +450,7 @@ class AnbProductEnergy extends AnbProduct
                                         <img src="' . $productData['logo']['200x140']->transparent->color . '" alt="' . $productData['product_name'] . '">
                                     </div>
                                     <h4>'. $productData['product_name'] .'</h4>
-                                    '. $this->getGreenPeaceRating( $productData ) .'
+                                    '. $this->getGreenPeaceRating( $product ) .'
                                 </div>
                                 <div class="deal-health-factors">
                                         <ul>'.$servicesHtml.'</ul>
