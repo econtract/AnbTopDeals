@@ -43,7 +43,7 @@ class AnbProductEnergy extends AnbProduct
 
     public function getLogoSection(array $prd)
     {
-        $logoSec = '<div class="dealLogo">
+        $logoSec = '<div class="dealLogo col_1">
                         <img src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
                     </div>';
         return $logoSec;
@@ -51,10 +51,10 @@ class AnbProductEnergy extends AnbProduct
 
     public function getTitleSection(array $prd, $listView = false)
     {
-        $titleSec = '<h3 class="col_1">' . $prd['product_name'] . '</h3>';
+        $titleSec = '<h3 class="col_2">' . $prd['product_name'] . '</h3>';
 
         if ($listView) {
-            $titleSec = '<h3 class="col_1">' . $prd['product_name'] . '</h3>';
+            $titleSec = '<h3 class="col_2">' . $prd['product_name'] . '</h3>';
         }
 
         return $titleSec;
@@ -108,7 +108,7 @@ class AnbProductEnergy extends AnbProduct
 		    }
 	    }
 
-        $greenPeace = '<div class="greenpeace-container">
+        $greenPeace = '<div class="greenpeace-container col_3">
                             <div class="peace-logo"></div>
                             <fieldset>
                                 '.$greenpeaceHtml.'
@@ -130,7 +130,7 @@ class AnbProductEnergy extends AnbProduct
             $servicesHtml .= '<li>
 	                                <span class="icons"><i class="plug-leaf"></i></span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
+	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                                <span class="price monthly hide">' . formatPrice($currPricing->monthly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
@@ -144,7 +144,7 @@ class AnbProductEnergy extends AnbProduct
             $servicesHtml .= '<li>
 	                                <span class="icons"><i class="gas-leaf"></i></span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc col_2">' . $specs->tariff_type->label . '</span>
+	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                                <span class="price monthly hide">' . formatPrice($currPricing->monthly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
@@ -184,7 +184,7 @@ class AnbProductEnergy extends AnbProduct
         if(empty($promotions)) {
             $promotions = $product->promotions;
         }
-        $promohtml = '<div class="col_3">
+        $promohtml = '<div class="col_5">
                         <div class="promo">' . pll__('promo') . '</div>';
         if ( count ($promotions) ) {
             $promohtml .= '<ul class="promo-list">';
@@ -247,13 +247,13 @@ class AnbProductEnergy extends AnbProduct
 	                            <span class="super">' . $promoPriceYearlyArr['currency'] . '</span>
 	                            <span class="current">' . $promoPriceYearlyArr['price'] . '</span>
 	                            <span class="super">,' . $promoPriceYearlyArr['cents'] . '</span>
-	                            <small>' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year') . '">?</i></small>
+	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year') . '">?</i></small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
 	                            <span class="current">' . $promoPriceMonthlyArr['price'] . '</span>
 	                            <span class="super">,' . $promoPriceMonthlyArr['cents'] . '</span>
-	                            <small>' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year') . '">?</i> </small>
+	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year') . '">?</i> </small>
 	                        </div>
 	                    </div>';
 
