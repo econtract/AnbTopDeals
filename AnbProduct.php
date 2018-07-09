@@ -1155,6 +1155,7 @@ class AnbProduct {
                             <div class="stamp">
                                 ' . $prd['score'] . '
                             </div>
+                            <span>'.pll__('Customer Score').'</span>
                        </div>';
 
 			if($listView) {
