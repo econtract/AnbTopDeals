@@ -1194,9 +1194,9 @@ class AnbProduct {
 			               $this->getTitleSection( $prd,  $listView) .
 			               $this->getCustomerRatingSection( $prd, $listView );
 		} else {
-			$detailsSec .= $this->getCustomerRatingSection( $prd ) .
-			               $this->getLogoSection( $prd ) .
+			$detailsSec .= $this->getLogoSection( $prd ) .
 			               $this->getTitleSection( $prd ) .
+                           $this->getCustomerRatingSection( $prd ) .
 			               $this->getServiceIconsSection( $servicesHtml );
 		}
 
