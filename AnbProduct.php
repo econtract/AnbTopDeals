@@ -1197,8 +1197,8 @@ class AnbProduct {
 		} else {
 			$detailsSec .= $this->getLogoSection( $prd ) .
 			               $this->getTitleSection( $prd ) .
-                           $this->getCustomerRatingSection( $prd ) .
-			               $this->getServiceIconsSection( $servicesHtml );
+                           $this->getServiceIconsSection( $servicesHtml ) .
+                           $this->getCustomerRatingSection( $prd );
 		}
 
 		$detailsSec .= '</div>';
