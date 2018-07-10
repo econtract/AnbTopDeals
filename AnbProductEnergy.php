@@ -443,13 +443,14 @@ class AnbProductEnergy extends AnbProduct
                                     Best<span>Preview</span>
                                 </div>
                                 <div class="dealDetails">
-                                    <div class="customerRating">
-                                        <div class="stamp">'.$productData['score'].'</div>
-                                    </div>
                                     <div class="dealLogo">
                                         <img src="' . $productData['logo']['200x140']->transparent->color . '" alt="' . $productData['product_name'] . '">
                                     </div>
                                     <h4>'. $productData['product_name'] .'</h4>
+                                    <div class="customerRating">
+                                        <div class="stamp">'.$productData['score'].'</div>
+                                        <span>'. pll__('Customer Score') .'</span>
+                                    </div>
                                     '. $this->getGreenPeaceRating( $product ) .'
                                 </div>
                                 <div class="deal-health-factors">
