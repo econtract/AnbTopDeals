@@ -171,7 +171,7 @@ class AnbProduct {
 			$toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link block-link '.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
 
 			$btnHtml = '<div class="buttonWrapper">
-                            <a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary ">' . pll__( 'Info and options' ) . '</a>
+                            <a href="' . getTelecomProductPageUri($prd) . '" class="btn btn-primary ">' . pll__( 'Info and options' ) . '</a>
                             '.$toCartLinkHtml.'
                         </div>';
 
