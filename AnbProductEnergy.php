@@ -502,4 +502,20 @@ class AnbProductEnergy extends AnbProduct
                    </script>';
         echo $script;
     }
+
+    public function getPotentialSavings($savings)
+    {
+        if(is_object($savings)){
+            $price = formatPriceInParts($savings->yearly->promo_price,2);
+        } else {
+            $price['currency'] = '&euro;';
+            $price['price'] = '0';
+            $price['cents'] = '00';
+        }
+        $psHTMNL = '<div class="price-label ">
+                        <label>'.pll__('Potential saving').'</label>
+                        <div class="price">'.$price['currency'].' '.$price['price'].'<small>,'.$price['cents'].'</small></div>
+                    </div>';
+        return $psHTMNL;
+    }
 }
