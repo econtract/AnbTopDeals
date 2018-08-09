@@ -506,16 +506,16 @@ class AnbProductEnergy extends AnbProduct
     public function getPotentialSavings($savings)
     {
         if(is_object($savings)){
-            $price = formatPriceInParts($savings->yearly->promo_price,2);
+	        $priceYearly = formatPriceInParts($savings->yearly->promo_price,2);
+	        $priceMontly = formatPriceInParts($savings->yearly->promo_price,2);
         } else {
-            $price['currency'] = '&euro;';
-            $price['price'] = '0';
-            $price['cents'] = '00';
+	        $priceYearly = $priceMontly = formatPriceInParts(0,2);
         }
-        $psHTMNL = '<div class="price-label ">
+        $html = '<div class="price-label ">
                         <label>'.pll__('Potential saving').'</label>
-                        <div class="price">'.$price['currency'].' '.$price['price'].'<small>,'.$price['cents'].'</small></div>
+                        <div class="price yearly">'.$priceYearly['currency'].' '.$priceYearly['price'].'<small>,'.$priceYearly['cents'].'</small></div>
+                        <div class="price monthly hide">'.$priceMontly['currency'].' '.$priceMontly['price'].'<small>,'.$priceMontly['cents'].'</small></div>
                     </div>';
-        return $psHTMNL;
+        return $html;
     }
 }
