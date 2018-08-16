@@ -321,26 +321,31 @@ class AnbProduct {
 	 */
 	function getServicesHtml( array $prd ) {
 		$servicesHtml = '';
+		//$prd['packtype']: This is combining mulitple names into one using + sign e.g. Internet + TV
+		$prdOrPckTypes = ( $prd['producttype'] == 'packs' ) ? $prd['packtypes'] : $prd['producttype'];
+		$prdOrPckTypes = (!is_array($prdOrPckTypes)) ? strtolower( $prdOrPckTypes ) : $prdOrPckTypes;
 
-		$prdOrPckTypes = ( $prd['producttype'] == 'packs' ) ? $prd['packtype'] : $prd['producttype'];
-		$prdOrPckTypes = strtolower( $prdOrPckTypes );
-
-		if ( strpos( $prdOrPckTypes, "int" ) !== false ) {
+		if ( (is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
+		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "int" ) !== false) ) {
 			$servicesHtml .= '<li class="wifi">
                                 <i class="service-icons wifi"></i>
                               </li>';
 		}
-		if ( strpos( $prdOrPckTypes, "gsm" ) !== false ) {
+		if ( (is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
+			     (!is_array($prdOrPckTypes) && (strpos( $prdOrPckTypes, "mobile" ) !== false
+			                                    || strpos( $prdOrPckTypes, "gsm" ) !== false)) ) {
 			$servicesHtml .= '<li class="mobile">
                                 <i class="service-icons mobile"></i>
                               </li>';
 		}
-		if ( strpos( $prdOrPckTypes, "tel" ) !== false ) {
+		if ( (is_array($prdOrPckTypes) && in_array('telephony', $prdOrPckTypes)) ||
+		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "tel" ) !== false) ) {
 			$servicesHtml .= '<li class="phone">
                                 <i class="service-icons phone"></i>
                               </li>';
 		}
-		if ( strpos( $prdOrPckTypes, "tv" ) !== false ) {
+		if ( (is_array($prdOrPckTypes) && in_array('idtv', $prdOrPckTypes)) ||
+		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "tv" ) !== false) ) {
 			$servicesHtml .= '<li class="tv">
                                 <i class="service-icons tv"></i>
                               </li>';
@@ -377,6 +382,7 @@ class AnbProduct {
 
 		if ( $product->producttype == "packs" ) {
 			$data['packtype'] = $product->packtype;
+			$data['packtypes'] = array_keys((array)$product->packtypes);
 		}
 
 		$data['product_name']  = $product->product_name;
