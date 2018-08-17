@@ -81,9 +81,13 @@ class AnbProductEnergy extends AnbProduct
         return $revSec;
     }
 
-    public function getGreenPeaceRating($product)
+    public function getGreenPeaceRating($product = null, $greenpeaceScore = null, $disabledAttr='disabled', $idPrefix = '', $returnWithoutContainer = false)
     {
-	    $greenpeaceScore = ($product->electricity->specifications->greenpeace_score->value) ?: $product->specifications->greenpeace_score->value;
+    	$product_id = '';
+    	if($product) {
+		    $product_id = $product->product_id;
+	    }
+	    $greenpeaceScore = ($greenpeaceScore) ?: (($product->electricity->specifications->greenpeace_score->value) ?: $product->specifications->greenpeace_score->value);
 	    $greenpeaceScore = ceil($greenpeaceScore/5);
 
 	    $greenpeaceHtml = '';
@@ -94,18 +98,22 @@ class AnbProductEnergy extends AnbProduct
 	    	if($i == $greenpeaceScore) {
 			    $checked = 'checked = "checked"';
 		    }
-		    $greenpeaceHtml .= '<input type="radio" id="deal_'.$product->product_id.'_greenPease_'.$j.'" name="deal'.$j.'" value="'.$j.'" '.$checked.' disabled>
-                                <label class="full" for="deal_'.$product->product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>';
+		    $greenpeaceHtml .= '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace" value="'.$j.'" '.$checked.' '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
+                                <label class="full" for="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>';
 		    $counter++;
 	    }
 
 	    if($counter < 4) {
 		    for($i = $counter; $i < 4; $i++) {
 			    $j = $i+1;
-			    $greenpeaceHtml = '<input type="radio" id="deal_'.$product->product_id.'_greenPease_'.$j.'" name="deal'.$j.'" value="'.$j.'" disabled>
-                                <label class="full" for="deal_'.$product->product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>'
+			    $greenpeaceHtml = '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace" value="'.$j.'" '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
+                                <label class="full" for="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>'
 			                      . $greenpeaceHtml;
 		    }
+	    }
+
+	    if($returnWithoutContainer) {
+	    	return $greenpeaceHtml;
 	    }
 
         $greenPeace = '<div class="greenpeace-container col_3">
