@@ -98,6 +98,7 @@ class AnbProductEnergy extends AnbProduct
 	    	if($i == $greenpeaceScore) {
 			    $checked = 'checked = "checked"';
 		    }
+
 		    $greenpeaceHtml .= '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace'.$product_id.'" value="'.$j.'" '.$checked.' '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
                                 <label class="full" for="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>';
 		    $counter++;
