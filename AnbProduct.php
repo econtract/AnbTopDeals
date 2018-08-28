@@ -100,7 +100,7 @@ class AnbProduct {
 
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'top_deals_js', plugin_dir_url( __FILE__ ) . 'js/top-deals.js' );
-
+        wp_enqueue_script( 'top_deals_slider_js', plugin_dir_url( __FILE__ ) . 'js/top-deals-slider.js' );
 		$htmlWrapper = '';
 		if ( $atts['is_first'] == 'yes' ) {
 			$htmlWrapper = '<section class="topDeals">
@@ -131,7 +131,7 @@ class AnbProduct {
 		}
 
 		$navHtmlName = sanitize_title_with_dashes( $nav );
-		$navContent  = '<div class="row ' . $navHtmlName . '" ' . $displayStyle . '>';
+		$navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row ' . $navHtmlName . '" ' . $displayStyle . '>';
 		foreach ( $data as $idx => $prd ) {
 			$boxClass = 'left';
 			if ( $idx == 1 ) {
@@ -180,7 +180,7 @@ class AnbProduct {
                                 </div>' . $btnHtml;
 			//echo $this->priceSection( '', '', '', 'dealPrice last', $infoOptionsHtml, false, $productData );
 
-			$navContent .= '<div class="col-md-4 offer offer-col ' . $boxClass . '">
+			$navContent .= '<div class="col-md-12 offer offer-col ' . $boxClass . '">
                                 ' . $this->getProductDetailSection( $prd, $servicesHtml ) .
 			               $this->priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, 'dealPrice', '', '', $prd, true ) .
 			               $this->getPromoSection( $promotionHtml, $prd['advantage'], 'dealFeatures', '', true, $totalOnetimeCost ) .
