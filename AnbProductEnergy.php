@@ -44,7 +44,7 @@ class AnbProductEnergy extends AnbProduct
     public function getLogoSection(array $prd)
     {
         $logoSec = '<div class="dealLogo col_1">
-                        <img src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
+                        <img src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . htmlentities($prd['product_name']) . '">
                     </div>';
         return $logoSec;
     }
