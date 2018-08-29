@@ -74,10 +74,10 @@ class AnbProductEnergy extends AnbProduct
         return $custRatSec;
     }
 
-    public function getBadgeSection($prd)
+    public function getBadgeSection($badgeText = '', $digits = '')
     {
         // 100% needed to be extracted from $prd array
-        $revSec = '101% <span>' . pll__('green') . '</span>';
+        $revSec = $digits . ' <span>' . $badgeText . '</span>';
         return $revSec;
     }
 
