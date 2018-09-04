@@ -1201,7 +1201,7 @@ class AnbProduct {
 		$detailsSec = '<div class="dealDetails">';
 
 		if ( $includeBadge && ! empty( $badgeTxt ) ) {
-			$detailsSec = $this->getBadgeSection( $badgeTxt );
+			$detailsSec .= $this->getBadgeSection( $badgeTxt );
 		}
 
 		if($includeText) {
