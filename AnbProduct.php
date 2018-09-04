@@ -1146,11 +1146,14 @@ class AnbProduct {
 		return $titleSec;
 	}
 
-	public function getLogoSection( array $prd ) {
-		$logoSec = '<div class="dealLogo">
+	public function getLogoSection( array $prd, $listview, $includeText ) {
+        if($includeText) {
+            $logoSec = $this->getTextSection($prd);
+        } else {
+            $logoSec = '<div class="dealLogo">
                         <img src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
                     </div>';
-
+        }
 		return $logoSec;
 	}
 
@@ -1201,16 +1204,12 @@ class AnbProduct {
 			$detailsSec = $this->getBadgeSection( $badgeTxt );
 		}
 
-		if($includeText) {
-            $detailsSec .= $this->getTextSection($prd);
-        }
-
 		if($listView) {
-			$detailsSec .= $this->getLogoSection( $prd, $listView ) .
+			$detailsSec .= $this->getLogoSection( $prd, $listView, $includeText ) .
 			               $this->getTitleSection( $prd,  $listView) .
 			               $this->getCustomerRatingSection( $prd, $listView );
 		} else {
-			$detailsSec .= $this->getLogoSection( $prd ) .
+			$detailsSec .= $this->getLogoSection( $prd, $listView, $includeText ) .
 			               $this->getTitleSection( $prd ) .
                            $this->getServiceIconsSection( $servicesHtml ) .
                            $this->getCustomerRatingSection( $prd );
