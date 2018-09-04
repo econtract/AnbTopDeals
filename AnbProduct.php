@@ -1189,12 +1189,21 @@ class AnbProduct {
 		return $revSec;
 	}
 
-	public function getProductDetailSection( $prd, $servicesHtml, $includeBadge = false, $badgeTxt = '', $listView = false ) {
+    public function getTextSection( array $prd ) {
+        $textSec = '<div class="dealLogo">' . $prd['supplier_name'] . '</div>';
+        return $textSec;
+    }
+
+	public function getProductDetailSection( $prd, $servicesHtml, $includeText = false, $includeBadge = false, $badgeTxt = '', $listView = false ) {
 		$detailsSec = '<div class="dealDetails">';
 
 		if ( $includeBadge && ! empty( $badgeTxt ) ) {
 			$detailsSec = $this->getBadgeSection( $badgeTxt );
 		}
+
+		if($includeText) {
+            $detailsSec .= $this->getTextSection($prd);
+        }
 
 		if($listView) {
 			$detailsSec .= $this->getLogoSection( $prd, $listView ) .
