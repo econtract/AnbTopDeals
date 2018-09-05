@@ -1147,13 +1147,11 @@ class AnbProduct {
 	}
 
 	public function getLogoSection( array $prd, $listview, $includeText ) {
-        if($includeText) {
-            $logoSec = $this->getTextSection($prd);
-        } else {
-            $logoSec = '<div class="dealLogo">
-                        <img src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
+        $greyClass = '';
+        if($includeText){ $greyClass = 'partnergrey'; }
+        $logoSec = '<div class="dealLogo">
+                        <img class="'.$greyClass.'" src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
                     </div>';
-        }
 		return $logoSec;
 	}
 
