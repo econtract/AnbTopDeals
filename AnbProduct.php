@@ -1190,11 +1190,6 @@ class AnbProduct {
 		return $revSec;
 	}
 
-    public function getTextSection( array $prd ) {
-        $textSec = '<div class="dealLogo">' . $prd['supplier_name'] . '</div>';
-        return $textSec;
-    }
-
 	public function getProductDetailSection( $prd, $servicesHtml, $includeText = false, $includeBadge = false, $badgeTxt = '', $listView = false ) {
 		$detailsSec = '<div class="dealDetails">';
 
