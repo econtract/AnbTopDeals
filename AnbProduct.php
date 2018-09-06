@@ -1197,10 +1197,6 @@ class AnbProduct {
 			$detailsSec .= $this->getBadgeSection( $badgeTxt );
 		}
 
-		if($includeText) {
-            $detailsSec .= $this->getTextSection($prd);
-        }
-
 		if($listView) {
 			$detailsSec .= $this->getLogoSection( $prd, $listView, $includeText ) .
 			               $this->getTitleSection( $prd,  $listView) .
