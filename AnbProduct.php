@@ -1291,11 +1291,11 @@ class AnbProduct {
             $keyParams = $params + $params['detaillevel'] + ['indv_product_id' => $productId];
             $cacheKey = md5(implode(",", $keyParams) . $_SERVER['REQUEST_URI']) . ":getProducts";
 
-            $result = get_transient($cacheKey);
+            $result = mycache_get($cacheKey);
 
             if($result === false || empty($result)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
-                set_transient($cacheKey, $result, $cacheDurationSeconds);
+                mycache_set($cacheKey, $result, $cacheDurationSeconds);
             } else {
                 $displayText = "Time Cached API Data (Product) inside getProducts";
             }
