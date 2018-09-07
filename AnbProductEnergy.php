@@ -282,7 +282,7 @@ class AnbProductEnergy extends AnbProduct
             'product_1'   => [],
             'product_2'   => [],
             'product_3'   => [],
-            'lang'        => 'nl',
+            'lang'        => getLanguage(),
             'is_active'   => 'no',
             'is_first'    => 'no'
 
