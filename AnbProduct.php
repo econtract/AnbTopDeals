@@ -884,7 +884,13 @@ class AnbProduct {
 			echo "<pre>$apiUrl</pre>";;
 		}
 
+		$start = getStartTime();
+		$displayText = "Time API (PBS) inside getPbsOrganizedHtmlApi";
+
 		$apiRes = file_get_contents($apiUrl);
+
+		$finish = getEndTime();
+		displayCallTime($start, $finish, $displayText);
 
 		$totalMonthly = '';
 		$totalYearly = '';
