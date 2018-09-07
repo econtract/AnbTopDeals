@@ -11,6 +11,16 @@ namespace AnbTopDeals;
 use AnbApiClient\Aanbieders;
 use AnbSearch\AnbCompare;
 
+if(!function_exists('getLanguage')) {
+    function getLanguage()
+    {
+        //get locale
+        $locale = function_exists('pll_current_language') ? pll_current_language() : Locale::getPrimaryLanguage(get_locale());
+
+        return $locale;
+    }
+}
+
 class AnbProduct {
 
 	public $crmApiEndpoint = "http://api.econtract.be/";//Better to take it from Admin settings
@@ -35,7 +45,7 @@ class AnbProduct {
 			'product_1'   => [],
 			'product_2'   => [],
 			'product_3'   => [],
-			'lang'        => 'nl',
+			'lang'        => getLanguage(),
 			'is_active'   => 'no',
 			'is_first'    => 'no'
 
