@@ -180,7 +180,7 @@ class AnbProduct {
 			                  '&provider_id=' . $prd['supplier_id'] . '&sg=' . $prd['sg'] . '&producttype=' . $prd['producttype'] . '"';*/
 			$toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link block-link '.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
 
-			$btnHtml = '<div class="buttonWrapper">
+			$btnHtml = '<div class="buttonWrapper print-hide">
                             <a href="' . getTelecomProductPageUri($prd) . '" class="btn btn-primary ">' . pll__( 'Info and options' ) . '</a>
                             '.$toCartLinkHtml.'
                         </div>';
@@ -338,26 +338,30 @@ class AnbProduct {
 		if ( (is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
 		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "int" ) !== false) ) {
 			$servicesHtml .= '<li class="wifi">
-                                <i class="service-icons wifi"></i>
+                                <i class="service-icons wifi print-hide"></i>
+                                <img src="'.get_bloginfo('template_url').'/images/print-images/internet.svg" alt="" class="print-show" />
                               </li>';
 		}
 		if ( (is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
 			     (!is_array($prdOrPckTypes) && (strpos( $prdOrPckTypes, "mobile" ) !== false
 			                                    || strpos( $prdOrPckTypes, "gsm" ) !== false)) ) {
 			$servicesHtml .= '<li class="mobile">
-                                <i class="service-icons mobile"></i>
+                                <i class="service-icons mobile print-hide"></i>
+                                <img src="'.get_bloginfo('template_url').'/images/print-images/mobile.svg" alt="" class="print-show" />
                               </li>';
 		}
 		if ( (is_array($prdOrPckTypes) && in_array('telephony', $prdOrPckTypes)) ||
 		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "tel" ) !== false) ) {
 			$servicesHtml .= '<li class="phone">
-                                <i class="service-icons phone"></i>
+                                <i class="service-icons phone print-hide"></i>
+                                <img src="'.get_bloginfo('template_url').'/images/print-images/telephony.svg" alt="" class="print-show" />
                               </li>';
 		}
 		if ( (is_array($prdOrPckTypes) && in_array('idtv', $prdOrPckTypes)) ||
 		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "tv" ) !== false) ) {
 			$servicesHtml .= '<li class="tv">
-                                <i class="service-icons tv"></i>
+                                <i class="service-icons tv print-hide"></i>
+                                <img src="'.get_bloginfo('template_url').'/images/print-images/idtv.svg" alt="" class="print-show" />
                               </li>';
 		}
 
@@ -1141,7 +1145,7 @@ class AnbProduct {
 	    $toCartInternalLink = $toCartLinkHtml;
 	    $justCartLinkHtml = '<a ' . $toCartLinkHtml . ' class="btn btn-primary all-caps">' . pll__( 'configure your pack' ) . '</a>';
 	    $oldCartLinkHtml  = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
-	    $toCartLinkHtml   = '<div class="buttonWrapper">' . $justCartLinkHtml . '</div>';
+	    $toCartLinkHtml   = '<div class="buttonWrapper print-hide">' . $justCartLinkHtml . '</div>';
 
         return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml, $toCartInternalLink];
     }
