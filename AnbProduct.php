@@ -1131,6 +1131,7 @@ class AnbProduct {
     }
 
     function getToCartAnchorHtml($parentSegment, $productId, $supplierId, $sg='', $productType='', $forceCheckAvailability = false) {
+
         $domain = explode('//', WP_HOME)[1];
         $directLandOrExt = (strpos($_SERVER['HTTP_REFERER'], $domain) === false || empty($_SESSION['product']['zip'])) ? true : false;
 
