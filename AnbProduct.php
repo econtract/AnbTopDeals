@@ -1157,6 +1157,7 @@ class AnbProduct {
 	 * @return string
 	 */
 	public function getTitleSection( array $prd, $listView = false ) {
+
 		$titleSec = '<h4>' . $prd['product_name'] . '</h4>
                      <p class="slogan">' . $prd['tagline'] . '</p>';
 
