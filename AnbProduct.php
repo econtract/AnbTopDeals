@@ -869,7 +869,10 @@ class AnbProduct {
 	 * @param bool $withoutOrderBtn
 	 * @return string
 	 */
-	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true, $pdfHtml = false) {
+	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true, $pdfHtml = false, $enableCache = true, $expiresIn = 84600) {
+		if(defined('PBS_API_CACHE_DURATION')) {
+			$expiresIn = PBS_API_CACHE_DURATION;
+		}
 		//if language is missing get that automatically
 		if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
 			/** @var \AnbSearch\AnbCompare $anbComp */
@@ -885,13 +888,24 @@ class AnbProduct {
 		$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
 
 		if($_GET['debug']) {
-			echo "<pre>$apiUrl</pre>";;
+			echo "<pre>$apiUrl</pre>";
 		}
 
 		$start = getStartTime();
 		$displayText = "Time API (PBS) inside getPbsOrganizedHtmlApi";
 
-		$apiRes = file_get_contents($apiUrl);
+		$cacheKey = md5($apiUrl);
+
+		if ($enableCache && !isset($_GET['no_cache'])) {
+			$apiRes = mycache_get($cacheKey);
+
+			if($apiRes === false || empty($apiRes)) {
+				$apiRes = file_get_contents($apiUrl);
+				mycache_set($cacheKey, $apiRes, $expiresIn);
+			}
+		} else {
+			$apiRes = file_get_contents($apiUrl);
+		}
 
 		$finish = getEndTime();
 		displayCallTime($start, $finish, $displayText);
