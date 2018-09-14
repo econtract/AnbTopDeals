@@ -953,7 +953,15 @@ class AnbProduct {
 				$totalAdvPrice = $priceSec->total_discount->value;
 				$monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
 				$monthlyDisc   += abs($priceSec->monthly_costs->subtotal_discount->value);
-				$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
+
+				//A patch added to negate the installation price from the total until we request it is requested, once that's addressed in API we need to revert it back
+				//Revert back to the code this code $oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+				if(!isset($apiParams['it']) || empty($apiParams['it'])) {
+					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
+				} else {
+					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+				}
+
                 //$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
                 $oneoffDisc    += abs($priceSec->oneoff_costs->subtotal_discount->value);
 				$yearlyTotal   += $priceSec->total->value;
@@ -982,7 +990,8 @@ class AnbProduct {
 					pll__( 'Monthly costs' ),
 					pll__( 'Monthly total' ),
 					pll__( 'First month' ),
-					pll__( 'PBS: Monthly total tooltip text' )
+					pll__( 'PBS: Monthly total tooltip text' ),
+					$apiParams
 				);
 
 				$dynamicHtml .= $monthlyHtml;
@@ -1008,7 +1017,10 @@ class AnbProduct {
 							$yearlyAdvCollection,
 							$sectionsHtml,
 							pll__( 'One-time costs' ),
-							pll__( 'One-time total' )
+							pll__( 'One-time total' ),
+							'',
+							'',
+							$apiParams
 						);
 
 					$dynamicHtml .= $oneoffHtml;
@@ -1447,11 +1459,11 @@ class AnbProduct {
 	 *
 	 * @return string
 	 */
-	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [], $pdfHtml = false ) {
+	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [], $pdfHtml = false, $apiParams = [] ) {
 		$html = '';
 		$htmlArr = [];
 		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
-            if($lineKey == 'installation') { //skipping installation cost
+            if($lineKey == 'installation' && (!isset($apiParams['it']) || empty($apiParams['it']))) { //skipping installation cost
                 continue;
             }
 		    //if some key starts with free then skip it, as it'll be automatically included during processing that specific field
@@ -1705,7 +1717,7 @@ class AnbProduct {
 	 * @return array
 	 */
 	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
-		&$sectionsHtml, $sectionTitle = '', $sectionTotalLabel='', $infoTextLabel='', $infoText='' ) {
+		&$sectionsHtml, $sectionTitle = '', $sectionTotalLabel='', $infoTextLabel='', $infoText='', $apiParams = [] ) {
 		if(empty($sectionTitle)) {
 			$sectionTitle = $priceSec->label;
 		}
@@ -1738,7 +1750,7 @@ class AnbProduct {
 				}
 			}
 		}
-		$itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, $yearlyAdvCollection );
+		$itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, $yearlyAdvCollection, false, $apiParams );
 
 		$html .= $itemsHtml;
 		$html .= '</ul></div>';//end of price section
