@@ -945,6 +945,7 @@ class AnbProduct {
 			$oneTimeHtml = '';
 			$dynamicHtml = '';//Just to be used as container to combine all HTML
 			foreach($apiRes as $key => $priceSec) {
+			    //echo '<pre>'.print_r($priceSec, true).'</pre>';
 				$currencyUnit  = $priceSec->total->unit;
 				$totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
 				$totalYearly   = $priceSec->total->display_value;
@@ -952,8 +953,9 @@ class AnbProduct {
 				$totalAdvPrice = $priceSec->total_discount->value;
 				$monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
 				$monthlyDisc   += abs($priceSec->monthly_costs->subtotal_discount->value);
-				$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
-				$oneoffDisc    += abs($priceSec->oneoff_costs->subtotal_discount->value);
+				$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
+                //$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+                $oneoffDisc    += abs($priceSec->oneoff_costs->subtotal_discount->value);
 				$yearlyTotal   += $priceSec->total->value;
 				$yearlyDisc    += abs( $priceSpec->total_discount );//if number is negative convert that to +ve
 				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
@@ -1449,7 +1451,10 @@ class AnbProduct {
 		$html = '';
 		$htmlArr = [];
 		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
-			//if some key starts with free then skip it, as it'll be automatically included during processing that specific field
+            if($lineKey == 'installation') { //skipping installation cost
+                continue;
+            }
+		    //if some key starts with free then skip it, as it'll be automatically included during processing that specific field
 			if(strpos($lineKey, 'free_') === 0) {
 				continue;
 			}
