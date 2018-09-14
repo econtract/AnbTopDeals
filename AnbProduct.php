@@ -1097,6 +1097,7 @@ class AnbProduct {
             'it'  => $_REQUEST['it'],//Installation type like full/diy
             'opt' => array_filter($_REQUEST['opt']),//array options
             'extra_pid' => array_filter($_REQUEST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
+            'tmp_diy_inst_price' => $_REQUEST['tmp_diy_inst_price']
         ];
 
         $apiData = array_filter($apiData);//cleaning empty values
