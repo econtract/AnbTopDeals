@@ -959,7 +959,11 @@ class AnbProduct {
 				if(!isset($apiParams['it']) || empty($apiParams['it'])) {
 					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
 				} else {
-					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+					if($apiParams['tmp_diy_inst_price']) {
+						$oneoffTotal   += $apiParams['tmp_diy_inst_price'];
+					} else {
+						$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+					}
 				}
 
                 //$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
