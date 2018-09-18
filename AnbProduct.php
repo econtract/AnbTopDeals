@@ -935,10 +935,16 @@ class AnbProduct {
 				$orderBtn = $someHtml;
 			}
 
+			$diyReqClass = '';
+
+			if($apiParams['it'] == 'diy') {
+				$diyReqClass = 'diy-requested';
+			}
+
 			if($pdfHtml) {
-				$html .= '<div class="order-selected followed">';
+				$html .= '<div class="order-selected followed '.$diyReqClass.'">';
 			} else {
-				$html .= '<div class="calculationPanel">';
+				$html .= '<div class="calculationPanel '.$diyReqClass.'">';
 			}
 
 			//Generate the main HTML only for main/base product
@@ -1734,13 +1740,7 @@ class AnbProduct {
 			$sectionTitle = $priceSec->label;
 		}
 
-		$diyReqClass = '';
-
-		if($apiParams['it'] == 'diy') {
-			$diyReqClass = 'diy-requested';
-		}
-
-		$html = '<div class="calcSection '.$pbsSectionClass. ' ' . $diyReqClass .'">';
+		$html = '<div class="calcSection '.$pbsSectionClass.'">';
 		$html .= '<div class="calcPanelHeader">';
 		$html .= '<h6>' . $sectionTitle . '</h6>';
 		$html .= '<i class="aan-icon panelOpen fa fa-chevron-down"></i>
