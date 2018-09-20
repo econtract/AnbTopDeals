@@ -1324,10 +1324,18 @@ class AnbProduct {
 	    if(defined('PRODUCT_API_CACHE_DURATION')) {
 	        $cacheDurationSeconds = PRODUCT_API_CACHE_DURATION;
         }
+
+        $params['indv_product_id'] = $productId;
+
+	    $matchSlug = false;//To make sure on product detail page we don't get the wrong product from cache at all
+        $matchSlug = '';
+
         if ( is_string( $productId ) && ! is_numeric( $productId ) ) {
             //make it part of params instead of passing directly to the API
             $params['productid'] = $productId;
+            $matchSlug = $productId;
             $productId           = null;
+            $matchSlug = true;
         }
 
         //generate key from params to store in cache
@@ -1335,12 +1343,14 @@ class AnbProduct {
         $start = getStartTime();
         $displayText = "Time API (Product) inside getProducts";
         if ($enableCache && !isset($_GET['no_cache'])) {
-            $keyParams = $params + $params['detaillevel'] + ['indv_product_id' => $productId];
+            $keyParams = $params;
+
             $cacheKey = md5(serialize($keyParams)) . ":getProducts";
 
             $result = mycache_get($cacheKey);
 
-            if($result === false || empty($result)) {
+            if(($result === false || empty($result)) ||
+                ($matchSlug && !empty($result) && $result[0]->product_slug != $matchSlug)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
                 mycache_set($cacheKey, $result, $cacheDurationSeconds);
             } else {
