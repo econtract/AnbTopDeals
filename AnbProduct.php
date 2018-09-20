@@ -1350,7 +1350,7 @@ class AnbProduct {
             $result = mycache_get($cacheKey);
 
             if(($result === false || empty($result)) ||
-                ($matchSlug && !empty($result) && $result[0]->product_slug != $slug)) {
+                ($matchSlug && !empty($result) && json_decode($result)[0]->product_slug != $slug)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
                 mycache_set($cacheKey, $result, $cacheDurationSeconds);
             } else {
