@@ -1328,13 +1328,13 @@ class AnbProduct {
         $params['indv_product_id'] = $productId;
 
 	    $matchSlug = false;//To make sure on product detail page we don't get the wrong product from cache at all
-        $matchSlug = '';
+        $slug = '';
 
         if ( is_string( $productId ) && ! is_numeric( $productId ) ) {
             //make it part of params instead of passing directly to the API
             $params['productid'] = $productId;
-            $matchSlug = $productId;
-            $productId           = null;
+            $slug = $productId;
+            $productId = null;
             $matchSlug = true;
         }
 
@@ -1350,7 +1350,7 @@ class AnbProduct {
             $result = mycache_get($cacheKey);
 
             if(($result === false || empty($result)) ||
-                ($matchSlug && !empty($result) && $result[0]->product_slug != $matchSlug)) {
+                ($matchSlug && !empty($result) && $result[0]->product_slug != $slug)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
                 mycache_set($cacheKey, $result, $cacheDurationSeconds);
             } else {
