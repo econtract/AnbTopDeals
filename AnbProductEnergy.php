@@ -348,7 +348,7 @@ class AnbProductEnergy extends AnbProduct
         if ( $atts['is_first'] == 'yes' ) {
             $htmlWrapper = '<section class="topDeals energyTopDeals">
                         <div class="container">
-                            <div class="deals-count">57<span>'.  pll__( 'Top telecom deals' ) . '</span></div>
+                            <div class="deals-count hide">57<span>'.  pll__( 'Top telecom deals' ) . '</span></div>
                             <div class="topDealsWrapper">
                                 <h3>' . pll__( 'Most popular' ) . '</h3>	
                                 <div class="filterDeals">
