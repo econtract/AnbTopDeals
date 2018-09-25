@@ -935,10 +935,16 @@ class AnbProduct {
 				$orderBtn = $someHtml;
 			}
 
+			$diyReqClass = '';
+
+			if($apiParams['it'] == 'diy') {
+				$diyReqClass = 'diy-requested';
+			}
+
 			if($pdfHtml) {
-				$html .= '<div class="order-selected followed">';
+				$html .= '<div class="order-selected followed '.$diyReqClass.'">';
 			} else {
-				$html .= '<div class="calculationPanel">';
+				$html .= '<div class="calculationPanel '.$diyReqClass.'">';
 			}
 
 			//Generate the main HTML only for main/base product
@@ -1318,10 +1324,18 @@ class AnbProduct {
 	    if(defined('PRODUCT_API_CACHE_DURATION')) {
 	        $cacheDurationSeconds = PRODUCT_API_CACHE_DURATION;
         }
+
+        $params['indv_product_id'] = $productId;
+
+	    $matchSlug = false;//To make sure on product detail page we don't get the wrong product from cache at all
+        $slug = '';
+
         if ( is_string( $productId ) && ! is_numeric( $productId ) ) {
             //make it part of params instead of passing directly to the API
             $params['productid'] = $productId;
-            $productId           = null;
+            $slug = $productId;
+            $productId = null;
+            $matchSlug = true;
         }
 
         //generate key from params to store in cache
@@ -1329,12 +1343,14 @@ class AnbProduct {
         $start = getStartTime();
         $displayText = "Time API (Product) inside getProducts";
         if ($enableCache && !isset($_GET['no_cache'])) {
-            $keyParams = $params + $params['detaillevel'] + ['indv_product_id' => $productId];
+            $keyParams = $params;
+
             $cacheKey = md5(serialize($keyParams)) . ":getProducts";
 
             $result = mycache_get($cacheKey);
 
-            if($result === false || empty($result)) {
+            if(($result === false || empty($result)) ||
+                ($matchSlug && !empty($result) && json_decode($result)[0]->product_slug != $slug)) {
                 $result = $this->anbApi->getProducts( $params, $productId );
                 mycache_set($cacheKey, $result, $cacheDurationSeconds);
             } else {
@@ -1576,7 +1592,7 @@ class AnbProduct {
 			$oldPriceHtml = '';
 		}
 
-		$currPriceHtml = '<span class="currentPrice">
+		$currPriceHtml = '<span class="currentPrice ident-applied-price" applied-price="'.($lineVal->product->value - $offerPrice).'">
 					                <span class="currency">' . $priceArr['currency'] . '</span>
 					                <span class="amount">' . $priceArr['price'] . '</span>
 					                <span class="cents">' . $priceArr['cents'] . '</span>
@@ -1590,8 +1606,13 @@ class AnbProduct {
 				            ' . $oldPriceHtml . $currPriceHtml . '
 				            </div>';
 
+		$instClass = '';
+
+		//Special class to identfy the installation location, to overcome a bug in the API that doesn't gives back the correct DIY price
+		if(strpos(strtolower($lineVal->label), 'inst') !== false) {$instClass = 'ident-inst';}
+
 		$priceDetailHtml = '<li class="packOption">
-								<div class="packageDetail">
+								<div class="packageDetail ' . $instClass . '">
 								<div class="packageDesc ' . $hasOldPriceClass . '">' . $lineVal->label . '</div>
 					            ' . $currOldPriceHtml . $promoPriceHtml . '
 					            </div>
@@ -1662,8 +1683,14 @@ class AnbProduct {
 		$sectionTotalPriceArr = formatPriceInParts( $total, 2, $priceSec->subtotal->unit );
 		$infoTextHtml = '';
 
+		$oneTimeTotalClass = '';
+
 		if(empty($sectionTotalLabel)) {
 			$sectionTotalLabel = $priceSec->label;
+		}
+
+		if($sectionTotalLabel == pll__('One-time total')) {
+			$oneTimeTotalClass = 'ident-onetime-total';
 		}
 
 		if($infoTextHelpText) {
@@ -1672,7 +1699,7 @@ class AnbProduct {
                             </div>';
 		}
 		$sectionTotalHtml     = '<div class="calcPanelTotal">
-			                            <div class="packageTotal">
+			                            <div class="packageTotal '.$oneTimeTotalClass.'" onetime-total="'.$total.'">
 			                                <span class="caption">' . $sectionTotalLabel . '</span>
 			                                <span class="price">
                                                 <span class="currency">' . $sectionTotalPriceArr['currency'] . '</span>
@@ -1722,6 +1749,7 @@ class AnbProduct {
 		if(empty($sectionTitle)) {
 			$sectionTitle = $priceSec->label;
 		}
+
 		$html = '<div class="calcSection '.$pbsSectionClass.'">';
 		$html .= '<div class="calcPanelHeader">';
 		$html .= '<h6>' . $sectionTitle . '</h6>';
