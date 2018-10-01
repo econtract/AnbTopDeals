@@ -1345,7 +1345,7 @@ class AnbProduct {
         if ($enableCache && !isset($_GET['no_cache'])) {
             $keyParams = $params;
 
-            $cacheKey = md5(serialize($keyParams)) . ":getProducts";
+            $cacheKey = md5(serialize($keyParams) . $productId) . ":getProducts";
 
             $result = mycache_get($cacheKey);
 
