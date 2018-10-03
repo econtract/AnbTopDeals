@@ -1183,7 +1183,7 @@ class AnbProduct {
 	    $oldCartLinkHtml  = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
 	    $toCartLinkHtml   = '<div class="buttonWrapper print-hide">' . $justCartLinkHtml . '</div>';
 
-        return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml, $toCartInternalLink];
+        return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml, $toCartInternalLink, $checkoutPageLink];
     }
 
 	/**
