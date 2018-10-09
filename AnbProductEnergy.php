@@ -137,7 +137,9 @@ class AnbProductEnergy extends AnbProduct
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $servicesHtml .= '<li>
-	                                <span class="icons"><i class="plug-leaf"></i></span>
+	                                <span class="icons">
+	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-green-100.svg" />
+	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
@@ -151,7 +153,9 @@ class AnbProductEnergy extends AnbProduct
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $servicesHtml .= '<li>
-	                                <span class="icons"><i class="gas-leaf"></i></span>
+	                                <span class="icons">
+	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-green-100.svg" />
+                                    </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
@@ -194,7 +198,7 @@ class AnbProductEnergy extends AnbProduct
             $promotions = $product->promotions;
         }
         $promohtml = '<div class="col_5">
-                        <div class="promo">' . pll__('promo') . '</div>';
+                        <div class="promo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
         if ( count ($promotions) ) {
             $promohtml .= '<ul class="promo-list">';
             foreach ($promotions as $promo ) {
@@ -225,7 +229,7 @@ class AnbProductEnergy extends AnbProduct
         $calcHtml = '';
 
         if ($withCalcHtml) {
-            $calcHtml = '<a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview'.$prd['product_id'].'"></a>';
+            $calcHtml = '<a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview'.$prd['product_id'].'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/calculator@2x.svg" /></a>';
         }
 
         $oldPriceYearlyHtml = '<span class="yearly"></span>';
@@ -425,7 +429,9 @@ class AnbProductEnergy extends AnbProduct
                     $greenOriginHtml = '<span class="color-green">' . intval($greenOrigin->value) . $greenOrigin->unit . '</span>';
                 }
                 $servicesHtml.= '<li>
-	                                <span class="icons"><i class="plug-leaf"></i></span>
+	                                <span class="icons">
+	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-green-100.svg" />
+	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
 	                                <span class="price">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
@@ -438,7 +444,10 @@ class AnbProductEnergy extends AnbProduct
                 $specs = $currProduct->specifications;
                 $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
                 $servicesHtml.= '<li>
-	                                <span class="icons"><i class="gas-leaf"></i></span>
+	                                <span class="icons">
+	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-green-100.svg" />
+	                                <i class="gas-leaf"></i>
+	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
 	                                <span class="price">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
