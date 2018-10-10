@@ -446,7 +446,6 @@ class AnbProductEnergy extends AnbProduct
                 $servicesHtml.= '<li>
 	                                <span class="icons">
 	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-green-100.svg" />
-	                                <i class="gas-leaf"></i>
 	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
