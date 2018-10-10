@@ -127,7 +127,7 @@ class AnbProductEnergy extends AnbProduct
         return $greenPeace;
     }
 
-    public function getGreenPeaceRatingWithImages($product = null, $greenpeaceScore = null, $disabledAttr='disabled', $idPrefix = '', $returnWithoutContainer = false)
+    public function getGreenPeaceRatingWithImages($product = null, $greenpeaceScore = null, $returnWithoutContainer = false)
     {
         $product_id = '';
         if($product) {
@@ -145,17 +145,14 @@ class AnbProductEnergy extends AnbProduct
                 $checked = 'checked = "checked"';
             }
 
-            $greenpeaceHtml .= '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace'.$product_id.'" value="'.$j.'" '.$checked.' '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
-                                <img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-score.svg" />';
+            $greenpeaceHtml .= '<img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-score.svg" />';
             $counter++;
         }
 
         if($counter < 4) {
             for($i = $counter; $i < 4; $i++) {
                 $j = $i+1;
-                $greenpeaceHtml = $greenpeaceHtml . '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace" value="'.$j.'" '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
-                                
-                                <img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-score-empty.svg" />';
+                $greenpeaceHtml = $greenpeaceHtml . '<img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-score-empty.svg" />';
             }
         }
 
