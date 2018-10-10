@@ -197,9 +197,9 @@ class AnbProductEnergy extends AnbProduct
         if(empty($promotions)) {
             $promotions = $product->promotions;
         }
-        $promohtml = '<div class="col_5">
-                        <div class="promo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
+        $promohtml = '<div class="col_5">';
         if ( count ($promotions) ) {
+        	$promohtml .= '<div class="promo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
             $promohtml .= '<ul class="promo-list">';
             foreach ($promotions as $promo ) {
 
@@ -209,7 +209,7 @@ class AnbProductEnergy extends AnbProduct
             }
             $promohtml .= '</ul>';
         } else {
-            $promohtml .= pll__('No promos found');
+            $promohtml .= '<div class="no-promo"><p><i>' . pll__('Sorry, currently there are no offers matching your criteria.') . '</i></p></div>';
         }
         $promohtml.= '</div>';
 
