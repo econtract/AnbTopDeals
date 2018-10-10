@@ -118,7 +118,53 @@ class AnbProductEnergy extends AnbProduct
 	    }
 
         $greenPeace = '<div class="greenpeace-container col_3">
-                            <div class="peace-logo"></div>
+                            <div class="peace-logo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-logo.svg" /></div>
+                            <fieldset>
+                                '.$greenpeaceHtml.'
+                                <div class="clearfix"></div>
+                            </fieldset>
+                        </div>';
+        return $greenPeace;
+    }
+
+    public function getGreenPeaceRatingWithImages($product = null, $greenpeaceScore = null, $disabledAttr='disabled', $idPrefix = '', $returnWithoutContainer = false)
+    {
+        $product_id = '';
+        if($product) {
+            $product_id = $product->product_id;
+        }
+        $greenpeaceScore = ($greenpeaceScore) ?: (($product->electricity->specifications->greenpeace_score->value) ?: $product->specifications->greenpeace_score->value);
+        $greenpeaceScore = ceil($greenpeaceScore/5);
+
+        $greenpeaceHtml = '';
+        $counter = 0;
+        for($i = 0; $i < $greenpeaceScore; $i++) {
+            $j = $i;
+            $checked = '';
+            if($i == $greenpeaceScore) {
+                $checked = 'checked = "checked"';
+            }
+
+            $greenpeaceHtml .= '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace'.$product_id.'" value="'.$j.'" '.$checked.' '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
+                                <img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-score.svg" />';
+            $counter++;
+        }
+
+        if($counter < 4) {
+            for($i = $counter; $i < 4; $i++) {
+                $j = $i+1;
+                $greenpeaceHtml = $greenpeaceHtml . '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace" value="'.$j.'" '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
+                                
+                                <img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-score-empty.svg" />';
+            }
+        }
+
+        if($returnWithoutContainer) {
+            return $greenpeaceHtml;
+        }
+
+        $greenPeace = '<div class="greenpeace-container col_3">
+                            <div class="peace-logo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-logo.svg" /></div>
                             <fieldset>
                                 '.$greenpeaceHtml.'
                                 <div class="clearfix"></div>
