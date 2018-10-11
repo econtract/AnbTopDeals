@@ -567,7 +567,7 @@ class AnbProductEnergy extends AnbProduct
     {
         if(is_object($savings)){
 	        $priceYearly = formatPriceInParts($savings->yearly->promo_price,2);
-	        $priceMontly = formatPriceInParts($savings->yearly->promo_price,2);
+	        $priceMontly = formatPriceInParts($savings->monthly->promo_price,2);
         } else {
 	        $priceYearly = $priceMontly = formatPriceInParts(0,2);
         }
