@@ -1663,9 +1663,9 @@ class AnbProduct {
 	 * @return string
 	 */
 	private function generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) {
-		$promoPriceHtml = '<div class="packagePromo">
+		$promoPriceHtml = '<div class="packagePromo with-promo">
 					                <ul class="list-unstyled">
-					                    <li class="promo prominent">' . $freeLineDisplayPrice . ' ' . $freeLineVal->label . '</li>
+					                    <li class="promo prominent"><svg class="svg-Promo"> <use xlink:href="'.get_bloginfo('template_url').'/images/svg-sprite.svg#Promo"></use> </svg>' . $freeLineDisplayPrice . ' ' . $freeLineVal->label . '</li>
 					                </ul>
 					            </div>';
 
