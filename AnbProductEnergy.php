@@ -272,7 +272,9 @@ class AnbProductEnergy extends AnbProduct
         $calcHtml = '';
 
         if ($withCalcHtml) {
+
             $calcHtml = '<a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview'.$prd['product_id'].'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/calculator@2x.svg" /></a>';
+
         }
 
         if ($isSetCompare) {
