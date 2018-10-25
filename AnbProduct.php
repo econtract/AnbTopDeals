@@ -1370,6 +1370,33 @@ class AnbProduct {
 		return $result;
 	}
 
+	function getProductsLastUpdated($lang, $enableCache = true, $cacheDurationSeconds = 42300)
+	{
+		if(defined('HALF_DAY_CACHE_DURATION')) {
+			$cacheDurationSeconds = HALF_DAY_CACHE_DURATION;
+		}
+		$result = null;
+		$start = getStartTime();
+		$displayText = "Time API (Previous Compare) inside getProductsLastUpdated";
+		if ($enableCache && !isset($_GET['no_cache'])) {
+			$cacheKey = md5("product_last_updated_$lang") . ":last_udpated";
+			$result = mycache_get($cacheKey);
+
+			if($result === false || empty($result)) {
+				$result = $this->anbApi->getProductsLastUpdated(['lang' => $lang]);
+				mycache_set($cacheKey, $result, $cacheDurationSeconds);
+			} else {
+				$displayText = "Time API Cached (Compare) inside getProductsLastUpdated";
+			}
+		} else {
+			$result = $this->anbApi->getProductsLastUpdated(['lang' => $lang]);
+		}
+		$finish = getEndTime();
+		displayCallTime($start, $finish, $displayText);
+
+		return str_replace('"', '', $result);
+	}
+
 
     /**
      * @param $array
