@@ -1370,8 +1370,15 @@ class AnbProduct {
 		return $result;
 	}
 
-	function getProductsLastUpdated($lang, $enableCache = true, $cacheDurationSeconds = 42300)
+	function getProductsLastUpdated($lang, $productId = '', $cat = '', $enableCache = true, $cacheDurationSeconds = 42300)
 	{
+        $params['lang'] = $lang;
+	    if(!empty($productId)){
+	        $params['product_id'] = $productId;
+        }
+        if(!empty($cat)){
+            $params['cat'] = $cat;
+        }
 		if(defined('HALF_DAY_CACHE_DURATION')) {
 			$cacheDurationSeconds = HALF_DAY_CACHE_DURATION;
 		}
@@ -1383,13 +1390,13 @@ class AnbProduct {
 			$result = mycache_get($cacheKey);
 
 			if($result === false || empty($result)) {
-				$result = $this->anbApi->getProductsLastUpdated(['lang' => $lang]);
+				$result = $this->anbApi->getProductsLastUpdated($params);
 				mycache_set($cacheKey, $result, $cacheDurationSeconds);
 			} else {
 				$displayText = "Time API Cached (Compare) inside getProductsLastUpdated";
 			}
 		} else {
-			$result = $this->anbApi->getProductsLastUpdated(['lang' => $lang]);
+			$result = $this->anbApi->getProductsLastUpdated($params);
 		}
 		$finish = getEndTime();
 		displayCallTime($start, $finish, $displayText);
