@@ -206,10 +206,13 @@ class AnbProduct {
 		$navHtml = '<li ' . $class . '><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__( $nav ) . '</a></li>';
 
 		//$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
+		//remove single quote
+		$navHtml = str_replace("'", '', $navHtml);
+		$minNavContent = str_replace("'", '', $this->minifyHtml( $navContent ));
 		$script = '<script>
                     jQuery(document).ready(function($){
-                        appendToSelector(".topDeals .filterDeals ul",  \'' . htmlspecialchars($navHtml) . '\'); 
-                        appendToSelector(".topDeals .dealsTable", \'' . htmlspecialchars($this->minifyHtml( $navContent )) . '\');
+                        appendToSelector(".topDeals .filterDeals ul",  \'' . $navHtml . '\'); 
+                        appendToSelector(".topDeals .dealsTable", \'' . $minNavContent . '\');
                     });
                    </script>';
 		echo $script;
