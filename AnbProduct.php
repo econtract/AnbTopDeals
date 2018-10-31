@@ -208,8 +208,8 @@ class AnbProduct {
 		//$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
 		$script = '<script>
                     jQuery(document).ready(function($){
-                        appendToSelector(".topDeals .filterDeals ul",  \'' . $navHtml . '\'); 
-                        appendToSelector(".topDeals .dealsTable", \'' . $this->minifyHtml( $navContent ) . '\');
+                        appendToSelector(".topDeals .filterDeals ul",  \'' . htmlspecialchars($navHtml) . '\'); 
+                        appendToSelector(".topDeals .dealsTable", \'' . htmlspecialchars($this->minifyHtml( $navContent )) . '\');
                     });
                    </script>';
 		echo $script;
