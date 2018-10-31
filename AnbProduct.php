@@ -207,8 +207,8 @@ class AnbProduct {
 
 		//$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
 		//remove single quote
-		$navHtml = str_replace("'", '', $navHtml);
-		$minNavContent = str_replace("'", '', $this->minifyHtml( $navContent ));
+		$navHtml = str_replace("'", '&#39;', $navHtml);
+		$minNavContent = str_replace("'", '&#39;', $this->minifyHtml( $navContent ));
 		$script = '<script>
                     jQuery(document).ready(function($){
                         appendToSelector(".topDeals .filterDeals ul",  \'' . $navHtml . '\'); 
