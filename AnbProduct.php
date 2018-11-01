@@ -1389,15 +1389,8 @@ class AnbProduct {
 		$start = getStartTime();
 		$displayText = "Time API (Previous Compare) inside getProductsLastUpdated";
 		if ($enableCache && !isset($_GET['no_cache'])) {
-		    $cacheStr = "product_last_updated_$lang";
-		    $cachePostfix = "last_udpated";
-		    if(!empty($productId)){
-                $cacheStr = $cacheStr."_".$productId;
-                $cachePostfix = "last_udpated_product";
-            }
-			$cacheKey = md5($cacheStr) . ":".$cachePostfix;
+            $cacheKey = md5("product_last_updated_$lang"."_$productId") . ":last_udpated_$productId";
 			$result = mycache_get($cacheKey);
-
 			if($result === false || empty($result)) {
 				$result = $this->anbApi->getProductsLastUpdated($params);
 				mycache_set($cacheKey, $result, $cacheDurationSeconds);
