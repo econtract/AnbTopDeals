@@ -15,7 +15,6 @@ if ( !function_exists( 'pll_register_string' ) ) {
 
 function anbTopDealsTrans() {
     pll_register_string('Most popular', 'Most popular', 'AnbTopDeals');
-    pll_register_string('Installation', 'Installation', 'AnbTopDeals');
     pll_register_string('Activation', 'Activation', 'AnbTopDeals');
     pll_register_string('Info and options', 'Info and options', 'AnbTopDeals');
     pll_register_string('Free installation', 'Free installation', 'AnbTopDeals');
