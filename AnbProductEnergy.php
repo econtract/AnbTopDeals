@@ -576,7 +576,7 @@ class AnbProductEnergy extends AnbProduct
         } else {
 	        $priceYearly = $priceMontly = formatPriceInParts(0,2);
         }
-        if($priceYearly['cents'] > 0) {
+        if($savings->yearly->promo_price > 0) {
             $html = '<div class="price-label ">
                         <label>' . pll__('Potential saving') . '</label>
                         <div class="price yearly">' . $priceYearly['currency'] . ' ' . $priceYearly['price'] . '<small>,' . $priceYearly['cents'] . '</small></div>
