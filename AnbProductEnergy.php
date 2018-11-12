@@ -569,17 +569,20 @@ class AnbProductEnergy extends AnbProduct
 
     public function getPotentialSavings($savings)
     {
+        $html = '';
         if(is_object($savings)){
 	        $priceYearly = formatPriceInParts($savings->yearly->promo_price,2);
 	        $priceMontly = formatPriceInParts($savings->monthly->promo_price,2);
         } else {
 	        $priceYearly = $priceMontly = formatPriceInParts(0,2);
         }
-        $html = '<div class="price-label ">
-                        <label>'.pll__('Potential saving').'</label>
-                        <div class="price yearly">'.$priceYearly['currency'].' '.$priceYearly['price'].'<small>,'.$priceYearly['cents'].'</small></div>
-                        <div class="price monthly hide">'.$priceMontly['currency'].' '.$priceMontly['price'].'<small>,'.$priceMontly['cents'].'</small></div>
+        if($priceYearly['cents'] > 0) {
+            $html = '<div class="price-label ">
+                        <label>' . pll__('Potential saving') . '</label>
+                        <div class="price yearly">' . $priceYearly['currency'] . ' ' . $priceYearly['price'] . '<small>,' . $priceYearly['cents'] . '</small></div>
+                        <div class="price monthly hide">' . $priceMontly['currency'] . ' ' . $priceMontly['price'] . '<small>,' . $priceMontly['cents'] . '</small></div>
                     </div>';
+        }
         return $html;
     }
 }
