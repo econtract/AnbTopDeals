@@ -497,7 +497,7 @@ class AnbProduct {
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
 				$priceHtml .= '<span class="cents">' . substr($prd['monthly_promo_price_chunk']['cents'], 0, 2) . '</span>';
 			}
-			$priceHtml .= '<span class="recursion">/mth</span>
+			$priceHtml .= '<span class="recursion">/'.pll__('mth').'</span>
 						   '.$calcHtml.'
 						</span>
                        </div>';
@@ -508,7 +508,7 @@ class AnbProduct {
 			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
 				$priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
 			}
-			$priceHtml .= '<span class="recursion">/mth</span>
+			$priceHtml .= '<span class="recursion">/'.pll__('mth').'</span>
 						   '.$calcHtml.'
 						</span>
                        </div>';
@@ -1160,7 +1160,7 @@ class AnbProduct {
 	    echo '<span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
                 <span class="amount">' . $priceParts['price'] . '</span>
                 <span class="cents">' . $priceParts['cents'] . '</span>
-                <span class="recursion">/mth</span>
+                <span class="recursion">/'.pll__('mth').'</span>
                 </div></div></div>';
 	    echo $priceBreakdown['html'];
 	    echo "</div>";
