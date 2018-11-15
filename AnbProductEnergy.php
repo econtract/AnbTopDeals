@@ -179,9 +179,11 @@ class AnbProductEnergy extends AnbProduct
             $currPricing = ($product->pricing) ?: $pricing;
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
-            $servicesHtml .= '<li>
+            $greenRange = $this->greenOriginImageRange($specs);
+
+            $servicesHtml .= '<li class="'.$greenRange.'">
 	                                <span class="icons">
-	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-green-100.svg" />
+	                                    <img class="'.$greenRange.'-icon" src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-'.$greenRange.'.svg" />
 	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
@@ -195,9 +197,11 @@ class AnbProductEnergy extends AnbProduct
             $currPricing = ($product->pricing) ?: $pricing;
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
-            $servicesHtml .= '<li>
+            $greenRange = $this->greenOriginImageRange($specs);
+
+            $servicesHtml .= '<li class="'.$greenRange.'">
 	                                <span class="icons">
-	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-green-100.svg" />
+	                                    <img class="'.$greenRange.'-icon" src="'.get_bloginfo('template_url').'/images/svg-icons/gas-'.$greenRange.'.svg" />
                                     </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
@@ -207,6 +211,22 @@ class AnbProductEnergy extends AnbProduct
         }
 
         return $servicesHtml;
+    }
+
+    /**
+     * @param $specs
+     *
+     * @return string
+     */
+    public function greenOriginImageRange($specs){
+        if($specs->green_origin->value < 50){
+            $greenRange = 'green-0';
+        } else if($specs->green_origin->value >= 50 && $specs->green_origin->value < 100){
+            $greenRange = 'green-50';
+        } else {
+            $greenRange = 'green-100';
+        }
+        return $greenRange;
     }
 
     /**
@@ -478,9 +498,10 @@ class AnbProductEnergy extends AnbProduct
                 if ($greenOrigin) {
                     $greenOriginHtml = '<span class="color-green">' . intval($greenOrigin->value) . $greenOrigin->unit . '</span>';
                 }
-                $servicesHtml.= '<li>
+                $greenRange = $this->greenOriginImageRange($specs);
+                $servicesHtml.= '<li class="'.$greenRange.'">
 	                                <span class="icons">
-	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-green-100.svg" />
+	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-'.$greenRange.'.svg" class="'.$greenRange.'-icon" />
 	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
@@ -493,9 +514,10 @@ class AnbProductEnergy extends AnbProduct
                 $currPricing = ($product->pricing) ?: $pricing;
                 $specs = $currProduct->specifications;
                 $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
-                $servicesHtml.= '<li>
+                $greenRange = $this->greenOriginImageRange($specs);
+                $servicesHtml.= '<li class="'.$greenRange.'">
 	                                <span class="icons">
-	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-green-100.svg" />
+	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-'.$greenRange.'.svg" class="'.$greenRange.'-icon" />
 	                                </span>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc">' . $specs->tariff_type->label . '</span>
