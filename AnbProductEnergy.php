@@ -243,7 +243,7 @@ class AnbProductEnergy extends AnbProduct
         $promohtml = '<div class="col_5">';
         if ( count ($promotions) ) {
         	$promohtml .= '<div class="promo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
-            $promohtml .= '<ul class="promo-list">';
+            $promohtml .= '<ul class="promo-list" data-toggle="modal" data-target="#energyPromotionModal'.$product->product_id.'">';
             foreach ($promotions as $promo ) {
 
                 if(!empty($promo->texts->name)) {
