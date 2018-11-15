@@ -225,7 +225,7 @@ class AnbProductEnergy extends AnbProduct
         return $greenOriginHtml;
     }
 
-    public function getPromoSection( $product )
+    public function getPromoSection( $product , $dataOnly = false )
     {
         $promotions = array();
 
@@ -240,6 +240,9 @@ class AnbProductEnergy extends AnbProduct
         if(empty($promotions)) {
             $promotions = $product->promotions;
         }
+
+        if($dataOnly){ return $promotions; }
+
         $promohtml = '<div class="col_5">';
         if ( count ($promotions) ) {
         	$promohtml .= '<div class="promo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
