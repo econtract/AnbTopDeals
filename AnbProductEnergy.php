@@ -505,7 +505,7 @@ class AnbProductEnergy extends AnbProduct
 	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-'.$greenRange.'.svg" class="'.$greenRange.'-icon" />
 	                                </span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc">' . $specs->tariff_type->label . '</span>
+	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
             }
@@ -521,7 +521,7 @@ class AnbProductEnergy extends AnbProduct
 	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-'.$greenRange.'.svg" class="'.$greenRange.'-icon" />
 	                                </span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc">' . $specs->tariff_type->label . '</span>
+	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
             }
@@ -555,10 +555,10 @@ class AnbProductEnergy extends AnbProduct
                                         <div class="cols">
                                             <ul class="green-services">'.$servicesHtml.'</ul>
                                         </div>
-                                        <div class="cols grid-hide">'.$this->getPromoSection( $product ).'</div>
                                         <div class="cols">
                                             <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
                                         </div>
+                                        <div class="cols grid-show">'.$this->getPromoSection( $product ).'</div>
                                         <div class="cols">'.
                                             $yearAdvHTML.'
                                             <div class="inner-col grid-show">
