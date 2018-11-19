@@ -411,10 +411,6 @@ class AnbProductEnergy extends AnbProduct
         $anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
         $result  = json_decode ( $anbComp->getCompareResults( $paramsArray ) );
 
-        echo '<div id="datadiv" style="display:none"><pre>';
-        print_r($result);
-        echo '</div></pre>';
-
         wp_enqueue_script( 'jquery' );
         wp_enqueue_script( 'top_deals_js', plugin_dir_url( __FILE__ ) . 'js/top-deals.js' );
 
@@ -468,25 +464,30 @@ class AnbProductEnergy extends AnbProduct
             $pricing     = $listProduct->pricing;
             $productData = $this->prepareProductData( $product );
             $productId   = $product->product_id;
+            $supplierId  = $product->supplier_id;
+            $productType = $product->producttype;
+            $parentSegment = getSectorOnCats( [$productType] );
 
             $endScriptTime = getEndTime();
             displayCallTime($startScriptTime, $endScriptTime, "Total page load time for Results page invidual gridView till prepareProductData.");
 
-            list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $productData['product_id'], $productData['supplier_id'], $productData['sg'], $productData['producttype'], $forceCheckAvailability);
+            list(, , , , $toCartLinkHtml, $checkoutPageLink) = $this->getToCartAnchorHtml($parentSegment, $productData['product_id'], $productData['supplier_id'], $productData['sg'], $productData['producttype'], $forceCheckAvailability);
 
             $blockLinkClass = 'block-link';
             if($forceCheckAvailability) {
                 $blockLinkClass = 'block-link missing-zip';
             }
-            $toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link '.$blockLinkClass.'">' . pll__( 'Order Now' ) . '</a>';
-
+            $toCartLinkHtml = '<a href="'.$checkoutPageLink.'?'.http_build_query($_GET).'&hidden_prodsel_cmp=yes&product_to_cart=yes&product_id='.$productId.'&provider_id='.$supplierId.'&producttype='.$productType.'" class="btn btn-primary all-caps">'. pll__('connect now') .'</a>
+                                <a href="'.getEnergyProductPageUri($productData).'?'.http_build_query($_GET).'&hidden_prodsel_cmp=yes&product_to_cart=yes&product_id='.$productId.'&provider_id='.$supplierId.'&producttype='.$productType.'" 
+                                                             class="link block-link all-caps">'.pll__('Detail').'</a>';
             if($productData['commission'] === false) {
                 $toCartLinkHtml = '<a href="#not-available" class="link block-link not-available">' . pll__('Not Available') . '</a>';
             }
 
-            $promoPriceYearly = $pricing->yearly->promo_price;
-            $promoPriceYearlyArr = formatPriceInParts($promoPriceYearly, 2);
-            $aanbidersDiscount = formatPrice( $pricing->yearly->price - $promoPriceYearly, 2, '&euro; ');
+            $promoPopUpLogo = $this->getLogoSection($productData);
+
+            $promoPopUpDetailsArr = $this->getPromoSection($product, true);
+
             $servicesHtml = '';
 
             if ($product->producttype == 'dualfuel_pack' || strpos($product->producttype, "electricity") !== false) {
@@ -525,49 +526,60 @@ class AnbProductEnergy extends AnbProduct
 	                            </li>';
             }
 
+            $yearAdv = $pricing->yearly->advantage;
+            if($yearAdv !== 0):
+                $yearAdvArr = formatPriceInParts($yearAdv, 2);
+                $monthlyAdv = $pricing->monthly->advantage;
+                $monthAdvArr = formatPriceInParts($monthlyAdv, 2);
+                $yearAdvHTML = '<div class="price-label ">
+                                    <label>'.pll__('Your advantage').'</label>
+                                    <div class="price yearly">'.$yearAdvArr['currency'].' '.$yearAdvArr['price'].'
+                                    <small>,'.$yearAdvArr['cents'].'</small>
+                                    </div>
+                                    <div class="price monthly hide">'.
+                                        $monthAdvArr['currency']. ' ' . $monthAdvArr['price'].'<small>,'.$monthAdvArr['cents'].'</small>
+                                    </div>
+                                </div>';
+            endif;
+
             include(locate_template('template-parts/section/energy-overview-popup.php'));
 
-            $navContent .= '<div class="col-md-4 offer offer-col '.$boxClass.'">
-                                <div class="promoLabel">
-                                    Best<span>Preview</span>
-                                </div>
-                                <div class="dealDetails">
-                                    <div class="dealLogo">
-                                        <img src="' . $productData['logo']['200x140']->transparent->color . '" alt="' . $productData['product_name'] . '">
+            $navContent .= '<div class="result-box-container col-md-4 offer offer-col '.$boxClass.'">
+                                <div class="result-box">
+                                    <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
+                                    <div class="flex-grid">
+                                        <div class="cols">'
+                                            . $this->getProductDetailSection( $productData, '', false, '', true  )
+                                            . $this->getGreenPeaceRatingWithImages( $product ) .
+                                        '</div>
+                                        <div class="cols">
+                                            <ul class="green-services">'.$servicesHtml.'</ul>
+                                        </div>
+                                        <div class="cols grid-hide">'.$this->getPromoSection( $product ).'</div>
+                                        <div class="cols">
+                                            <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
+                                        </div>
+                                        <div class="cols">'.
+                                            $yearAdvHTML.'
+                                            <div class="inner-col grid-show">
+                                                <!-- div class="promo">added services</div>
+                                                <ul class="col_9">
+                                                    <li>Isolation</li>
+                                                    <li>SOlar panels</li>
+                                                    <li>Comfort Service bij storing/defect</li>
+                                                    <li>Bijstand elektrische wagen</li>
+                                                    <li>Verlengde ganantie</li>
+                                                </ul -->
+                                            </div>
+                                            <div class="col_10 grid-show border-top"><i>
+                                                    '.decorateLatestOrderByProduct($product->product_id) .'
+                                                  </i></div>'.$toCartLinkHtml.'
+                                        </div>
                                     </div>
-                                    <h4>'. $productData['product_name'] .'</h4>
-                                    <div class="customerRating">
-                                        <div class="stamp">'.$productData['score'].'</div>
-                                        <span>'. pll__('Customer Score') .'</span>
-                                    </div>
-                                    '. $this->getGreenPeaceRating( $product ) .'
-                                </div>
-                                <div class="deal-health-factors">
-                                        <ul>'.$servicesHtml.'</ul>
-                                    </div>
-                                <div class="saving-board">
-                                    <a href="javascript:void(0)" class="calculator" data-toggle="modal" data-target="#ratesOverview'.$productId.'"></a>
-                                    <span class="super">€</span>
-                                    <span class="saved-amount">136</span>
-                                    <small>potential savings</small>
-                                </div>
-                                <div class="actual-price-board">
-                                    <span class="actual-price">'.formatPrice($pricing->yearly->price, 2, '').'</span>
-                                    <div class="current-price">
-                                        <span class="super">' . $promoPriceYearlyArr['currency'] . '</span>
-                                        <span class="current">' . $promoPriceYearlyArr['price'] . '</span>
-                                        <span class="super">,' . $promoPriceYearlyArr['cents'] . '</span>
-                                        <small>' . pll__('guaranteed 1st year') . '<i class="custom-icons calc"></i></small>
-                                    </div>
-                                    <div class="discount-price"><span>'. pll__('Aanbieders discount').' -'.$aanbidersDiscount.'</span></div>
-                                </div>
-                                <div class="dealPrice last">
-                                    <div class="lastOrder">
-                                        <p></p>
-                                    </div>
-                                    <div class="buttonWrapper">
-                                        <a href="#" class="btn btn-primary all-caps">'. pll__('Details').'</a>
-                                        <a href="#" class="link block-link all-caps">'. pll__('Apply for contact').'</a>
+                                    <div class="result-footer">
+                                        <div class="pull-left grid-hide">
+                                        '.decorateLatestOrderByProduct($product->product_id) . '
+                                        </div>
                                     </div>
                                 </div>
                             </div>';
