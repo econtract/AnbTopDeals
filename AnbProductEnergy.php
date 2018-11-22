@@ -330,13 +330,13 @@ class AnbProductEnergy extends AnbProduct
 	                            <span class="super">' . $promoPriceYearlyArr['currency'] . '</span>
 	                            <span class="current">' . $promoPriceYearlyArr['price'] . '</span>
 	                            <span class="super">,' . $promoPriceYearlyArr['cents'] . '</span>
-	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year') . '">?</i></small>
+	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip a" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year info text') . '">?</i></small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
 	                            <span class="current">' . $promoPriceMonthlyArr['price'] . '</span>
 	                            <span class="super">,' . $promoPriceMonthlyArr['cents'] . '</span>
-	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year') . '">?</i> </small>
+	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip b" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year info text') . '">?</i> </small>
 	                        </div>
 	                    </div>';
 
