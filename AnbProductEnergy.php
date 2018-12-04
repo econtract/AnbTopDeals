@@ -465,21 +465,24 @@ class AnbProductEnergy extends AnbProduct
             $productData = $this->prepareProductData( $product );
             $productId   = $product->product_id;
             $supplierId  = $product->supplier_id;
+            $segment     = $product->segment;
             $productType = $product->producttype;
             $parentSegment = getSectorOnCats( [$productType] );
 
             $endScriptTime = getEndTime();
             displayCallTime($startScriptTime, $endScriptTime, "Total page load time for Results page invidual gridView till prepareProductData.");
 
-            list(, , , , $toCartLinkHtml, $checkoutPageLink) = $this->getToCartAnchorHtml($parentSegment, $productData['product_id'], $productData['supplier_id'], $productData['sg'], $productData['producttype'], $forceCheckAvailability);
-
-            $blockLinkClass = 'block-link';
-            if($forceCheckAvailability) {
-                $blockLinkClass = 'block-link missing-zip';
+            $forceCheckAvailability = false;
+            $missingZipClass = '';
+            if(empty($_GET['zip'])) {
+                $forceCheckAvailability = true;
+                $missingZipClass = 'missing-zip';
             }
-            $toCartLinkHtml = '<a href="'.$checkoutPageLink.'?'.http_build_query($_GET).'&hidden_prodsel_cmp=yes&product_to_cart=yes&product_id='.$productId.'&provider_id='.$supplierId.'&producttype='.$productType.'" class="btn btn-primary all-caps">'. pll__('connect now') .'</a>
-                                <a href="'.getEnergyProductPageUri($productData).'?'.http_build_query($_GET).'&hidden_prodsel_cmp=yes&product_to_cart=yes&product_id='.$productId.'&provider_id='.$supplierId.'&producttype='.$productType.'" 
-                                                             class="link block-link all-caps">'.pll__('Detail').'</a>';
+
+            list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $productData['product_id'], $productData['supplier_id'], $productData['sg'], $productData['producttype'], $forceCheckAvailability);
+            $toCartLinkHtml = '<a class="btn btn-primary all-caps btn-missing-zip-enery" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '">'. pll__('connect now') .'</a>
+                                <a href="'.getEnergyProductPageUri($productData).'" class="link block-link all-caps">'.pll__('Detail').'</a>';
+
             if($productData['commission'] === false) {
                 $toCartLinkHtml = '<a href="#not-available" class="link block-link not-available">' . pll__('Not Available') . '</a>';
             }
