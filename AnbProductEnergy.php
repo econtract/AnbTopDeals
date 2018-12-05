@@ -457,6 +457,7 @@ class AnbProductEnergy extends AnbProduct
             } elseif ( $idxx == 3 ) {
                 $boxClass = 'right';
             }
+            $startScriptTime = getStartTime();
             $endScriptTime = getEndTime();
             displayCallTime($startScriptTime, $endScriptTime, "Total page load time for Results page invidual gridView start.");
 
