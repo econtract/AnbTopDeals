@@ -965,7 +965,8 @@ class AnbProduct {
 
 				//A patch added to negate the installation price from the total until we request it is requested, once that's addressed in API we need to revert it back
 				//Revert back to the code this code $oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
-				if(!isset($apiParams['it']) || empty($apiParams['it'])) {
+				if((!isset($apiParams['it']) || empty($apiParams['it']))
+					&& !isset($priceSec->oneoff_costs->lines->free_install->product->value)) {//don't exclude the installation if free installation option is available
 					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
 				} else {
 					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
@@ -1521,9 +1522,6 @@ class AnbProduct {
 		$html = '';
 		$htmlArr = [];
 		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
-            if($lineKey == 'installation' && (!isset($apiParams['it']) || empty($apiParams['it']))) { //skipping installation cost
-                continue;
-            }
 		    //if some key starts with free then skip it, as it'll be automatically included during processing that specific field
 			if(strpos($lineKey, 'free_') === 0) {
 				continue;
@@ -1531,10 +1529,19 @@ class AnbProduct {
 			if($lineVal == -1 && $lineKey == 'installation') {//-1 for installation means that this is not possible so skip it
 				continue;
 			}
+
 			$freeLineVal = $priceSec->lines->{'free_'.$lineKey};
+
 			if($lineKey == 'installation' && empty($freeLineVal)) {
 				$freeLineVal = $priceSec->lines->{'free_install'};//An exception for installation as its keys doesn't match in API when free
 			}
+
+			//we don't want to skip installation cost when free price is available
+			if(!isset($freeLineVal) &&
+				($lineKey == 'installation' && (!isset($apiParams['it']) || empty($apiParams['it'])))) { //skipping installation cost
+				continue;
+			}
+
 			$priceDisplayVal = $lineVal->product->display_value;
 			$extraClass      = '';
 			if ( !is_numeric($lineVal->product->value) ) {
