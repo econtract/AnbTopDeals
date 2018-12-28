@@ -547,6 +547,7 @@ class AnbProductEnergy extends AnbProduct
             endif;
 
             include(locate_template('template-parts/section/energy-overview-popup.php'));
+            include(locate_template('template-parts/section/energy-promotions-popup.php'));
 
             $navContent .= '<div class="result-box-container col-md-4 offer offer-col '.$boxClass.'">
                                 <div class="result-box">
