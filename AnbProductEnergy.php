@@ -413,6 +413,7 @@ class AnbProductEnergy extends AnbProduct
 
         wp_enqueue_script( 'jquery' );
         wp_enqueue_script( 'top_deals_js', plugin_dir_url( __FILE__ ) . 'js/top-deals.js' );
+        wp_enqueue_script( 'top_deals_slider_js', plugin_dir_url( __FILE__ ) . 'js/top-deals-slider.js' );
 
         $htmlWrapper = '';
         if ( $atts['is_first'] == 'yes' ) {
@@ -446,7 +447,8 @@ class AnbProductEnergy extends AnbProduct
         }
 
         $navHtmlName = sanitize_title_with_dashes( $nav );
-        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
+/*        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';*/
+        $navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
 
         $idxx = 1;
 
@@ -549,7 +551,7 @@ class AnbProductEnergy extends AnbProduct
             include(locate_template('template-parts/section/energy-overview-popup.php'));
             include(locate_template('template-parts/section/energy-promotions-popup.php'));
 
-            $navContent .= '<div class="result-box-container col-md-4 offer offer-col '.$boxClass.'">
+            $navContent .= '<div class="result-box-container col-md-12 offer offer-col '.$boxClass.'">
                                 <div class="result-box">
                                     <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
                                     <div class="flex-grid">
