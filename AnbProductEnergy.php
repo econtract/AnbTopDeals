@@ -275,7 +275,7 @@ class AnbProductEnergy extends AnbProduct
             }
             $promohtml .= '</ul>';
         } else {
-            $promohtml .= '<div class="no-promo"><p><i>' . pll__('Sorry, currently there are no offers matching your criteria.') . '</i></p></div>';
+            $promohtml .= '<div class="no-promo"><p></p></div>';
         }
         $promohtml.= '</div>';
 
