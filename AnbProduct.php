@@ -367,6 +367,13 @@ class AnbProduct {
                                 <img src="'.get_bloginfo('template_url').'/images/print-images/idtv.svg" alt="" class="print-show" />
                               </li>';
 		}
+        if ( (is_array($prdOrPckTypes) && in_array('mobile_internet', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "mobile_internet" ) !== false) ) {
+            $servicesHtml .= '<li class="mobile_internet">
+                                <i class="service-icons print-hide"></i>
+                                <img src="'.get_bloginfo('template_url').'/images/print-images/mobile-data-sim.svg" alt="" class="print-show" />
+                              </li>';
+        }
 
 		return $servicesHtml;
 	}
