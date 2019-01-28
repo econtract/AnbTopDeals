@@ -1997,6 +1997,10 @@ class AnbProduct {
 	 * @return string
 	 */
 	public function getTotalAdvHtml( $advPrice ) {
+	    if($advPrice['price'] == 0) {
+	        return '';
+        }
+
 		$advPriceArr = formatPriceInParts($advPrice, 2);
 		$advHtml = '<div class="calcPanelTotal blue">
                             <div class="packageTotal">
