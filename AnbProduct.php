@@ -339,7 +339,7 @@ class AnbProduct {
 		$prdOrPckTypes = (!is_array($prdOrPckTypes)) ? strtolower( $prdOrPckTypes ) : $prdOrPckTypes;
 
 		if ( (is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
-		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "int" ) !== false) ) {
+		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "int" ) !== false && $prdOrPckTypes != 'mobile_internet') ) {
 			$servicesHtml .= '<li class="wifi">
                                 <i class="service-icons wifi print-hide"></i>
                                 <img src="'.get_bloginfo('template_url').'/images/print-images/internet.svg" alt="" class="print-show" />
@@ -347,7 +347,7 @@ class AnbProduct {
 		}
 		if ( (is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
 			     (!is_array($prdOrPckTypes) && (strpos( $prdOrPckTypes, "mobile" ) !== false
-			                                    || strpos( $prdOrPckTypes, "gsm" ) !== false)) ) {
+			                                    || strpos( $prdOrPckTypes, "gsm" ) !== false) && $prdOrPckTypes != 'mobile_internet' ) ) {
 			$servicesHtml .= '<li class="mobile">
                                 <i class="service-icons mobile print-hide"></i>
                                 <img src="'.get_bloginfo('template_url').'/images/print-images/mobile.svg" alt="" class="print-show" />
@@ -369,9 +369,8 @@ class AnbProduct {
 		}
         if ( (is_array($prdOrPckTypes) && in_array('mobile_internet', $prdOrPckTypes)) ||
             (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "mobile_internet" ) !== false) ) {
-            $servicesHtml .= '<li class="mobile_internet">
-                                <i class="service-icons print-hide"></i>
-                                <img src="'.get_bloginfo('template_url').'/images/print-images/mobile-data-sim.svg" alt="" class="print-show" />
+            $servicesHtml .= '<li class="mobile_internet">                              
+                                <img src="'.get_bloginfo('template_url').'/images/print-images/mobile-data-sim.svg" alt="" />
                               </li>';
         }
 
