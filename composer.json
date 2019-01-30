@@ -1,14 +1,14 @@
 {
-  "name": "anb/AnbTopDeals",
+  "name": "anb/anbtopdeals",
   "description": "Aanbieders Top Deals Plugin for Wordpress",
   "keywords": ["wordpress", "plugin", "AnbTopDeals"],
   "homepage": "https://github.com/econtract/AnbTopDeals",
   "license": "GPL3",
   "authors": [
     {
-      "name": "Imran Zahoor",
-      "email": "imran@zeropoint.it",
-      "homepage": "https://zeropoint.it/"
+      "name": "Aanbieders",
+      "email": "info@aanbieders.be",
+      "homepage": "https://aanbieders.be/"
     }
   ],
   "type": "wordpress-plugin",
