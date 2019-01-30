@@ -892,28 +892,37 @@ class AnbProduct {
 		$apiParams['opt'] = array_filter($apiParams['opt']);
 		$apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
 
-		$html = '';
-		$apiParamsHtml = http_build_query($apiParams, "&");
-		$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
+		//$html = '';
+		//$apiParamsHtml = http_build_query($apiParams, "&");
+		//$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
 
-		if($_GET['debug']) {
+		/*if($_GET['debug']) {
 			echo "<pre>$apiUrl</pre>";
-		}
+		}*/
+
+        $params['opt'] = array_filter($apiParams['opt']);
+        $params['prt'] = $apiParams['prt'];
+        $params['a'] = '1';
+        $params['pid'] = $apiParams['pid'];
+        $params['lang'] = getLanguage();
 
 		$start = getStartTime();
 		$displayText = "Time API (PBS) inside getPbsOrganizedHtmlApi";
 
-		$cacheKey = md5($apiUrl);
+		//$cacheKey = md5($apiUrl);
+        $cacheKey = md5(serialize($params)) . ":rpc_pbs";
 
 		if ($enableCache && !isset($_GET['no_cache'])) {
 			$apiRes = mycache_get($cacheKey);
 
 			if($apiRes === false || empty($apiRes)) {
-				$apiRes = file_get_contents($apiUrl);
+				//$apiRes = file_get_contents($apiUrl);
+                $apiRes = $this->anbApi->telecomPbsRpcCall($params);
 				mycache_set($cacheKey, $apiRes, $expiresIn);
 			}
 		} else {
-			$apiRes = file_get_contents($apiUrl);
+			//$apiRes = file_get_contents($apiUrl);
+            $apiRes = $this->anbApi->telecomPbsRpcCall($params);
 		}
 
 		$finish = getEndTime();
