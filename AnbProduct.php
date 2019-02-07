@@ -268,7 +268,7 @@ class AnbProduct {
 				} else {
 					$prices[ $key ] = round( $priceDetailArray[ $key ] );
 				}
-			} elseif (intval($priceDetailArray[ $key ]) == 0) { {
+			} elseif (intval($priceDetailArray[ $key ]) == 0) {
 				if ( $withFirstTerm ) {
 					$prices[ $key ] = pll__( 'Free' );
 				} else {
@@ -300,7 +300,7 @@ class AnbProduct {
 				$totalOnetimeAmount += $priceDetailArray[ $key ];
 				$html .= '<li class="bulletTick">' . pll__( $firstTermLbl ) . ' ' . $actualPriceHtml . '</li>';
 			}
-		} elseif (intval($priceDetailArray[ $key ]) == 0) { {
+		} elseif (intval($priceDetailArray[ $key ]) == 0) {
 			$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . '</li>';
 		}
 
