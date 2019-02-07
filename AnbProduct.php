@@ -698,6 +698,7 @@ class AnbProduct {
 			$monthDurationPromo = pll__( 'Monthly promo price' );
 		}
 
+        $actPriceHtml = $instPriceHtml = '';
         if(!in_array($productData['producttype'], $this->producttypesToSkipPromos)) {
             $actPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'activation', '', true, false);
             $actPriceHtml = $this->getActOrInstPriceBreakDownHtml($actPrice, 'activation', $currency);
@@ -733,14 +734,18 @@ class AnbProduct {
                             <li>' . $productData['product_name'] . '<span class="cost-price">' . formatPrice($monthlyFee, 2, $currency) . '</span></li>
                             ' . $monthlyPromoPriceHtml . '
                         </ul>
-                    </div>
-                    <div class="MonthlyCost FirstCost">
-                        <h5>' . pll__( 'First costs' ) . '</h5>
+                    </div>';
+
+		if($actPriceHtml || $instPriceHtml) {
+            $html .= '<div class="MonthlyCost FirstCost">
+                        <h5>' . pll__('First costs') . '</h5>
                         <ul class="list-unstyled">
                             ' . $actPriceHtml . $instPriceHtml . '
                         </ul>
-                    </div>
-                    <div class="MonthlyCost CostAdvantage">
+                    </div>';
+        }
+
+        $html .= '<div class="MonthlyCost CostAdvantage">
                         <ul class="list-unstyled">
                             ' . $advHtml . '
                             <li>
