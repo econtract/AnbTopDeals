@@ -584,6 +584,9 @@ class AnbProduct {
 			$advHtml     = $this->getTotalAdvHtml( $advPrice );
 		}
 
+		if(!$promotionHtml) {
+		    return '';
+        }
 		$promoSec = '<div class="' . $cssClass . '">
                         <div class="extras">
                         	'.$oneTimeCostLabel.'
