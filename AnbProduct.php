@@ -272,9 +272,6 @@ class AnbProduct {
 			    //do nothing
             }
             else{
-                if($_GET['debug']) {
-                    echo '<pre>'; print_r($priceDetailArray[ $key ]); echo '</pre>';
-                }
 				if ( $withFirstTerm ) {
 					$prices[ $key ] = pll__( 'Free' );
 				} else {
@@ -282,6 +279,10 @@ class AnbProduct {
 				}
 				$prices[ $key . '_free' ] = true;
 			}
+
+            if($_GET['debug']) {
+                echo '<pre>'; print_r($priceDetailArray[ $key ]); echo '</pre>';
+            }
 
 			return $prices;
 		}
@@ -310,11 +311,11 @@ class AnbProduct {
             //do nothing
         }
         else{
-            if($_GET['debug']) {
-                echo '<pre>'; print_r($priceDetailArray[ $key ]); echo '</pre>';
-            }
 			$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . '</li>';
 		}
+        if($_GET['debug']) {
+            echo '<pre>'; print_r($priceDetailArray[ $key ]); echo '</pre>';
+        }
 
 		return $html;
 	}
