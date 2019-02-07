@@ -32,6 +32,8 @@ class AnbProduct {
 		'secret'  => ANB_API_SECRET
 	];
 
+	private $producttypesToSkipPromos = ['mobile_internet', 'mobile'];
+
 	public function __construct() {
 		$this->anbApi = wpal_create_instance( Aanbieders::class, [ $this->apiConf ] );
 	}
@@ -268,10 +270,7 @@ class AnbProduct {
 				} else {
 					$prices[ $key ] = round( $priceDetailArray[ $key ] );
 				}
-			} elseif ($priceDetailArray[ $key ] < 0) {
-			    //do nothing
-            }
-            else{
+			} else{
 				if ( $withFirstTerm ) {
 					$prices[ $key ] = pll__( 'Free' );
 				} else {
@@ -279,10 +278,6 @@ class AnbProduct {
 				}
 				$prices[ $key . '_free' ] = true;
 			}
-
-            if($_GET['debug']) {
-                echo '<pre>'; print_r($priceDetailArray[ $key ]); echo '</pre>';
-            }
 
 			return $prices;
 		}
@@ -307,15 +302,9 @@ class AnbProduct {
 				$totalOnetimeAmount += $priceDetailArray[ $key ];
 				$html .= '<li class="bulletTick">' . pll__( $firstTermLbl ) . ' ' . $actualPriceHtml . '</li>';
 			}
-		} elseif ($priceDetailArray[ $key ] < 0) {
-            //do nothing
-        }
-        else{
+		} else {
 			$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . '</li>';
 		}
-        if($_GET['debug']) {
-            echo '<pre>'; print_r($priceDetailArray[ $key ]); echo '</pre>';
-        }
 
 		return $html;
 	}
@@ -560,9 +549,11 @@ class AnbProduct {
 	public function getPromoInternalSection( array $prd, $withoutPromoList = false, $withTotalOnetimeCost = false ) {
 		$promotionHtml = '';
 		$totalOnetimeAmount = 0;
-		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'installation_full', getCurrencySymbol( $prd['currency_unit'] ), false, true, $totalOnetimeAmount );
-		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'activation', getCurrencySymbol( $prd['currency_unit'] ), false, true, $totalOnetimeAmount );
-		$promotionHtml .= $this->getActivationOrInstPriceHtml( $prd['price'], 'modem', getCurrencySymbol( $prd['currency_unit'] ), false, true, $totalOnetimeAmount );
+		if(!in_array($prd['producttype'], $this->producttypesToSkipPromos)) {
+            $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price'], 'installation_full', getCurrencySymbol($prd['currency_unit']), false, true, $totalOnetimeAmount);
+            $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price'], 'activation', getCurrencySymbol($prd['currency_unit']), false, true, $totalOnetimeAmount);
+            $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price'], 'modem', getCurrencySymbol($prd['currency_unit']), false, true, $totalOnetimeAmount);
+        }
 
 		//will block other promtions except from one-off costs like installation and activation
 		if ( ! $withoutPromoList ) {
@@ -707,11 +698,13 @@ class AnbProduct {
 			$monthDurationPromo = pll__( 'Monthly promo price' );
 		}
 
-		$actPrice     = $this->getActivationOrInstPriceHtml( $productData['price'], 'activation', '', true, false );
-		$actPriceHtml = $this->getActOrInstPriceBreakDownHtml( $actPrice, 'activation', $currency );
+        if(!in_array($productData['producttype'], $this->producttypesToSkipPromos)) {
+            $actPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'activation', '', true, false);
+            $actPriceHtml = $this->getActOrInstPriceBreakDownHtml($actPrice, 'activation', $currency);
 
-		$instPrice     = $this->getActivationOrInstPriceHtml( $productData['price'], 'installation_full', '', true, false );
-		$instPriceHtml = $this->getActOrInstPriceBreakDownHtml( $instPrice, 'installation_full', $currency );
+            $instPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'installation_full', '', true, false);
+            $instPriceHtml = $this->getActOrInstPriceBreakDownHtml($instPrice, 'installation_full', $currency);
+        }
 
 		$advHtml = '';
 		if ( ! empty( $productData['advantage'] ) ) {
