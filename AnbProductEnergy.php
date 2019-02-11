@@ -176,7 +176,11 @@ class AnbProductEnergy extends AnbProduct
 
         if ($product->producttype == 'dualfuel_pack' || strpos($product->producttype, "electricity") !== false) {
             $currProduct = ($product->electricity) ?: $product;
-            $currPricing = ($product->pricing) ?: $pricing;
+            if($product->producttype == 'dualfuel_pack') {
+                $currPricing = ($product->electricity->pricing) ?: $pricing;
+            } else {
+                $currPricing = ($product->pricing) ?: $pricing;
+            }
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $greenRange = $this->greenOriginImageRange($specs);
@@ -194,7 +198,11 @@ class AnbProductEnergy extends AnbProduct
 
         if ($product->producttype == 'dualfuel_pack' || strpos($product->producttype, "gas") !== false) {
             $currProduct = ($product->gas) ?: $product;
-            $currPricing = ($product->pricing) ?: $pricing;
+            if($product->producttype == 'dualfuel_pack') {
+                $currPricing = ($product->gas->pricing) ?: $pricing;
+            } else {
+                $currPricing = ($product->pricing) ?: $pricing;
+            }
             $specs = $currProduct->specifications;
             $greenOriginHtml = $this->greenOriginHtmlFromSpecs($specs);
             $greenRange = $this->greenOriginImageRange($specs);
