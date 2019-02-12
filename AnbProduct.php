@@ -142,7 +142,7 @@ class AnbProduct {
 			$displayStyle = 'style="display:none;"';
 		}
 
-		$navHtmlName = sanitize_title_with_dashes( $nav );
+		$navHtmlName = sanitize_title_with_dashes( remove_accents ( $nav ) );
 		$navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row ' . $navHtmlName . '" ' . $displayStyle . '>';
 		foreach ( $data as $idx => $prd ) {
 			$boxClass = 'left';

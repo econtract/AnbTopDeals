@@ -454,7 +454,7 @@ class AnbProductEnergy extends AnbProduct
             $displayStyle = 'style="display:none;"';
         }
 
-        $navHtmlName = sanitize_title_with_dashes( $nav );
+        $navHtmlName = sanitize_title_with_dashes( remove_accents ($nav ) );
 /*        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';*/
         $navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
 
