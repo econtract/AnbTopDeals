@@ -495,7 +495,7 @@ class AnbProductEnergy extends AnbProduct
                                 <a href="'.getEnergyProductPageUri($productData).'" class="link block-link all-caps">'.pll__('Detail').'</a>';
 
             if($productData['commission'] === false) {
-                $toCartLinkHtml = '<a href="#not-available" class="link block-link not-available">' . pll__('Not Available') . '</a>';
+                $toCartLinkHtml = '<a href="#not-available" class="btn btn-default all-caps not-available">' . pll__('Not Available') . '</a>';
             }
 
             $promoPopUpLogo = $this->getLogoSection($productData);
@@ -588,7 +588,7 @@ class AnbProductEnergy extends AnbProduct
                                             </div>
                                             <div class="col_10 grid-show border-top"><i>
                                                     '.decorateLatestOrderByProduct($product->product_id) .'
-                                                  </i></div>'.$toCartLinkHtml.'
+                                                  </i></div><div class="col_11 bottomBtnDv">'.$toCartLinkHtml.'</div>
                                         </div>
                                     </div>
                                     <div class="result-footer">
