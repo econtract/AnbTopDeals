@@ -1943,7 +1943,7 @@ class AnbProduct {
                             <div class="packagePrice">
                                 <span class="currentPrice">
                                     <span class="currency">' . $negativeSign.$priceArr['currency'] . '</span>
-                                    <span class="amount">' . abs($priceArr['price']) . '</span>
+                                    <span class="amount">' . $priceArr['price'] . '</span>
                                     <span class="cents">' . $priceArr['cents'] . '</span>
                                 </span>
                             </div>
@@ -1961,7 +1961,7 @@ class AnbProduct {
                                 <span class="caption">' . pll__( 'Your advantage' ) . '</span>
                                 <span class="price">
                                     <span class="currency">' . $advArr['currency'] . '</span>
-                                    <span class="amount">' . abs($advArr['price']) . '</span>
+                                    <span class="amount">' . $advArr['price'] . '</span>
                                     <span class="cents">' . $advArr['cents'] . '</span>
                                 </span>
                             </div>
