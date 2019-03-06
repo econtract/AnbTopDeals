@@ -978,6 +978,7 @@ class AnbProduct {
 			} else {
 				$html .= '<div class="calculationPanel '.$diyReqClass.'">';
 			}
+			$html .=' <div class="logoPanel telecom"><img src="'.$apiParams['supplier_logo'].'" alt="'.$apiParams['supplier_name'].'"></div>';
 
 			//Generate the main HTML only for main/base product
 			$oneTimeHtml = '';
