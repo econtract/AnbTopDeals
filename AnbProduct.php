@@ -1009,6 +1009,12 @@ class AnbProduct {
 				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
 				$advTotal      += abs($priceSec->total_discount->value);
 
+				if($priceSec->monthly_costs->lines->discount_fee_amount){
+				    $infoText = sprintf( pll__( 'First %s months' ) , $priceSec->monthly_costs->lines->discount_fee_amount->multiplicand->value );
+                } else {
+                    $infoText = pll__( 'First month' );
+                }
+
 				list( $monthlyHtml, $yearlyAdvCollection ) = ( $pdfHtml ) ? $this->generatePdfPbsSectionHtml(
 					$dynamicHtml,
 					'pbs-monthly',
@@ -1029,7 +1035,7 @@ class AnbProduct {
 					$sectionsHtml,
 					pll__( 'Monthly costs' ),
 					pll__( 'Monthly total' ),
-					pll__( 'First month' ),
+                    $infoText,
 					pll__( 'PBS: Monthly total tooltip text' ),
 					$apiParams
 				);
