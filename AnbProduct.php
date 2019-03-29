@@ -239,6 +239,7 @@ class AnbProduct {
 		);
 
 		$buffer = preg_replace( $search, $replace, $buffer );
+		$buffer = str_replace("'", "\'", $buffer);
 
 		return $buffer;
 	}
