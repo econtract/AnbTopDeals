@@ -619,7 +619,7 @@ class AnbProductEnergy extends AnbProduct
         echo $script;
     }
 
-    public function getPotentialSavings($savings)
+    public function getPotentialSavings($savings, $currentSupplierName = false)
     {
         $html = '';
         if(is_object($savings)){
@@ -632,8 +632,11 @@ class AnbProductEnergy extends AnbProduct
             $html = '<div class="price-label ">
                         <label>' . pll__('Potential saving') . '</label>
                         <div class="price yearly">' . $priceYearly['currency'] . ' ' . $priceYearly['price'] . '<small>,' . $priceYearly['cents'] . '</small></div>
-                        <div class="price monthly hide">' . $priceMontly['currency'] . ' ' . $priceMontly['price'] . '<small>,' . $priceMontly['cents'] . '</small></div>
-                    </div>';
+                        <div class="price monthly hide">' . $priceMontly['currency'] . ' ' . $priceMontly['price'] . '<small>,' . $priceMontly['cents'] . '</small></div>';
+            if($currentSupplierName){
+                $html .= '<span class="product-discount-thanks-to">'.pll__('t.o.v.') .' '. shortenProductName($currentSupplierName)." ".pll__('Dankzij aanbieders.be').'</span>';
+            }
+            $html .='</div>';
         }
         return $html;
     }
