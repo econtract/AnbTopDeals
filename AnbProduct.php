@@ -786,7 +786,12 @@ class AnbProduct {
 	    $apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
 
         $html = '';
-        $apiRes = $this->anbApi->telecomPbsRpcCall($apiParams);
+        $params['opt'] = array_filter($apiParams['opt']);
+        $params['prt'] = $apiParams['prt'];
+        $params['a'] = '1';
+        $params['pid'] = $apiParams['pid'];
+        $params['lang'] = getLanguage();
+        $apiRes = $this->anbApi->telecomPbsRpcCall($params);
 
         $totalMonthly = '';
         $totalYearly = '';
