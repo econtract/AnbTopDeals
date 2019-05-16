@@ -786,10 +786,7 @@ class AnbProduct {
 	    $apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
 
         $html = '';
-        $apiParamsHtml = http_build_query($apiParams, "&");
-        $apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
-
-        $apiRes = file_get_contents($apiUrl);
+        $apiRes = $this->anbApi->telecomPbsRpcCall($apiParams);
 
         $totalMonthly = '';
         $totalYearly = '';
