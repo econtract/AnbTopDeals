@@ -1010,8 +1010,14 @@ class AnbProduct {
 				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
 				$advTotal      += abs($priceSec->total_discount->value);
 
-				if($priceSec->monthly_costs->lines->discount_fee_amount){
-				    $infoText = sprintf( pll__( 'First %s months' ) , $priceSec->monthly_costs->lines->discount_fee_amount->multiplicand->value );
+                if($priceSec->monthly_costs->lines->discount_fee_amount || $priceSec->monthly_costs->lines->discount_fee_amount_extra){
+                    if($priceSec->monthly_costs->lines->discount_fee_amount) {
+                        $months = $priceSec->monthly_costs->lines->discount_fee_amount->multiplicand->value;
+                    }
+                    else{
+                        $months = $priceSec->monthly_costs->lines->discount_fee_amount_extra->multiplicand->value;
+                    }
+                    $infoText = sprintf( pll__( 'First %s months' ) , $months);
                 } else {
                     $infoText = pll__( 'First month' );
                 }
