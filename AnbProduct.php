@@ -782,6 +782,7 @@ class AnbProduct {
 		    $apiParams['lang_mod'] = $anbComp->getCurrentLang();
 	    }
 
+	    $apiParams = $_POST;
 	    $apiParams['opt'] = array_filter($apiParams['opt']);
 	    $apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
 
