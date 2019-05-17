@@ -646,14 +646,6 @@ class AnbProduct {
 	 */
 	public function calculatorPopup( $productData ) {
 		$html               = "<div class='modal borderLess fade' id='calcBreakdown{$productData['product_id']}'  tabindex='-1' role='dialog' aria-labelledby='calcBreakdownLabel'>";
-		/** @var \AnbSearch\AnbCompare $anbComp */
-		/*$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
-		$priceBreakdown = $this->getProductPriceBreakdownHtmlApi( [
-			'lang_mod' => $anbComp->getCurrentLang(),
-			'pid' => $productData['product_id'],
-			'prt' => $productData['producttype']
-		]);*/
-
 		$priceBreakdownHtml = $this->getProductPriceBreakdownHtml($productData);
 
 		$html               .= '<div class="modal-dialog modal-sm" role="document">
@@ -765,135 +757,9 @@ class AnbProduct {
 		return $html;
 	}
 
-    /**
-     * This method is same as getProductPriceBreakdownHtml but it'll call API to render the break-down instead of what is available in product data
-     * E.g. Link for API: https://www.aanbieders.be/rpc?&lang_mod=nl&action=load_calc_json&pid=2855&prt=packs&opt[]‌=280&opt[]‌=425&it=full&extra_pid[]=mobile|643
-     *
-     * @param array $apiParams these will be API Params
-     * @param string $someHtml
-     * @param bool $withoutOrderBtn
-     * @return string
-     */
-    public function getProductPriceBreakdownHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = false) {
-	    //if language is missing get that automatically
-	    if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
-		    /** @var \AnbSearch\AnbCompare $anbComp */
-		    $anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
-		    $apiParams['lang_mod'] = $anbComp->getCurrentLang();
-	    }
-
-	    $apiParams = $_POST;
-	    $apiParams['opt'] = array_filter($apiParams['opt']);
-	    $apiParams['extra_pid'] = array_filter($apiParams['extra_pid']);
-
-        $html = '';
-        $params['opt'] = array_filter($apiParams['opt']);
-        $params['prt'] = $apiParams['prt'];
-        $params['a'] = '1';
-        $params['pid'] = $apiParams['pid'];
-        $params['lang'] = getLanguage();
-
-        var_dump($_POST);
-        var_dump($params);
-        
-        $apiRes = $this->anbApi->telecomPbsRpcCall($params);
-
-        $totalMonthly = '';
-        $totalYearly = '';
-        $totalAdv = '';
-        $totalAdvPrice = 0;
-        $grandTotal = 0;
-        $productCount = 0;
-	    $monthlyTotal = 0;
-	    $yearlyTotal = 0;
-	    $advTotal = 0;
-
-        if($apiRes) {
-            $apiRes = json_decode($apiRes);
-
-            $orderBtn = '';
-            if(!$withoutOrderBtn) {
-                $orderBtn = $someHtml;
-            }
-
-            $html = '<div class="AboutAllCosts">';
-            foreach($apiRes as $key => $priceSec) {
-                $totalMonthly = $priceSec->monthly_costs->subtotal->display_value;
-                $totalYearly = $priceSec->total->display_value;
-                $totalAdv = $priceSec->total_discount->display_value;
-                $totalAdvPrice = $priceSec->total_discount->value;
-	            $monthlyTotal += $priceSec->monthly_costs->subtotal->value;
-                $yearlyTotal += $priceSec->total->value;
-                $grandTotal += $priceSec->monthly_costs->subtotal->value;
-                $advTotal += $priceSec->total_discount->value;
-
-                //either display only first product or display them all, default is displaying them all
-                if(($productCount === 0 && $displayFirstProductOnly === true) || $displayFirstProductOnly === false) {
-                    foreach($priceSec as $pKey => $pVal) {
-                        if(strpos($pKey, 'total') !== false) {
-                            break;//don't include the totals in loop
-                        }
-                        $html .= '<div class="MonthlyCost">';
-                        $html .= '<h5>' . $pVal->label . '</h5>';
-                        $html .= '<ul class="list-unstyled">';
-                        foreach($pVal->lines as $lineKey => $lineVal) {
-                            $priceDisplayVal = $lineVal->product->display_value;
-                            $extraClass = '';
-                            if($lineVal->product->value == 0) {
-                                $extraClass = 'class="prominent"';
-                                $priceDisplayVal = pll__('Free');
-                            }
-                            $html .= '<li '.$extraClass.'>' . $lineVal->label . '<span class="cost-price">' . $priceDisplayVal . '</span></li>';
-                        }
-                        $html .= '</ul>';
-                        $html .= '</div>';
-                    }
-                }
-
-                $productCount++;
-            }
-
-            $advHtml = '';
-
-            if($totalAdvPrice < 0) {
-                $advHtml = '<li><div class="total-advantage">
-                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
-                            </div></li>';
-            }
-
-            $html .=     '<div class="MonthlyCost CostAdvantage">
-                            <ul class="list-unstyled">
-                                '.$advHtml.'
-                                <li>
-                                    <div class="total-monthly">
-                                        ' . pll__( 'Total monthly' ) . '<span class="cost-price">' . formatPrice($monthlyTotal) . '</span>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="yearly-advantage">
-                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($yearlyTotal) . '</span>
-                                    </div>
-                                </li>
-                            </ul>
-                          </div>';
-            $html .= $orderBtn.
-                '</div>';
-        }
-
-        return [
-        	'html' => $html,
-	        'monthly' => $totalMonthly,
-	        'first_year' => $totalYearly,
-	        'grand_total' => $grandTotal,
-	        'yearly_total' => $yearlyTotal,
-	        'monthly_total' => $monthlyTotal
-        ];
-    }
-
 	/**
 	 * This method is same as getProductPriceBreakdownHtmlApi, but it'll generate HTML in a different organized manner which is more readable,
 	 * another difference is it'll generate first product by default and loop over the child products inside that to display them in a specific place
-	 * E.g. Link for API: https://www.aanbieders.be/rpc?&lang_mod=nl&action=load_calc_json&pid=2855&prt=packs&opt[]‌=280&opt[]‌=425&it=full&extra_pid[]=mobile|643
 	 *
 	 * @param array $apiParams these will be API Params
 	 * @param string $someHtml
@@ -1164,6 +1030,8 @@ class AnbProduct {
 
         //$priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
 	    $priceBreakdown = $this->getPbsOrganizedHtmlApi($apiData);
+	    var_dump($apiData);
+	    var_dump($priceBreakdown);
 
         /*echo '<div class="CostWrap">
             <div class="TotalCostBox">
