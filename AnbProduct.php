@@ -867,6 +867,7 @@ class AnbProduct {
 
             $product = json_decode($product, true);
             if($product) {
+                var_dump($product);
                 $html .= ' <div class="logoPanel telecom"><img src="' . $product['supplier']['logo']['200x140']['transparent']['color'] . '" alt="' . $product['supplier_name'] . '"></div>';
             }
 
