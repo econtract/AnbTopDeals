@@ -852,7 +852,23 @@ class AnbProduct {
 			} else {
 				$html .= '<div class="calculationPanel '.$diyReqClass.'">';
 			}
-			$html .=' <div class="logoPanel telecom"><img src="'.$apiParams['supplier_logo'].'" alt="'.$apiParams['supplier_name'].'"></div>';
+
+
+            $product = $this->getProducts(
+                [
+                    'cat' => $params['prt'],
+                    'lang' => $params['lang'],
+                    'detaillevel' => ['supplier', 'logo']
+                ],
+                $params['pid'],
+                true,
+                600
+            );
+
+            $product = json_decode(json_encode($product), true);
+            if($product) {
+                $html .= ' <div class="logoPanel telecom"><img src="' . $product['supplier']['logo']['200x140']['transparent']['color'] . '" alt="' . $product['supplier_name'] . '"></div>';
+            }
 
 			//Generate the main HTML only for main/base product
 			$oneTimeHtml = '';
