@@ -865,6 +865,9 @@ class AnbProduct {
                 600
             );
 
+            if($_GET['debug']) {
+                var_dump($product);
+            }
             $product = json_decode(json_encode($product), true);
             if($_GET['debug']) {
                 var_dump($product);
