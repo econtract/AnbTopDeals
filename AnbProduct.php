@@ -865,13 +865,7 @@ class AnbProduct {
                 600
             );
 
-            if($_GET['debug']) {
-                var_dump($product);
-            }
-            $product = json_decode(json_encode($product), true);
-            if($_GET['debug']) {
-                var_dump($product);
-            }
+            $product = json_decode($product, true);
             if($product) {
                 $html .= ' <div class="logoPanel telecom"><img src="' . $product['supplier']['logo']['200x140']['transparent']['color'] . '" alt="' . $product['supplier_name'] . '"></div>';
             }
