@@ -854,7 +854,7 @@ class AnbProduct {
 			}
 
 
-            $product = $this->getProducts(
+            $products = $this->getProducts(
                 [
                     'cat' => $params['prt'],
                     'lang' => $params['lang'],
@@ -865,9 +865,9 @@ class AnbProduct {
                 600
             );
 
-            $product = json_decode($product, true);
-            if($product) {
-                var_dump($product);
+            $products = json_decode($products, true);
+            if($products) {
+                $product = current($products);
                 $html .= ' <div class="logoPanel telecom"><img src="' . $product['supplier']['logo']['200x140']['transparent']['color'] . '" alt="' . $product['supplier_name'] . '"></div>';
             }
 
