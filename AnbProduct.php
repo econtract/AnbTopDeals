@@ -792,6 +792,10 @@ class AnbProduct {
         $params['a'] = '1';
         $params['pid'] = $apiParams['pid'];
         $params['lang'] = getLanguage();
+
+        var_dump($_POST);
+        var_dump($params);
+        
         $apiRes = $this->anbApi->telecomPbsRpcCall($params);
 
         $totalMonthly = '';
