@@ -175,15 +175,13 @@ class AnbProduct {
 			$missingZipClass = '';
 			if(empty($_GET['zip'])) {
 				$forceCheckAvailability = true;
-				$missingZipClass = 'missing-zip';
+				$missingZipClass = ' missing-zip';
 			}
 			list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $prd['product_id'], $prd['supplier_id'], $prd['sg'], $prd['producttype'], $forceCheckAvailability);
-			/*$toCartLinkHtml = 'href="' . $checkoutPageLink . '?product_to_cart&product_id='.$prd['product_id'] .
-			                  '&provider_id=' . $prd['supplier_id'] . '&sg=' . $prd['sg'] . '&producttype=' . $prd['producttype'] . '"';*/
-			$toCartLinkHtml = '<a '.$toCartLinkHtml.' class="link block-link '.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
+            $toCartLinkHtml = '<a '.$toCartLinkHtml.' class="btn btn-primary'.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
 
-			$btnHtml = '<div class="buttonWrapper print-hide">
-                            <a href="' . getTelecomProductPageUri($prd) . '" class="btn btn-primary ">' . pll__( 'Info and options' ) . '</a>
+            $btnHtml = '<div class="buttonWrapper print-hide">
+                            <a href="' . getTelecomProductPageUri($prd) . '" class="link block-link">' . pll__( 'Info and options' ) . '</a>
                             '.$toCartLinkHtml.'
                         </div>';
 
