@@ -181,8 +181,8 @@ class AnbProduct {
             $toCartLinkHtml = '<a '.$toCartLinkHtml.' class="btn btn-primary'.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
 
             $btnHtml = '<div class="buttonWrapper print-hide">
-                            <a href="' . getTelecomProductPageUri($prd) . '" class="link block-link">' . pll__( 'Info and options' ) . '</a>
                             '.$toCartLinkHtml.'
+                            <a href="' . getTelecomProductPageUri($prd) . '" class="link block-link">' . pll__( 'Info and options' ) . '</a>
                         </div>';
 
 			$infoOptionsHtml = '<div class="lastOrder" style="height: 37px;">
