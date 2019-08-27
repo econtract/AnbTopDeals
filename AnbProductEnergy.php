@@ -43,7 +43,7 @@ class AnbProductEnergy extends AnbProduct
 
     public function getLogoSection(array $prd)
     {
-        $logoSec = '<div class="dealLogo col_1">
+        $logoSec = '<div class="dealLogo">
                         <img src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . htmlentities($prd['product_name']) . '">
                     </div>';
         return $logoSec;
@@ -51,10 +51,10 @@ class AnbProductEnergy extends AnbProduct
 
     public function getTitleSection(array $prd, $listView = false)
     {
-        $titleSec = '<h3 class="col_2">' . $prd['product_name'] . '</h3>';
+        $titleSec = '<h3>' . $prd['product_name'] . '</h3>';
 
         if ($listView) {
-            $titleSec = '<h3 class="col_2">' . $prd['product_name'] . '</h3>';
+            $titleSec = '<h3>' . $prd['product_name'] . '</h3>';
         }
 
         return $titleSec;
@@ -117,7 +117,7 @@ class AnbProductEnergy extends AnbProduct
 	    	return $greenpeaceHtml;
 	    }
 
-        $greenPeace = '<div class="greenpeace-container col_3">
+        $greenPeace = '<div class="greenpeace-container">
                             <div class="peace-logo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-logo.svg" /></div>
                             <fieldset>
                                 '.$greenpeaceHtml.'
@@ -160,7 +160,7 @@ class AnbProductEnergy extends AnbProduct
             return $greenpeaceHtml;
         }
 
-        $greenPeace = '<div class="greenpeace-container col_3">
+        $greenPeace = '<div class="greenpeace-container">
                             <div class="peace-logo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-logo.svg" /></div>
                             <fieldset>
                                 '.$greenpeaceHtml.'
@@ -186,9 +186,9 @@ class AnbProductEnergy extends AnbProduct
             $greenRange = $this->greenOriginImageRange($specs);
 
             $servicesHtml .= '<li class="'.$greenRange.'">
-	                                <span class="icons">
+	                                <div class="icons">
 	                                    <img class="'.$greenRange.'-icon" src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-'.$greenRange.'.svg" />
-	                                </span>
+	                                </div>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
@@ -208,9 +208,9 @@ class AnbProductEnergy extends AnbProduct
             $greenRange = $this->greenOriginImageRange($specs);
 
             $servicesHtml .= '<li class="'.$greenRange.'">
-	                                <span class="icons">
+	                                <div class="icons">
 	                                    <img class="'.$greenRange.'-icon" src="'.get_bloginfo('template_url').'/images/svg-icons/gas-'.$greenRange.'.svg" />
-                                    </span>
+                                    </div>
 	                                ' . $greenOriginHtml . '
 	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
 	                                <span class="price yearly">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
@@ -509,18 +509,18 @@ class AnbProductEnergy extends AnbProduct
                 $currPricing = ($product->pricing) ?: $pricing;
                 $specs = $currProduct->specifications;
                 $greenOrigin = $specs->green_origin;
-                $greenOriginHtml = '<span class="color-green"></span>';
+                $greenOriginHtml = '<div class="color-green"></div>';
                 if ($greenOrigin) {
-                    $greenOriginHtml = '<span class="color-green">' . intval($greenOrigin->value) . $greenOrigin->unit . '</span>';
+                    $greenOriginHtml = '<div class="color-green">' . intval($greenOrigin->value) . $greenOrigin->unit . '</div>';
                 }
                 $greenRange = $this->greenOriginImageRange($specs);
                 $servicesHtml.= '<li class="'.$greenRange.'">
-	                                <span class="icons">
+	                                <div class="icons">
 	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/electricity-'.$greenRange.'.svg" class="'.$greenRange.'-icon" />
-	                                </span>
+	                                </div>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
-	                                <span class="price">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <div class="c-topdeals-description">' . $specs->tariff_type->label . '</div>
+	                                <span class="c-price-tag">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
             }
 
@@ -535,8 +535,8 @@ class AnbProductEnergy extends AnbProduct
 	                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/gas-'.$greenRange.'.svg" class="'.$greenRange.'-icon" />
 	                                </span>
 	                                ' . $greenOriginHtml . '
-	                                <span class="desc col_4">' . $specs->tariff_type->label . '</span>
-	                                <span class="price">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
+	                                <div class="c-topdeals-description">' . $specs->tariff_type->label . '</div>
+	                                <span class="c-price-tag">' . formatPrice($currPricing->yearly->promo_price, 2, '&euro; ') . '</span>
 	                            </li>';
             }
 
@@ -573,19 +573,9 @@ class AnbProductEnergy extends AnbProduct
                                         <div class="cols">
                                             <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
                                         </div>
-                                        <div class="cols grid-show">'.$this->getPromoSection( $product ).'</div>
+                                        <div class="cols">'.$this->getPromoSection( $product ).'</div>
                                         <div class="cols">'.
                                             $yearAdvHTML.'
-                                            <div class="inner-col grid-show">
-                                                <!-- div class="promo">added services</div>
-                                                <ul class="col_9">
-                                                    <li>Isolation</li>
-                                                    <li>SOlar panels</li>
-                                                    <li>Comfort Service bij storing/defect</li>
-                                                    <li>Bijstand elektrische wagen</li>
-                                                    <li>Verlengde ganantie</li>
-                                                </ul -->
-                                            </div>
                                             <div class="col_10 grid-show border-top"><i>
                                                     '.decorateLatestOrderByProduct($product->product_id) .'
                                                   </i></div><div class="col_11 bottomBtnDv">'.$toCartLinkHtml.'</div>
