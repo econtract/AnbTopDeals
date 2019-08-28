@@ -303,11 +303,11 @@ class AnbProductEnergy extends AnbProduct
         $calcHtml = '';
 
         if ($withCalcHtml) {
-            $calcHtml = '<a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#ratesOverview'.$prd['product_id'].'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/calculator@2x.svg" /></a>';
+            $calcHtml = '<a href="javascript:void(0)" data-toggle="modal" data-target="#ratesOverview'.$prd['product_id'].'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/calculator@2x.svg" /></a>';
         }
 
         if ($isSetCompare) {
-            $calcHtml = '<a href="javascript:void(0)" class="custom-icons calc" data-toggle="modal" data-target="#breakDownPopup'.$prd['product_id'].'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/calculator@2x.svg" /></a>';
+            $calcHtml = '<a href="javascript:void(0)" data-toggle="modal" data-target="#breakDownPopup'.$prd['product_id'].'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/calculator@2x.svg" /></a>';
         }
 
         $oldPriceYearlyHtml = '<span class="yearly"></span>';
@@ -335,10 +335,10 @@ class AnbProductEnergy extends AnbProduct
 	                            ' . $calcHtml . '
 	                        </span>
 	                        <div class="current-price yearly">
-	                            <span class="super">' . $promoPriceYearlyArr['currency'] . '</span>
-	                            <span class="current">' . $promoPriceYearlyArr['price'] . '</span>
-	                            <span class="super">,' . $promoPriceYearlyArr['cents'] . '</span>
-	                            <small class="col_6">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip a" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year info text') . '">?</i></small>
+	                            ' . $promoPriceYearlyArr['currency'] . '
+	                            ' . $promoPriceYearlyArr['price'] . ',' . $promoPriceYearlyArr['cents'] . '
+                                
+	                            <small class="c-topdeals-description">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip a" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year info text') . '">?</i></small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
@@ -548,10 +548,9 @@ class AnbProductEnergy extends AnbProduct
                 $yearAdvHTML = '<div class="price-label ">
                                     <label>'.pll__('Your advantage').'</label>
                                     <div class="price yearly">'.$yearAdvArr['currency'].' '.$yearAdvArr['price'].'
-                                    <small>,'.$yearAdvArr['cents'].'</small>
                                     </div>
                                     <div class="price monthly hide">'.
-                                        $monthAdvArr['currency']. ' ' . $monthAdvArr['price'].'<small>,'.$monthAdvArr['cents'].'</small>
+                                        $monthAdvArr['currency']. ' ' . $monthAdvArr['price'].'
                                     </div>
                                 </div>';
             endif;
@@ -576,16 +575,10 @@ class AnbProductEnergy extends AnbProduct
                                         <div class="cols">'.$this->getPromoSection( $product ).'</div>
                                         <div class="cols">'.
                                             $yearAdvHTML.'
-                                            <div class="col_10 grid-show border-top"><i>
-                                                    '.decorateLatestOrderByProduct($product->product_id) .'
-                                                  </i></div><div class="col_11 bottomBtnDv">'.$toCartLinkHtml.'</div>
+                                            <div class="col_11 bottomBtnDv border-top">'.$toCartLinkHtml.'</div>
                                         </div>
                                     </div>
-                                    <div class="result-footer">
-                                        <div class="pull-left grid-hide">
-                                        '.decorateLatestOrderByProduct($product->product_id) . '
-                                        </div>
-                                    </div>
+                                    
                                 </div>
                             </div>';
                         $endScriptTime = getEndTime();
