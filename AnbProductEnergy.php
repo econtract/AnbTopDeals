@@ -384,7 +384,7 @@ class AnbProductEnergy extends AnbProduct
 
         $params = array_filter( $atts );
 
-        $cats   = [];
+        $cats = array();
         $cats[] = substr( $atts['product_1'], 0, strpos( $atts['product_1'], "|" ) );
         $cats[] = substr( $atts['product_2'], 0, strpos( $atts['product_2'], "|" ) );
         $cats[] = substr( $atts['product_3'], 0, strpos( $atts['product_3'], "|" ) );
@@ -394,6 +394,7 @@ class AnbProductEnergy extends AnbProduct
         $productId3 = explode('|',$atts['product_3'])[1];
 
         $cats = array_unique( $cats );
+        $productType = $cats[0];
         $cacheTime = 86400;
 
         if(defined('TOP_DEALS_PRODUCT_CACHE_DURATION')) {
@@ -414,8 +415,18 @@ class AnbProductEnergy extends AnbProduct
             'sg'            => $atts['sg'],
             'lang'          => $atts['lang'],
             'zip'           => '9000',
-            'cat'           => $cats[0],
+            'cat'           => $productType,
         );
+
+        if( in_array($productType, array('dualfuel_pack', 'electricity')) ) {
+            $paramsArray[ 'du' ] = 1700;
+            $paramsArray[ 'nu' ] = 1400;
+        }
+
+        if( in_array($productType, array('dualfuel_pack', 'gas')) ) {
+            $paramsArray[ 'u' ] = 17100;
+        }
+
         $anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
         $result  = json_decode ( $anbComp->getCompareResults( $paramsArray ) );
 
