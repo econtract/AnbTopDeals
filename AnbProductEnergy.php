@@ -330,6 +330,9 @@ class AnbProductEnergy extends AnbProduct
 
         $priceHtml = '<div class="actual-price-board">
 	                        <span class="actual-price">
+	                            <div class="promo-icon">
+	                                <img>
+	                            </div>
 	                            ' . $oldPriceYearlyHtml . '
 	                            ' . $oldPriceMonthlyHtml . '
 	                            ' . $calcHtml . '
@@ -436,11 +439,14 @@ class AnbProductEnergy extends AnbProduct
 
         $htmlWrapper = '';
         if ( $atts['is_first'] == 'yes' ) {
+            //TODO Change 'Top 5 goedkoopste tarieven' to a string and set in backend ' . pll__( 'Most popular' ) . '
+            // and change 'bekijk snel de details van onze goedkoopste leveranciers en tarieven.' to a string
             $htmlWrapper = '<section class="topDeals energyTopDeals">
                         <div class="container">
                             <div class="deals-count hide">57<span>'.  pll__( 'Top telecom deals' ) . '</span></div>
                             <div class="topDealsWrapper">
-                                <h3>' . pll__( 'Most popular' ) . '</h3>	
+                                <h3>Top 5 goedkoopste tarieven</h3>	
+                                bekijk snel de details van onze goedkoopste leveranciers en tarieven.
                                 <div class="filterDeals">
                                     <ul class="list-unstyled list-inline">
                                     </ul>
@@ -467,7 +473,8 @@ class AnbProductEnergy extends AnbProduct
 
         $navHtmlName = sanitize_title_with_dashes( remove_accents ($nav ) );
 /*        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';*/
-        $navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
+        //$navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
+        $navContent  = '<div class="custom-deals row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
 
         $idxx = 1;
 
@@ -504,6 +511,8 @@ class AnbProductEnergy extends AnbProduct
             list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $productData['product_id'], $productData['supplier_id'], $productData['sg'], $productData['producttype'], $forceCheckAvailability);
             $toCartLinkHtml = '<a class="btn btn-primary all-caps btn-missing-zip-enery" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '">'. pll__('connect now') .'</a>
                                 <a href="'.getEnergyProductPageUri($productData).'" class="link block-link all-caps">'.pll__('Detail').'</a>';
+            //TODO cleanup/rewrite
+            $toCartLinkHtml2 = '<a class="btn btn-red" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '">&gt;</a>';
 
             if($productData['commission'] === false) {
                 $toCartLinkHtml = '<a href="#not-available" class="btn btn-default all-caps not-available">' . pll__('Not Available') . '</a>';
@@ -556,8 +565,9 @@ class AnbProductEnergy extends AnbProduct
                 $yearAdvArr = formatPriceInParts($yearAdv, 2);
                 $monthlyAdv = $pricing->monthly->advantage;
                 $monthAdvArr = formatPriceInParts($monthlyAdv, 2);
+                //TODO change Label KORTING to String '.pll__('Your advantage').'
                 $yearAdvHTML = '<div class="price-label ">
-                                    <label>'.pll__('Your advantage').'</label>
+                                    <label>KORTING</label>
                                     <div class="price yearly">'.$yearAdvArr['currency'].' '.$yearAdvArr['price'].'
                                     </div>
                                     <div class="price monthly hide">'.
@@ -569,24 +579,26 @@ class AnbProductEnergy extends AnbProduct
             include(locate_template('template-parts/section/energy-overview-popup.php'));
             include(locate_template('template-parts/section/energy-promotions-popup.php'));
 
-            $navContent .= '<div class="result-box-container col-md-12 offer offer-col '.$boxClass.'">
+            $navContent .= '<div class="result-box-container col-md-12 offer offer-col">
                                 <div class="result-box">
                                     <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
-                                    <div class="flex-grid">
-                                        <div class="cols">'
-                                            . $this->getProductDetailSection( $productData, '', false, '', true  )
-                                            . $this->getGreenPeaceRatingWithImages( $product ) .
-                                        '</div>
-                                        <div class="cols">
-                                            <ul class="green-services">'.$servicesHtml.'</ul>
-                                        </div>
-                                        <div class="cols">
-                                            <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
-                                        </div>
-                                        <div class="cols">'.$this->getPromoSection( $product ).'</div>
-                                        <div class="cols">'.
-                                            $yearAdvHTML.'
-                                            <div class="col_11 bottomBtnDv border-top">'.$toCartLinkHtml.'</div>
+                                    <div class="row">
+                                        <div class="flex-grid">
+                                            <div class="cols">
+                                                '.$this->getLogoSection($productData).'
+                                            </div>
+                                            <div class="cols">
+                                                <h3>'. $productData['supplier_name'] .' - '. $productData['product_name'] .'</h3>
+                                            </div>
+                                            <div class="cols">
+                                                '.$yearAdvHTML.'
+                                            </div>
+                                            <div class="cols">
+                                                <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
+                                            </div>
+                                            <div class="cols">
+                                                <div class="col_11 bottomBtnDv border-top">'.$toCartLinkHtml2.'</div>
+                                            </div>
                                         </div>
                                     </div>
                                     
