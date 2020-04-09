@@ -7,6 +7,11 @@ function appendToSelector(selector, html) {
         if(selector === ".topDeals .dealsTable"){
             fixDealsTableHeight(jQuery('.dealsTable.topDealsTable'));
         }
+
+        //temp for restyle
+        if(selector === ".energyTopDeals .dealsTable"){
+            fixDealsTableHeight(jQuery('.dealsTable.topDealsTable'));
+        }
     });
 }
 
@@ -29,6 +34,19 @@ jQuery(document).ready(function($){
         //show the clicked one
         $(this).parents('li').addClass('active');
         $('.row.'+$(this).attr('related')).show();
+    });
+
+    //Temp for restyle
+    $('.energyTopDeals .filterDeals ul li a').on('click', function() {
+        $('.energyTopDeals .filterDeals ul li.active').removeClass('active');//remove previous active class
+
+        //hide all rows now
+        $('.energyTopDeals .dealsTable .row').hide();
+
+        //show the clicked one
+        $(this).parents('li').addClass('active');
+        $('.row.'+$(this).attr('related')).show();
+        //$('.energyTopDeals .dealsTable .row').show();
     });
 });
 

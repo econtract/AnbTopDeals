@@ -328,10 +328,11 @@ class AnbProductEnergy extends AnbProduct
         $promoPriceMonthly = $pricing->monthly->promo_price;
         $promoPriceMonthlyArr = formatPriceInParts($promoPriceMonthly, 2);
 
+        //TODO Change 'Per jaar' to string, was: ' . pll__('guaranteed 1st year') . '
         $priceHtml = '<div class="actual-price-board">
 	                        <span class="actual-price">
 	                            <div class="promo-icon">
-	                                <img>
+	                                <img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />
 	                            </div>
 	                            ' . $oldPriceYearlyHtml . '
 	                            ' . $oldPriceMonthlyHtml . '
@@ -341,7 +342,7 @@ class AnbProductEnergy extends AnbProduct
 	                            ' . $promoPriceYearlyArr['currency'] . '
 	                            ' . $promoPriceYearlyArr['price'] . ',' . $promoPriceYearlyArr['cents'] . '
                                 
-	                            <small class="c-topdeals-description">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip a" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year info text') . '">?</i></small>
+	                            <small class="c-topdeals-description">Per jaar</small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
@@ -367,6 +368,8 @@ class AnbProductEnergy extends AnbProduct
             'product_1'   => [],
             'product_2'   => [],
             'product_3'   => [],
+            'product_4'   => [],
+            'product_5'   => [],
             'lang'        => getLanguage(),
             'is_active'   => 'no',
             'is_first'    => 'no'
@@ -377,9 +380,10 @@ class AnbProductEnergy extends AnbProduct
             $atts['detaillevel'] = explode( ',', $atts['detaillevel'] );
         }
 
-        if ( empty( $atts['product_1'] ) || empty( $atts['product_2'] ) || empty( $atts['product_3'] ) || empty( $nav ) ) {
-            return;
-        }
+        //Temp disabled for restyle testing
+//        if ( empty( $atts['product_1'] ) || empty( $atts['product_2'] ) || empty( $atts['product_3'] ) ||  empty( $atts['product_4'] ) ||  empty( $atts['product_5'] ) || empty( $nav ) ) {
+//            return;
+//        }
 
         $nav = sanitize_text_field( $nav );
 
@@ -391,10 +395,14 @@ class AnbProductEnergy extends AnbProduct
         $cats[] = substr( $atts['product_1'], 0, strpos( $atts['product_1'], "|" ) );
         $cats[] = substr( $atts['product_2'], 0, strpos( $atts['product_2'], "|" ) );
         $cats[] = substr( $atts['product_3'], 0, strpos( $atts['product_3'], "|" ) );
+        $cats[] = substr( $atts['product_4'], 0, strpos( $atts['product_4'], "|" ) );
+        $cats[] = substr( $atts['product_5'], 0, strpos( $atts['product_5'], "|" ) );
 
         $productId1 = explode('|',$atts['product_1'])[1];
         $productId2 = explode('|',$atts['product_2'])[1];
         $productId3 = explode('|',$atts['product_3'])[1];
+        $productId4 = explode('|',$atts['product_4'])[1];
+        $productId5 = explode('|',$atts['product_5'])[1];
 
         $cats = array_unique( $cats );
         $productType = $cats[0];
@@ -414,7 +422,7 @@ class AnbProductEnergy extends AnbProduct
         */
         $paramsArray = array(
             'detaillevel'   => $atts['detaillevel'],
-            'pref_pids'     => array( $productId1, $productId2, $productId3 ),
+            'pref_pids'     => array( $productId1, $productId2, $productId3, $productId4, $productId5 ),
             'sg'            => $atts['sg'],
             'lang'          => $atts['lang'],
             'zip'           => '9000',
@@ -441,19 +449,22 @@ class AnbProductEnergy extends AnbProduct
         if ( $atts['is_first'] == 'yes' ) {
             //TODO Change 'Top 5 goedkoopste tarieven' to a string and set in backend ' . pll__( 'Most popular' ) . '
             // and change 'bekijk snel de details van onze goedkoopste leveranciers en tarieven.' to a string
-            $htmlWrapper = '<section class="topDeals energyTopDeals">
+            // Tempory remove class 'topDeals' from section because of restyle will not yet be on other pages
+            // Change text in footer to String and create link
+            $htmlWrapper = '<section class="energyTopDeals">
                         <div class="container">
                             <div class="deals-count hide">57<span>'.  pll__( 'Top telecom deals' ) . '</span></div>
                             <div class="topDealsWrapper">
                                 <h3>Top 5 goedkoopste tarieven</h3>	
                                 bekijk snel de details van onze goedkoopste leveranciers en tarieven.
                                 <div class="filterDeals">
-                                    <ul class="list-unstyled list-inline">
+                                    <ul class="topDeals-tabs">
                                     </ul>
                                 </div>
                                 <div class="dealsTable topDealsTable">
                                     
                                 </div>
+                                <div class="topDealsFooter">Lorem ipsum dolor sit amet <a href="#">Hoe komen we aan deze top 5?</a></div>
                             </div>
                         </div>
                      </section>';
@@ -485,6 +496,7 @@ class AnbProductEnergy extends AnbProduct
             } elseif ( $idxx == 3 ) {
                 $boxClass = 'right';
             }
+            $topOrder = $idxx; //top5 order
             $startScriptTime = getStartTime();
             $endScriptTime = getEndTime();
             displayCallTime($startScriptTime, $endScriptTime, "Total page load time for Results page invidual gridView start.");
@@ -512,7 +524,7 @@ class AnbProductEnergy extends AnbProduct
             $toCartLinkHtml = '<a class="btn btn-primary all-caps btn-missing-zip-enery" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '">'. pll__('connect now') .'</a>
                                 <a href="'.getEnergyProductPageUri($productData).'" class="link block-link all-caps">'.pll__('Detail').'</a>';
             //TODO cleanup/rewrite
-            $toCartLinkHtml2 = '<a class="btn btn-red" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '">&gt;</a>';
+            $toCartLinkHtml2 = '<a data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '"><img src="'.get_bloginfo('template_url').'/images/svg-icons/CTA-round-arrow.svg" /></a>';
 
             if($productData['commission'] === false) {
                 $toCartLinkHtml = '<a href="#not-available" class="btn btn-default all-caps not-available">' . pll__('Not Available') . '</a>';
@@ -579,11 +591,19 @@ class AnbProductEnergy extends AnbProduct
             include(locate_template('template-parts/section/energy-overview-popup.php'));
             include(locate_template('template-parts/section/energy-promotions-popup.php'));
 
+            $highLightFirst = '';
+            if($topOrder == 1){
+                $highLightFirst = 'is-highlighted-result c-results__item-counter';
+            }else {
+                $highLightFirst = 'c-results__item-counter';
+            }
+
             $navContent .= '<div class="result-box-container col-md-12 offer offer-col">
                                 <div class="result-box">
                                     <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
-                                    <div class="row">
+                                    <div class="row ' . $navHtmlName . '">
                                         <div class="flex-grid">
+                                            <span class="'.$highLightFirst.'">'.$topOrder.'</span>
                                             <div class="cols">
                                                 '.$this->getLogoSection($productData).'
                                             </div>
@@ -615,11 +635,29 @@ class AnbProductEnergy extends AnbProduct
 
         $navHtml = '<li ' . $class . '><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__( $nav ) . '</a></li>';
 
+        //Temp for restyle TODO: Insert right icons, active, hover states cleanup
+        if ($navHtmlName == 'elektriciteit-en-gas') {
+            $tabIcon = 'dualfuel_pack.svg';
+        } elseif ($navHtmlName == 'electriciteit') {
+            $tabIcon = 'electricity.svg';
+        } elseif ($navHtmlName == 'vast-tarief') {
+            //$tabIcon = 'Lock-red.svg';
+            $tabIcon = 'electricity.svg';
+        } elseif ($navHtmlName == 'duurzame-energie') {
+            //$tabIcon = 'green-energy.svg';
+            $tabIcon = 'electricity.svg';
+        }
+        $navHtml2 = '<li ' . $class . '><img src="'.get_bloginfo('template_url').'/images/svg-icons/'.$tabIcon.'" /><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__( $nav ) . '</a></li>';
+
         //$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
         $script = '<script>
                     jQuery(document).ready(function($){
                         appendToSelector(".topDeals .filterDeals ul",  \'' . $navHtml . '\'); 
                         appendToSelector(".topDeals .dealsTable", \'' . $this->minifyHtml( $navContent ) . '\');
+                        //temp for restyle
+                        appendToSelector(".energyTopDeals .filterDeals ul",  \'' . $navHtml2 . '\'); 
+                        appendToSelector(".energyTopDeals .dealsTable", \'' . $this->minifyHtml( $navContent ) . '\');
+                        
                     });
                    </script>';
         echo $script;
