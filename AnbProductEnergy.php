@@ -328,7 +328,6 @@ class AnbProductEnergy extends AnbProduct
         $promoPriceMonthly = $pricing->monthly->promo_price;
         $promoPriceMonthlyArr = formatPriceInParts($promoPriceMonthly, 2);
 
-        //TODO Change 'Per jaar' to string, was: ' . pll__('guaranteed 1st year') . '
         $priceHtml = '<div class="actual-price-board">
 	                        <span class="actual-price">
 	                            <div class="promo-icon">
@@ -342,7 +341,7 @@ class AnbProductEnergy extends AnbProduct
 	                            ' . $promoPriceYearlyArr['currency'] . '
 	                            ' . $promoPriceYearlyArr['price'] . ',' . $promoPriceYearlyArr['cents'] . '
                                 
-	                            <small class="c-topdeals-description">Per jaar</small>
+	                            <small class="c-topdeals-description">' . pll__('per year') . '</small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
@@ -388,7 +387,6 @@ class AnbProductEnergy extends AnbProduct
         $nav = sanitize_text_field( $nav );
 
         pll_register_string( $nav, $nav, 'AnbTopDeals' );
-
         $params = array_filter( $atts );
 
         $cats = array();
@@ -447,25 +445,27 @@ class AnbProductEnergy extends AnbProduct
 
         $htmlWrapper = '';
         if ( $atts['is_first'] == 'yes' ) {
-            //TODO Change 'Top 5 goedkoopste tarieven' to a string and set in backend ' . pll__( 'Most popular' ) . '
-            // and change 'bekijk snel de details van onze goedkoopste leveranciers en tarieven.' to a string
+            //TODO:
             // Tempory remove class 'topDeals' from section because of restyle will not yet be on other pages
             // Change text in footer to String and create link
             $htmlWrapper = '<section class="energyTopDeals">
                         <div class="container">
-                            <div class="deals-count hide">57<span>'.  pll__( 'Top telecom deals' ) . '</span></div>
-                            <div class="topDealsWrapper">
-                                <h3>Top 5 goedkoopste tarieven</h3>	
-                                bekijk snel de details van onze goedkoopste leveranciers en tarieven.
-                                <div class="filterDeals">
-                                    <ul class="topDeals-tabs">
-                                    </ul>
+                            <div class="row">
+                                <div class="topDealsWrapper col-md-8">
+                                    <h3>' . pll__( 'Top 5 cheapest rates' ) . '</h3>	
+                                    ' . pll__( 'Quickly view the details of our cheapest suppliers and rates.' ) . '
+                                    <div class="filterDeals">
+                                        <ul class="topDeals-tabs">
+                                        </ul>
+                                    </div>
+                                    <div class="dealsTable topDealsTable">
+                                        
+                                    </div>
+                                    <div class="topDealsFooter">Lorem ipsum dolor sit amet <a href="#">Hoe komen we aan deze top 5?</a></div>
                                 </div>
-                                <div class="dealsTable topDealsTable">
-                                    
+                                <div class="topDealsSidebar col-md-4">
+                                    '.$this->getSidebar().'
                                 </div>
-                                <div class="topDealsFooter">Lorem ipsum dolor sit amet <a href="#">Hoe komen we aan deze top 5?</a></div>
-                            </div>
                         </div>
                      </section>';
         }
@@ -524,7 +524,7 @@ class AnbProductEnergy extends AnbProduct
             $toCartLinkHtml = '<a class="btn btn-primary all-caps btn-missing-zip-enery" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '">'. pll__('connect now') .'</a>
                                 <a href="'.getEnergyProductPageUri($productData).'" class="link block-link all-caps">'.pll__('Detail').'</a>';
             //TODO cleanup/rewrite
-            $toCartLinkHtml2 = '<a data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '"><img src="'.get_bloginfo('template_url').'/images/svg-icons/CTA-round-arrow.svg" /></a>';
+            $toCartLinkHtml2 = '<a href="'.getEnergyProductPageUri($productData).'" data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $segment . '" data-prt="' . $productType . '"><img src="'.get_bloginfo('template_url').'/images/svg-icons/CTA-round-arrow.svg" /></a>';
 
             if($productData['commission'] === false) {
                 $toCartLinkHtml = '<a href="#not-available" class="btn btn-default all-caps not-available">' . pll__('Not Available') . '</a>';
@@ -577,9 +577,8 @@ class AnbProductEnergy extends AnbProduct
                 $yearAdvArr = formatPriceInParts($yearAdv, 2);
                 $monthlyAdv = $pricing->monthly->advantage;
                 $monthAdvArr = formatPriceInParts($monthlyAdv, 2);
-                //TODO change Label KORTING to String '.pll__('Your advantage').'
                 $yearAdvHTML = '<div class="price-label ">
-                                    <label>KORTING</label>
+                                    <label>'.pll__('Discount').'</label>
                                     <div class="price yearly">'.$yearAdvArr['currency'].' '.$yearAdvArr['price'].'
                                     </div>
                                     <div class="price monthly hide">'.
@@ -598,25 +597,25 @@ class AnbProductEnergy extends AnbProduct
                 $highLightFirst = 'c-results__item-counter';
             }
 
-            $navContent .= '<div class="result-box-container col-md-12 offer offer-col">
+            $navContent .= '<div class="result-box-container col-xs-12 offer offer-col">
                                 <div class="result-box">
                                     <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
                                     <div class="row ' . $navHtmlName . '">
                                         <div class="flex-grid">
                                             <span class="'.$highLightFirst.'">'.$topOrder.'</span>
-                                            <div class="cols">
+                                            <div class="cols col-xs-2">
                                                 '.$this->getLogoSection($productData).'
                                             </div>
-                                            <div class="cols">
+                                            <div class="cols col-xs-4">
                                                 <h3>'. $productData['supplier_name'] .' - '. $productData['product_name'] .'</h3>
                                             </div>
-                                            <div class="cols">
+                                            <div class="cols col-xs-2">
                                                 '.$yearAdvHTML.'
                                             </div>
-                                            <div class="cols">
+                                            <div class="cols col-xs-3">
                                                 <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
                                             </div>
-                                            <div class="cols">
+                                            <div class="cols col-xs-1">
                                                 <div class="col_11 bottomBtnDv border-top">'.$toCartLinkHtml2.'</div>
                                             </div>
                                         </div>
@@ -657,10 +656,81 @@ class AnbProductEnergy extends AnbProduct
                         //temp for restyle
                         appendToSelector(".energyTopDeals .filterDeals ul",  \'' . $navHtml2 . '\'); 
                         appendToSelector(".energyTopDeals .dealsTable", \'' . $this->minifyHtml( $navContent ) . '\');
+                        //appendToSelector(".energyTopDeals.TopDealsSidebar", \'' . $this->minifyHtml( $sidebarContent ) . '\')
                         
                     });
                    </script>';
         echo $script;
+    }
+
+    public function getSidebar(){
+        //TODO: change to proper way of linking to send your invoice page
+        $invoice = pll__('Send us your invoice');
+        $invoiceLink = pll__('stuur je factuur');
+        $invoiceLink2 = sanitize_title_with_dashes( remove_accents ($invoiceLink ) );
+
+        $reviewCount = 10;
+        $reviewScore = 1;
+
+        $sidebarContent = '<div class="row topDealsVideo">
+                                <div class="col">
+                                <h4>' . pll__('We are Aanbieders') . '</h4>
+                                <div class="videoRatio">
+                                    <iframe src="https://www.youtube.com/embed/SbgPWWd88tg" frameborder="0"></iframe>
+                                </div>
+                                <ul>
+                                    <li>' . pll__('100% independent') . '</li>
+                                    <li>' . pll__('100% free') . '</li>
+                                    <li>' . pll__('Easy to switch') . '</strong></li>
+                                    <li>' . pll__('Everything is taking care of') . '</li>
+                                    <li>' . pll__('Guarantee up to date') . '</li>
+                                </ul>
+                                </div>
+                           </div>
+                           <div class="row topDealsInvoice">
+                                <div class="col">
+                                    <div class="row">
+                                         <div class="col-xs-3">
+                                            <img src="' . get_bloginfo('template_url') . '/images/svg-icons/send-invoice-green.svg">
+                                        </div>
+                                        <div class="col-xs-9">
+                                            <h4>' . pll__('Show us your invoice') . '</h4>
+                                            <a href="/' . $invoiceLink2 . '/" class="link">' . $invoice . '</a>
+                                        </div>
+                                    </div>
+                                </div>
+                           </div>
+                           <div class="row topDealsCustomer">
+                                <div class="col">
+                                    ' . $this->getsidebarGoogleContent() .'
+                                </div>
+                           </div>
+                                           ';
+        return $sidebarContent;
+    }
+
+    public function getSidebarGoogleContent()
+    {
+        $language = strtolower(getLanguage());
+        $reviewScore = $language === 'fr' ? get_option('google_reviews_mesfournisseurs_score') : get_option('google_reviews_aanbieders_score');
+        $reviewCount = $language === 'fr' ? get_option('google_reviews_mesfournisseurs_count') : get_option('google_reviews_aanbieders_count');
+
+        $reviewFormatted = str_replace('.', ',', $reviewScore) ;
+        $starSpan = (int)(90 * ($reviewScore / 5)); //90 is width as set in _sect_top_deal.scss
+        //TODO: proper way to set string
+        $sidebarGoogleContent = '
+                        <h4>' . pll__('Customer score') . '</h4>
+                        <li class="google-reviews">
+                            <span class="score-container">
+                                <span class="score">'. $reviewFormatted. '</span>
+                                <span class="stars">
+                                    <span class="stars-inner" style="width: '. $starSpan .'px"></span>
+                                </span>
+                            </span>
+                            <p>' . pll__('A score of '. $reviewFormatted. ' out of  5 based on ' . $reviewCount . ' reviews on Google') . '</p>
+                        </li>
+                        ';
+        return $sidebarGoogleContent;
     }
 
     public function getPotentialSavings($savings, $currentSupplierName = false)
