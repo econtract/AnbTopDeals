@@ -483,7 +483,7 @@ class AnbProductEnergy extends AnbProduct
         }
 
         $navHtmlName = sanitize_title_with_dashes( remove_accents ($nav ) );
-/*        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';*/
+        //$navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
         //$navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
         $navContent  = '<div class="custom-deals row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
 
@@ -596,7 +596,7 @@ class AnbProductEnergy extends AnbProduct
             }else {
                 $highLightFirst = 'c-results__item-counter';
             }
-
+            //TODO: Strings
             $navContent .= '<div class="result-box-container col-xs-12 offer offer-col">
                                 <div class="result-box">
                                     <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
@@ -608,12 +608,16 @@ class AnbProductEnergy extends AnbProduct
                                             </div>
                                             <div class="cols col-xs-4">
                                                 <h3>'. $productData['supplier_name'] .' - '. $productData['product_name'] .'</h3>
+                                                <div class="welcomeDiscount">
+                                                    <img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />
+                                                    '.sprintf(pll__('%s welkomskorting %s'),$productData['supplier_name'], formatPrice($yearAdv)).'
+                                                </div>
                                             </div>
                                             <div class="cols col-xs-2">
                                                 '.$yearAdvHTML.'
                                             </div>
                                             <div class="cols col-xs-3">
-                                                <div class="actual-price-board">'.$this->getPriceHtml( $productData, $pricing, true, false ).'</div>
+                                                '.$this->getPriceHtml( $productData, $pricing, true, false ).'
                                             </div>
                                             <div class="cols col-xs-1">
                                                 <div class="col_11 bottomBtnDv border-top">'.$toCartLinkHtml2.'</div>
@@ -640,11 +644,9 @@ class AnbProductEnergy extends AnbProduct
         } elseif ($navHtmlName == 'electriciteit') {
             $tabIcon = 'electricity.svg';
         } elseif ($navHtmlName == 'vast-tarief') {
-            //$tabIcon = 'Lock-red.svg';
-            $tabIcon = 'electricity.svg';
+            $tabIcon = 'fixed-rate-active.svg';
         } elseif ($navHtmlName == 'duurzame-energie') {
-            //$tabIcon = 'green-energy.svg';
-            $tabIcon = 'electricity.svg';
+            $tabIcon = 'settings-sustainable.svg';
         }
         $navHtml2 = '<li ' . $class . '><img src="'.get_bloginfo('template_url').'/images/svg-icons/'.$tabIcon.'" /><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__( $nav ) . '</a></li>';
 
