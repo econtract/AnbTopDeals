@@ -328,6 +328,7 @@ class AnbProductEnergy extends AnbProduct
         $promoPriceMonthly = $pricing->monthly->promo_price;
         $promoPriceMonthlyArr = formatPriceInParts($promoPriceMonthly, 2);
 
+        //TODO Change 'Per jaar' to string, was: ' . pll__('guaranteed 1st year') . '
         $priceHtml = '<div class="actual-price-board">
 	                        <span class="actual-price">
 	                            <div class="promo-icon">
@@ -340,7 +341,6 @@ class AnbProductEnergy extends AnbProduct
 	                        <div class="current-price yearly">
 	                            ' . $promoPriceYearlyArr['currency'] . '
 	                            ' . $promoPriceYearlyArr['price'] . ',' . $promoPriceYearlyArr['cents'] . '
-                                
 	                            <small class="c-topdeals-description">' . pll__('per year') . '</small>
 	                        </div>
 	                        <div class="current-price monthly hide">
@@ -577,6 +577,7 @@ class AnbProductEnergy extends AnbProduct
                 $yearAdvArr = formatPriceInParts($yearAdv, 2);
                 $monthlyAdv = $pricing->monthly->advantage;
                 $monthAdvArr = formatPriceInParts($monthlyAdv, 2);
+                //TODO change Label KORTING to String '.pll__('Your advantage').'
                 $yearAdvHTML = '<div class="price-label ">
                                     <label>'.pll__('Discount').'</label>
                                     <div class="price yearly">'.$yearAdvArr['currency'].' '.$yearAdvArr['price'].'
