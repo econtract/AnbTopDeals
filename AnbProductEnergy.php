@@ -330,6 +330,7 @@ class AnbProductEnergy extends AnbProduct
 
         $priceHtml = '<div class="actual-price-board">
 	                        <span class="actual-price">
+	                        	<span class="svg-icon ab-icon-promo"></span>
 	                            ' . $oldPriceYearlyHtml . '
 	                            ' . $oldPriceMonthlyHtml . '
 	                            ' . $calcHtml . '
@@ -337,8 +338,7 @@ class AnbProductEnergy extends AnbProduct
 	                        <div class="current-price yearly">
 	                            ' . $promoPriceYearlyArr['currency'] . '
 	                            ' . $promoPriceYearlyArr['price'] . ',' . $promoPriceYearlyArr['cents'] . '
-                                
-	                            <small class="c-topdeals-description">' . pll__('guaranteed 1st year') . '<i class="question-o custom-tooltip a" data-toggle="tooltip" title="" data-original-title="' . pll__('guaranteed 1st year info text') . '">?</i></small>
+	                            <small class="c-topdeals-description">' . pll__('per year') . '</small>
 	                        </div>
 	                        <div class="current-price monthly hide">
 	                            <span class="super">' . $promoPriceMonthlyArr['currency'] . '</span>
@@ -354,6 +354,103 @@ class AnbProductEnergy extends AnbProduct
     public function getLastUpdateDate( $product ){
         return pll__('Last update') .' '. date('d/m/Y H:i', strtotime($product['last_update']));
 
+    }
+
+    function topDealProductsNew( $atts, $tabName = "" )
+    {
+        $atts = shortcode_atts(array(
+            'cat'         => '',
+            'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
+            'sg'          => 'consumer',
+            'product_1'   => [],
+            'product_2'   => [],
+            'product_3'   => [],
+            'product_4'   => [],
+            'product_5'   => [],
+            'lang'        => getLanguage(),
+            'is_active'   => 'no',
+            'is_first'    => 'no',
+
+        ), $atts, 'anb_energy_top_deal_products_new');
+
+        if (!empty($atts['detaillevel']) && is_string($atts['detaillevel'])) {
+            $atts['detaillevel'] = explode(',', $atts['detaillevel']);
+        }
+        $tabName = sanitize_text_field($tabName);
+
+        pll_register_string($tabName, $tabName, 'AnbTopDeals');
+
+        $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
+
+        $productId1 = explode('|', $atts['product_1'])[1];
+        $productId2 = explode('|', $atts['product_2'])[1];
+        $productId3 = explode('|', $atts['product_3'])[1];
+        $productId4 = explode('|', $atts['product_4'])[1];
+        $productId5 = explode('|', $atts['product_5'])[1];
+
+        $paramsArray = [
+            'detaillevel' => $atts['detaillevel'],
+            'pref_pids'   => array($productId1, $productId2, $productId3, $productId4, $productId5),
+            'sg'          => $atts['sg'],
+            'lang'        => $atts['lang'],
+            'zip'         => '9000',
+            'cat'         => $productType,
+        ];
+
+        if (in_array($productType, array('dualfuel_pack', 'electricity'))) {
+            $paramsArray['du'] = 1700;
+            $paramsArray['nu'] = 1400;
+        }
+
+        if (in_array($productType, array('dualfuel_pack', 'gas'))) {
+            $paramsArray['u'] = 17100;
+        }
+
+        /** @var AnbCompare $anbCompare */
+        $anbCompare = wpal_create_instance(\AnbSearch\AnbCompare::class);
+        $result     = json_decode($anbCompare->getCompareResults($paramsArray));
+
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('top_deals_js', plugin_dir_url(__FILE__) . 'js/top-deals.js');
+
+        if ($atts['is_first'] == 'yes') {
+            // Load the top deals wrapper
+            include locate_template('template-parts/section/energy/top-deals/wrapper.php');
+        }
+
+        $tabContentClass = sanitize_title_with_dashes(remove_accents($tabName));
+        $tabIsActive     = isset($atts['is_active']) && $atts['is_active'] === 'yes';
+        $deals           = $result->results;
+
+        ob_start();
+
+        include locate_template('template-parts/section/energy/top-deals/deals.php');
+
+        $tabContent = ob_get_clean();
+
+        $tabIcon = '';
+        if ($productType == 'dualfuel_pack') {
+            $tabIcon = 'dualfuel_pack.svg';
+        } elseif ($productType == 'electricity') {
+            $tabIcon = 'electricity.svg';
+        } elseif ($productType == 'gas') {
+            $tabIcon = 'energy-gas.svg';
+        }
+        $tabClass = $tabIsActive ? 'active' : '';
+        $tabItem  = '<li class="' . $tabClass . '">';
+        if (!empty($tabIcon)) {
+            $tabItem .= '<img src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
+        }
+        $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '">' . pll__($tabName) . '</a></li>';
+        $tabItem . '</li>';
+
+        $script = '<script>
+                    jQuery(document).ready(function($){
+                        appendToSelector(".energyTopDeals .filterDeals ul",  \'' . $tabItem . '\'); 
+                        appendToSelector(".energyTopDeals .dealsTable", \'' . $this->minifyHtml($tabContent) . '\');
+                    });
+                   </script>';
+        echo $script;
     }
 
     function topDealProducts( $atts, $nav = "" ) {

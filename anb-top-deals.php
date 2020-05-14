@@ -27,6 +27,7 @@ $energy = wpal_create_instance(AnbProductEnergy::class);
 
 add_shortcode( 'anb_top_deal_products', [$result, 'topDealProducts'] );
 add_shortcode( 'anb_energy_top_deal_products', [$energy, 'topDealProducts'] );
+add_shortcode( 'anb_energy_top_deal_products_new', [$energy, 'topDealProductsNew'] );
 
 add_action('wp_ajax_ajaxProductPriceBreakdownHtml', array($result, 'ajaxProductPriceBreakdownHtml'));
 add_action( 'wp_ajax_nopriv_ajaxProductPriceBreakdownHtml', array($result, 'ajaxProductPriceBreakdownHtml'));
