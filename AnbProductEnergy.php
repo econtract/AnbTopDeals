@@ -430,16 +430,16 @@ class AnbProductEnergy extends AnbProduct
 
         $tabIcon = '';
         if ($productType == 'dualfuel_pack') {
-            $tabIcon = 'dualfuel_pack.svg';
+            $tabIcon = 'dualfuel_pack-grey.svg';
         } elseif ($productType == 'electricity') {
-            $tabIcon = 'electricity.svg';
+            $tabIcon = 'electricity-small.svg';
         } elseif ($productType == 'gas') {
-            $tabIcon = 'energy-gas.svg';
+            $tabIcon = 'energy-gas-small.svg';
         }
         $tabClass = $tabIsActive ? 'active' : '';
         $tabItem  = '<li class="' . $tabClass . '">';
         if (!empty($tabIcon)) {
-            $tabItem .= '<img src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
+            $tabItem .= '<img class="' . $tabContentClass . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
         }
         $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '">' . pll__($tabName) . '</a></li>';
         $tabItem . '</li>';
