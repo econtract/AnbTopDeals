@@ -439,7 +439,7 @@ class AnbProductEnergy extends AnbProduct
         $tabClass = $tabIsActive ? 'active' : '';
         $tabItem  = '<li class="' . $tabClass . '">';
         if (!empty($tabIcon)) {
-            $tabItem .= '<img class="' . $tabContentClass . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
+            $tabItem .= '<img class="' . $productType . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
         }
         $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '">' . pll__($tabName) . '</a></li>';
         $tabItem . '</li>';
