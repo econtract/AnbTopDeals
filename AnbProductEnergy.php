@@ -360,6 +360,7 @@ class AnbProductEnergy extends AnbProduct
     {
         $atts = shortcode_atts(array(
             'cat'         => '',
+            'tab_cat'     => '',
             'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
             'sg'          => 'consumer',
             'product_1'   => [],
@@ -429,17 +430,23 @@ class AnbProductEnergy extends AnbProduct
         $tabContent = ob_get_clean();
 
         $tabIcon = '';
-        if ($productType == 'dualfuel_pack') {
+        if ($atts['tab_cat'] == 'dualfuel_pack') {
             $tabIcon = 'dualfuel_pack-grey.svg';
-        } elseif ($productType == 'electricity') {
+        } elseif ($atts['tab_cat'] == 'electricity') {
             $tabIcon = 'electricity-small.svg';
-        } elseif ($productType == 'gas') {
+        } elseif ($atts['tab_cat'] == 'gas') {
             $tabIcon = 'energy-gas-small.svg';
+        } elseif ($atts['tab_cat'] == 'fixed_rate') {
+            $tabIcon = 'fixed-rate-inactive.svg';
+        } elseif ($atts['tab_cat'] == 'sustainable_energy') {
+            $tabIcon = 'settings-sustainable-inactive.svg';
+        } else {
+            $tabIcon = 'dualfuel_pack-grey.svg';
         }
         $tabClass = $tabIsActive ? 'active' : '';
         $tabItem  = '<li class="' . $tabClass . '">';
         if (!empty($tabIcon)) {
-            $tabItem .= '<img class="' . $productType . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
+            $tabItem .= '<img class="' . $atts['tab_cat'] . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
         }
         $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '">' . pll__($tabName) . '</a></li>';
         $tabItem . '</li>';
