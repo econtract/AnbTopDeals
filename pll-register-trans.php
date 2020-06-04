@@ -40,7 +40,11 @@ function anbTopDealsTrans() {
     pll_register_string('Show us your invoice','Show us your invoice', 'AnbTopDeals');
     pll_register_string('Customer score','Customer score', 'AnbTopDeals');
     pll_register_string('Show us your invoice','Show us your invoice', 'AnbTopDeals');
-    //pll_register_string('A score of '. $reviewFormatted. ' out of  5 based on ' . $reviewCount . ' reviews on Google','A score of '. $reviewFormatted. ' out of  5 based on ' . $reviewCount . ' reviews on Google', 'AnbTopDeals');
+    pll_register_string( 'dualfuel_pack_footer', 'dualfuel_pack_footer', 'AnbTopDeals' );
+    pll_register_string( 'electricity_footer', 'electricity_footer', 'AnbTopDeals' );
+    pll_register_string( 'gas_footer', 'gas_footer', 'AnbTopDeals' );
+    pll_register_string( 'fixed_rate_footer', 'fixed_rate_footer', 'AnbTopDeals' );
+    pll_register_string( 'sustainable_energy_footer', 'sustainable_energy_footer', 'AnbTopDeals' );
 
 
 }

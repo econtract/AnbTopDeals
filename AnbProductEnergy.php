@@ -361,6 +361,7 @@ class AnbProductEnergy extends AnbProduct
         $atts = shortcode_atts(array(
             'cat'         => '',
             'tab_cat'     => '',
+            'footer_cat'    => '',
             'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
             'sg'          => 'consumer',
             'product_1'   => [],
@@ -422,6 +423,7 @@ class AnbProductEnergy extends AnbProduct
         $tabContentClass = sanitize_title_with_dashes(remove_accents($tabName));
         $tabIsActive     = isset($atts['is_active']) && $atts['is_active'] === 'yes';
         $deals           = $result->results;
+        $footerText      = $atts['footer_cat'];
 
         ob_start();
 
