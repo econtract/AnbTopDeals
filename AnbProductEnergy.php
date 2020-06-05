@@ -330,7 +330,7 @@ class AnbProductEnergy extends AnbProduct
 
         $priceHtml = '<div class="actual-price-board">
 	                        <span class="actual-price">
-	                        	<span class="svg-icon ab-icon-promo"></span>
+	                        	<span class="abi abi-promo"></span>
 	                            ' . $oldPriceYearlyHtml . '
 	                            ' . $oldPriceMonthlyHtml . '
 	                            ' . $calcHtml . '
