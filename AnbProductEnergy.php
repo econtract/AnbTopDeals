@@ -450,7 +450,10 @@ class AnbProductEnergy extends AnbProduct
         if (!empty($tabIcon)) {
             $tabItem .= '<img class="' . $atts['tab_cat'] . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
         }
-        $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '">' . pll__($tabName) . '</a></li>';
+
+        $tabNameShort = $atts['tab_cat'] . '_shortTabName';
+
+        $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '"><div class="hidden-xs">' . pll__($tabName) . '</div><div class="visible-xs">' . pll__($tabNameShort) . '</div></a></li>';
         $tabItem . '</li>';
 
         $script = '<script>
