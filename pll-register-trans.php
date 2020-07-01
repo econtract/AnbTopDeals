@@ -45,7 +45,11 @@ function anbTopDealsTrans() {
     pll_register_string( 'gas_footer', 'gas_footer', 'AnbTopDeals' );
     pll_register_string( 'fixed_rate_footer', 'fixed_rate_footer', 'AnbTopDeals' );
     pll_register_string( 'sustainable_energy_footer', 'sustainable_energy_footer', 'AnbTopDeals' );
-
+    pll_register_string( 'dualfuel_pack_shortTabName', 'dualfuel_pack_shortTabName', 'AnbTopDeals' );
+    pll_register_string( 'electricity_shortTabName', 'electricity_shortTabName', 'AnbTopDeals' );
+    pll_register_string( 'gas_shortTabName_shortTabName', 'gas_shortTabName', 'AnbTopDeals' );
+    pll_register_string( 'fixed_rate_shortTabName', 'fixed_rate_shortTabName', 'AnbTopDeals' );
+    pll_register_string( 'sustainable_energy_shortTabName', 'sustainable_energy_shortTabName', 'AnbTopDeals' );
 
 }
 
