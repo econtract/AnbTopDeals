@@ -453,8 +453,7 @@ class AnbProductEnergy extends AnbProduct
 
         $tabNameShort = $atts['tab_cat'] . '_shortTabName';
 
-        $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '"><div class="hidden-xs">' . pll__($tabName) . '</div><div class="visible-xs">' . pll__($tabNameShort) . '</div></a></li>';
-        $tabItem . '</li>';
+        $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '"><span class="hidden-xs">' . pll__($tabName) . '</span><span class="visible-xs">' . pll__($tabNameShort) . '</span></a></li>';
 
         $script = '<script>
                     jQuery(document).ready(function($){
