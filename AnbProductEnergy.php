@@ -426,7 +426,7 @@ class AnbProductEnergy extends AnbProduct
 
         include locate_template('template-parts/section/energy/top-deals/deals.php');
 
-        $tabContent = '<div id="' . $tabID . '" class="tab-pane ' . ($tabIsActive ? 'active' : '') . '">' . ob_get_clean();
+        $tabContent = '<div id="' . $tabID . '" class="tab-pane ' . ($tabIsActive ? 'active' : '') . '">' . ob_get_clean() . '</div>';
 
         if ($atts['tab_cat'] == 'dualfuel_pack') {
             $tabIcon = 'abf abf-dualfuel-pack';
