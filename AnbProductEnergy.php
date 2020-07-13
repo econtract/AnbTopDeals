@@ -412,53 +412,49 @@ class AnbProductEnergy extends AnbProduct
         $anbCompare = wpal_create_instance(\AnbSearch\AnbCompare::class);
         $result     = json_decode($anbCompare->getCompareResults($paramsArray));
 
-        wp_enqueue_script('jquery');
-        wp_enqueue_script('top_deals_js', plugin_dir_url(__FILE__) . 'js/top-deals.js');
-
         if ($atts['is_first'] == 'yes') {
             // Load the top deals wrapper
             include locate_template('template-parts/section/energy/top-deals/wrapper.php');
         }
 
-        $tabContentClass = sanitize_title_with_dashes(remove_accents($tabName));
-        $tabIsActive     = isset($atts['is_active']) && $atts['is_active'] === 'yes';
-        $deals           = $result->results;
-        $footerText      = $atts['footer_cat'];
+        $tabID       = sanitize_title_with_dashes(remove_accents($tabName)) . '-' . rand(0, 999);
+        $tabIsActive = isset($atts['is_active']) && $atts['is_active'] === 'yes';
+        $deals       = $result->results;
+        $footerText  = $atts['footer_cat'];
 
         ob_start();
 
         include locate_template('template-parts/section/energy/top-deals/deals.php');
 
-        $tabContent = ob_get_clean();
+        $tabContent = '<div id="' . $tabID . '" class="tab-pane ' . ($tabIsActive ? 'active' : '') . '">' . ob_get_clean();
 
-        $tabIcon = '';
         if ($atts['tab_cat'] == 'dualfuel_pack') {
-            $tabIcon = 'dualfuel_pack-grey.svg';
+            $tabIcon = 'abf abf-dualfuel-pack';
         } elseif ($atts['tab_cat'] == 'electricity') {
-            $tabIcon = 'electricity-small.svg';
+            $tabIcon = 'abf abf-electricity';
         } elseif ($atts['tab_cat'] == 'gas') {
-            $tabIcon = 'energy-gas-small.svg';
+            $tabIcon = 'abf abf-gas';
         } elseif ($atts['tab_cat'] == 'fixed_rate') {
-            $tabIcon = 'fixed-rate-inactive.svg';
+            $tabIcon = 'abf abf-fixed-rate';
         } elseif ($atts['tab_cat'] == 'sustainable_energy') {
-            $tabIcon = 'settings-sustainable-inactive.svg';
+            $tabIcon = 'abf abf-sustainable-energy';
         } else {
-            $tabIcon = 'dualfuel_pack-grey.svg';
+            $tabIcon = 'abf abf-dualfuel-pack';
         }
-        $tabClass = $tabIsActive ? 'active' : '';
-        $tabItem  = '<li class="' . $tabClass . '">';
-        if (!empty($tabIcon)) {
-            $tabItem .= '<img class="' . $atts['tab_cat'] . '" src="' . get_bloginfo('template_url') . '/images/svg-icons/' . $tabIcon . '" />';
-        }
-
+        $tabClass     = $tabIsActive ? 'active' : '';
+        $tabItem      = '<li class="' . $tabClass . ' is-tab">';
         $tabNameShort = $atts['tab_cat'] . '_shortTabName';
 
-        $tabItem .= '<a href="javascript:void(0);" related="' . $tabContentClass . '"><span class="hidden-xs">' . pll__($tabName) . '</span><span class="visible-xs">' . pll__($tabNameShort) . '</span></a></li>';
+        $tabItem .= '<a href="#' . $tabID . '" data-toggle="tab">';
+        if (!empty($tabIcon)) {
+            $tabItem .= '<i class="' . $tabIcon . '" /></i> ';
+        }
+        $tabItem .= '<span class="hidden-xs">' . pll__($tabName) . '</span><span class="visible-xs">' . pll__($tabNameShort) . '</span></a></li>';
 
         $script = '<script>
                     jQuery(document).ready(function($){
-                        appendToSelector(".energyTopDeals .filterDeals ul",  \'' . $tabItem . '\'); 
-                        appendToSelector(".energyTopDeals .dealsTable", \'' . $this->minifyHtml($tabContent) . '\');
+                        $(\'.energyTopDeals .filterDeals ul\').append(\'' . $tabItem . '\');
+                        $(\'.energyTopDeals .dealsTable .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
                     });
                    </script>';
         echo $script;
