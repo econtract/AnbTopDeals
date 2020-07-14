@@ -50,6 +50,7 @@ function anbTopDealsTrans() {
     pll_register_string( 'gas_shortTabName_shortTabName', 'gas_shortTabName', 'AnbTopDeals' );
     pll_register_string( 'fixed_rate_shortTabName', 'fixed_rate_shortTabName', 'AnbTopDeals' );
     pll_register_string( 'sustainable_energy_shortTabName', 'sustainable_energy_shortTabName', 'AnbTopDeals' );
+    pll_register_string( 'Hoe komen we aan deze top 5?', 'Hoe komen we aan deze top 5?', 'AnbTopDeals' );
 
 }
 
