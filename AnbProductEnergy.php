@@ -359,28 +359,35 @@ class AnbProductEnergy extends AnbProduct
     function topDealProductsNew( $atts, $tabName = "" )
     {
         $atts = shortcode_atts(array(
-            'cat'         => '',
-            'tab_cat'     => '',
+            'cat'           => '',
+            'tab_cat'       => 'dualfuel_pack',
+            'tabname_short' => '',
             'footer_cat'    => '',
-            'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
-            'sg'          => 'consumer',
-            'product_1'   => [],
-            'product_2'   => [],
-            'product_3'   => [],
-            'product_4'   => [],
-            'product_5'   => [],
-            'lang'        => getLanguage(),
-            'is_active'   => 'no',
-            'is_first'    => 'no',
-
+            'detaillevel'   => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
+            'sg'            => 'consumer',
+            'product_1'     => [],
+            'product_2'     => [],
+            'product_3'     => [],
+            'product_4'     => [],
+            'product_5'     => [],
+            'lang'          => getLanguage(),
+            'is_active'     => 'no',
+            'is_first'      => 'no',
         ), $atts, 'anb_energy_top_deal_products_new');
 
         if (!empty($atts['detaillevel']) && is_string($atts['detaillevel'])) {
             $atts['detaillevel'] = explode(',', $atts['detaillevel']);
         }
+
+        if (empty($tabName)) {
+            $tabName = pll__($atts['tab_cat']);
+        }
+
         $tabName = sanitize_text_field($tabName);
 
-        pll_register_string($tabName, $tabName, 'AnbTopDeals');
+        if (empty($atts['tabname_short'])) {
+            $atts['tabname_short'] = $tabName;
+        }
 
         $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
 
@@ -443,13 +450,12 @@ class AnbProductEnergy extends AnbProduct
         }
         $tabClass     = $tabIsActive ? 'active' : '';
         $tabItem      = '<li class="' . $tabClass . ' is-tab">';
-        $tabNameShort = $atts['tab_cat'] . '_shortTabName';
 
         $tabItem .= '<a href="#' . $tabID . '" data-toggle="tab">';
         if (!empty($tabIcon)) {
             $tabItem .= '<i class="' . $tabIcon . '" /></i> ';
         }
-        $tabItem .= '<span class="hidden-xs">' . pll__($tabName) . '</span><span class="visible-xs">' . pll__($tabNameShort) . '</span></a></li>';
+        $tabItem .= '<span class="hidden-xs">' . $tabName . '</span><span class="visible-xs">' . $atts['tabname_short'] . '</span></a></li>';
 
         $script = '<script>
                     jQuery(document).ready(function($){
