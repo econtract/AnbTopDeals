@@ -299,7 +299,7 @@ class AnbProduct
         } elseif ($atts['tab_cat'] == 'family_deals') {
             $tabIcon = 'abf abf-family';
         } elseif ($atts['tab_cat'] == 'mobile_pack') {
-            $tabIcon = 'abf abf-mobile';
+            $tabIcon = 'abf abf-mobile-phone';
         } elseif ($atts['tab_cat'] == 'calling_and_data') {
             $tabIcon = 'abf abf-mobile-calling-data';
         } elseif ($atts['tab_cat'] == 'calling_only') {
