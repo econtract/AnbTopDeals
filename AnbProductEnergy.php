@@ -421,7 +421,7 @@ class AnbProductEnergy extends AnbProduct
 
         if ($atts['is_first'] == 'yes') {
             // Load the top deals wrapper
-            include locate_template('template-parts/section/energy/top-deals/wrapper.php');
+            include locate_template('template-parts/section/top-deals/wrapper.php');
         }
 
         $tabID       = sanitize_title_with_dashes(remove_accents($tabName)) . '-' . rand(0, 999);
@@ -431,7 +431,7 @@ class AnbProductEnergy extends AnbProduct
 
         ob_start();
 
-        include locate_template('template-parts/section/energy/top-deals/deals.php');
+        include locate_template('template-parts/section/top-deals/deals.php');
 
         $tabContent = '<div id="' . $tabID . '" class="tab-pane ' . ($tabIsActive ? 'active' : '') . '">' . ob_get_clean() . '</div>';
 
