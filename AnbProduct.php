@@ -11,7 +11,7 @@ namespace AnbTopDeals;
 use AnbApiClient\Aanbieders;
 use AnbSearch\AnbCompare;
 
-if(!function_exists('getLanguage')) {
+if (!function_exists('getLanguage')) {
     function getLanguage()
     {
         //get locale
@@ -21,105 +21,108 @@ if(!function_exists('getLanguage')) {
     }
 }
 
-class AnbProduct {
+class AnbProduct
+{
 
-	public $crmApiEndpoint = "http://api.econtract.be/";//Better to take it from Admin settings
-	/** @var $anbApi \AnbApiClient\Aanbieders */
-	public $anbApi;
-	public $apiConf = [
+    public $crmApiEndpoint = "http://api.econtract.be/";//Better to take it from Admin settings
+    /** @var $anbApi \AnbApiClient\Aanbieders */
+    public $anbApi;
+    public $apiConf = [
         'host'    => ANB_API_HOST,
-		'staging' => ANB_API_STAGING,
-		'key'     => ANB_API_KEY,
-		'secret'  => ANB_API_SECRET
-	];
+        'staging' => ANB_API_STAGING,
+        'key'     => ANB_API_KEY,
+        'secret'  => ANB_API_SECRET,
+    ];
 
-	private $producttypesToSkipPromos = ['mobile_internet', 'mobile'];
+    private $producttypesToSkipPromos = ['mobile_internet', 'mobile'];
 
-	public function __construct() {
-		$this->anbApi = wpal_create_instance( Aanbieders::class, [ $this->apiConf ] );
-	}
+    public function __construct()
+    {
+        $this->anbApi = wpal_create_instance(Aanbieders::class, [$this->apiConf]);
+    }
 
-	function topDealProducts( $atts, $nav = "" ) {
-		$atts = shortcode_atts( array(
-			'cat'         => '',
-			'detaillevel' => [ 'supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features' ],
-			//specifications, logo
-			'sg'          => 'consumer',
-			'product_1'   => [],
-			'product_2'   => [],
-			'product_3'   => [],
-			'lang'        => getLanguage(),
-			'is_active'   => 'no',
-			'is_first'    => 'no'
+    function topDealProducts($atts, $nav = "")
+    {
+        $atts = shortcode_atts(array(
+            'cat'         => '',
+            'detaillevel' => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features'],
+            //specifications, logo
+            'sg'          => 'consumer',
+            'product_1'   => [],
+            'product_2'   => [],
+            'product_3'   => [],
+            'lang'        => getLanguage(),
+            'is_active'   => 'no',
+            'is_first'    => 'no',
 
-		), $atts, 'anb_top_deal_products' );
+        ), $atts, 'anb_top_deal_products');
 
-		if ( ! empty( $atts['detaillevel'] ) && is_string( $atts['detaillevel'] ) ) {
-			$atts['detaillevel'] = explode( ',', $atts['detaillevel'] );
-		}
+        if (!empty($atts['detaillevel']) && is_string($atts['detaillevel'])) {
+            $atts['detaillevel'] = explode(',', $atts['detaillevel']);
+        }
 
-		if ( empty( $atts['product_1'] ) || empty( $atts['product_2'] ) || empty( $atts['product_3'] ) || empty( $nav ) ) {
-			return;
-		}
+        if (empty($atts['product_1']) || empty($atts['product_2']) || empty($atts['product_3']) || empty($nav)) {
+            return;
+        }
 
-		$nav = sanitize_text_field( $nav );
+        $nav = sanitize_text_field($nav);
 
-		pll_register_string( $nav, $nav, 'AnbTopDeals' );
+        pll_register_string($nav, $nav, 'AnbTopDeals');
 
-		//remove empty params
-		$params = array_filter( $atts );
+        //remove empty params
+        $params = array_filter($atts);
 
-		// get the products
-		//$products = $this->anbApi->getProducts($params, $atts['product_ids']);
+        // get the products
+        //$products = $this->anbApi->getProducts($params, $atts['product_ids']);
 
-		/*$products = $this->anbApi->getProducts(array('cat'=>array('dualfuel_pack', 'internet'), 'ssg'=>'consumer', 'lang'=>'nl', 'status'=>array(0,1,2),
-			'productid'=>array('internet|180','dualfuel_pack|11', 'dualfuel_pack|18'),
-			'detaillevel'=>array('ddspecifications'), 'a'=>31));*/
+        /*$products = $this->anbApi->getProducts(array('cat'=>array('dualfuel_pack', 'internet'), 'ssg'=>'consumer', 'lang'=>'nl', 'status'=>array(0,1,2),
+            'productid'=>array('internet|180','dualfuel_pack|11', 'dualfuel_pack|18'),
+            'detaillevel'=>array('ddspecifications'), 'a'=>31));*/
 
-		//Extract categories from each product
-		$cats   = [];
-		$cats[] = substr( $atts['product_1'], 0, strpos( $atts['product_1'], "|" ) );
-		$cats[] = substr( $atts['product_2'], 0, strpos( $atts['product_2'], "|" ) );
-		$cats[] = substr( $atts['product_3'], 0, strpos( $atts['product_3'], "|" ) );
+        //Extract categories from each product
+        $cats   = [];
+        $cats[] = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
+        $cats[] = substr($atts['product_2'], 0, strpos($atts['product_2'], "|"));
+        $cats[] = substr($atts['product_3'], 0, strpos($atts['product_3'], "|"));
 
-		$cats = array_unique( $cats );
+        $cats = array_unique($cats);
 
-		$cacheTime = 86400;
+        $cacheTime = 86400;
 
-		if(defined('TOP_DEALS_PRODUCT_CACHE_DURATION')) {
+        if (defined('TOP_DEALS_PRODUCT_CACHE_DURATION')) {
             $cacheTime = TOP_DEALS_PRODUCT_CACHE_DURATION;
         }
 
-        $products = $this->getProducts( array(
+        $products = $this->getProducts(array(
             'cat'         => $cats,
             'sg'          => $atts['sg'],
             'lang'        => $atts['lang'],
-            'productid'   => array( $atts['product_1'], $atts['product_2'], $atts['product_3'] ),
-            'detaillevel' => $atts['detaillevel']
-        ), null, false, 0 );//don't cache top deals
+            'productid'   => array($atts['product_1'], $atts['product_2'], $atts['product_3']),
+            'detaillevel' => $atts['detaillevel'],
+        ), null, false, 0);//don't cache top deals
 
-		$products = json_decode( $products );
+        $products = json_decode($products);
 
-		/*echo "<pre>PRODUCTS>>>";
-		print_r($products);
-		echo "</pre>";*/
+        /*echo "<pre>PRODUCTS>>>";
+        print_r($products);
+        echo "</pre>";*/
 
-		//prepare product data to be displayed
-		$data = $this->prepareProductsData( $products );
+        //prepare product data to be displayed
+        $data = $this->prepareProductsData($products);
 
-		/*echo "<pre>DATA>>>";
-		print_r($data);
-		echo "</pre>";*/
+        /*echo "<pre>DATA>>>";
+        print_r($data);
+        echo "</pre>";*/
 
-		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'top_deals_js', plugin_dir_url( __FILE__ ) . 'js/top-deals.js' );
-        wp_enqueue_script( 'top_deals_slider_js', plugin_dir_url( __FILE__ ) . 'js/top-deals-slider.js' );
-		$htmlWrapper = '';
-		if ( $atts['is_first'] == 'yes' ) {
-			$htmlWrapper = '<section class="topDeals">
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('top_deals_js', plugin_dir_url(__FILE__) . 'js/top-deals.js');
+        wp_enqueue_script('top_deals_slider_js', plugin_dir_url(__FILE__) . 'js/top-deals-slider.js');
+        $htmlWrapper = '';
+        if ($atts['is_first'] == 'yes') {
+            $htmlWrapper = '<section class="topDeals">
                         <div class="container">
                             <div class="topDealsWrapper">
-                                <h3>' . pll__( 'Most popular' ) . '</h3>	
+                                <h3>' . pll__('Most popular') . '</h3>	
                                 <div class="filterDeals">
                                     <ul class="list-unstyled list-inline">
                                     </ul>
@@ -130,466 +133,659 @@ class AnbProduct {
                             </div>
                         </div>
                      </section>';
-		}
+        }
 
-		echo $htmlWrapper;
+        echo $htmlWrapper;
 
-		//append Navigation to the HTML
-		$class        = '';
-		$displayStyle = '';
-		if ( $atts['is_active'] == 'yes' ) {
-			$class = 'class="active"';
-		} else {
-			$displayStyle = 'style="display:none;"';
-		}
+        //append Navigation to the HTML
+        $class        = '';
+        $displayStyle = '';
+        if ($atts['is_active'] == 'yes') {
+            $class = 'class="active"';
+        } else {
+            $displayStyle = 'style="display:none;"';
+        }
 
-		$navHtmlName = sanitize_title_with_dashes( remove_accents ( $nav ) );
-		$navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row ' . $navHtmlName . '" ' . $displayStyle . '>';
-		foreach ( $data as $idx => $prd ) {
-			$boxClass = 'left';
-			if ( $idx == 1 ) {
-				$boxClass = 'center';
-			} elseif ( $idx == 2 ) {
-				$boxClass = 'right';
-			}
+        $navHtmlName = sanitize_title_with_dashes(remove_accents($nav));
+        $navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row ' . $navHtmlName . '" ' . $displayStyle . '>';
+        foreach ($data as $idx => $prd) {
+            $boxClass = 'left';
+            if ($idx == 1) {
+                $boxClass = 'center';
+            } elseif ($idx == 2) {
+                $boxClass = 'right';
+            }
 
-			//Services HTML
-			$servicesHtml = $this->getServicesHtml( $prd );
+            //Services HTML
+            $servicesHtml = $this->getServicesHtml($prd);
 
-			//Price HTML
-			$priceHtml = $this->getPriceHtml( $prd, true );
+            //Price HTML
+            $priceHtml = $this->getPriceHtml($prd, true);
 
-			//Promotions, Installation/Activation HTML
-			//display installation and activation price
-			list($promotionHtml, $totalOnetimeCost) = $this->getPromoInternalSection( $prd, true, true );//True here will drop promotions
+            //Promotions, Installation/Activation HTML
+            //display installation and activation price
+            list($promotionHtml, $totalOnetimeCost) = $this->getPromoInternalSection($prd, true, true);//True here will drop promotions
 
 
-			list( $advPrice, $monthDurationPromo, $firstYearPrice ) = $this->getPriceInfo( $prd );
-			//Commented as product info link is now not there, kept as it has useful information
-			//<a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary">' . pll__( 'Info and options' ) . '</a>
-			$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
+            list($advPrice, $monthDurationPromo, $firstYearPrice) = $this->getPriceInfo($prd);
+            //Commented as product info link is now not there, kept as it has useful information
+            //<a href="/' . pll__( 'brands' ) . '/' . $prd['supplier_slug'] . '/' . $prd['product_slug'] . '" class="btn btn-primary">' . pll__( 'Info and options' ) . '</a>
+            $anbComp = wpal_create_instance(\AnbSearch\AnbCompare::class);
 
-			$parentSegment = getSectorOnCats( $cats );
-			$checkoutPageLink = '/' . $parentSegment . '/' . pll__( 'checkout' );
+            $parentSegment    = getSectorOnCats($cats);
+            $checkoutPageLink = '/' . $parentSegment . '/' . pll__('checkout');
 
-			$forceCheckAvailability = false;
-			$missingZipClass = '';
-			if(empty($_GET['zip'])) {
-				$forceCheckAvailability = true;
-				$missingZipClass = ' missing-zip';
-			}
-			list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $prd['product_id'], $prd['supplier_id'], $prd['sg'], $prd['producttype'], $forceCheckAvailability);
-            $toCartLinkHtml = '<a '.$toCartLinkHtml.' class="btn btn-primary'.$missingZipClass.'">' . pll__( 'Order Now' ) . '</a>';
+            $forceCheckAvailability = false;
+            $missingZipClass        = '';
+            if (empty($_GET['zip'])) {
+                $forceCheckAvailability = true;
+                $missingZipClass        = ' missing-zip';
+            }
+            list(, , , , $toCartLinkHtml) = $this->getToCartAnchorHtml($parentSegment, $prd['product_id'], $prd['supplier_id'], $prd['sg'], $prd['producttype'], $forceCheckAvailability);
+            $toCartLinkHtml = '<a ' . $toCartLinkHtml . ' class="btn btn-primary' . $missingZipClass . '">' . pll__('Order Now') . '</a>';
 
             $btnHtml = '<div class="buttonWrapper print-hide">
-                            '.$toCartLinkHtml.'
-                            <a href="' . getTelecomProductPageUri($prd) . '" class="link block-link">' . pll__( 'Info and options' ) . '</a>
+                            ' . $toCartLinkHtml . '
+                            <a href="' . getTelecomProductPageUri($prd) . '" class="link block-link">' . pll__('Info and options') . '</a>
                         </div>';
 
-			$infoOptionsHtml = '<div class="lastOrder" style="height: 37px;">
-                                    <p>'.decorateLatestOrderByProduct($prd->product_id).'</p>
+            $infoOptionsHtml = '<div class="lastOrder" style="height: 37px;">
+                                    <p>' . decorateLatestOrderByProduct($prd->product_id) . '</p>
                                 </div>' . $btnHtml;
-			//echo $this->priceSection( '', '', '', 'dealPrice last', $infoOptionsHtml, false, $productData );
+            //echo $this->priceSection( '', '', '', 'dealPrice last', $infoOptionsHtml, false, $productData );
 
-			$navContent .= '<div class="col-md-12 offer offer-col ' . $boxClass . '">
-                                ' . $this->getProductDetailSection( $prd, $servicesHtml ) .
-			               $this->priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, 'dealPrice', '', '', $prd, true ) .
-			               $this->getPromoSection( $promotionHtml, $prd['advantage'], 'dealFeatures', '', true, $totalOnetimeCost ) .
-			                 '<div class="packageInfo">' .
-                                '<h6>' . pll__('Features') . '</h6>' .
-								$anbComp->getServiceDetail( $products[$idx] ) .
-							 '</div>' .
-			                 $this->priceSection( '', '', '', 'dealPrice last', $infoOptionsHtml, false, $prd ) .
-			               '</div>';
-		}
-		$navContent .= '</div>';
+            $navContent .= '<div class="col-md-12 offer offer-col ' . $boxClass . '">
+                                ' . $this->getProductDetailSection($prd, $servicesHtml) .
+                $this->priceSection($priceHtml, $monthDurationPromo, $firstYearPrice, 'dealPrice', '', '', $prd, true) .
+                $this->getPromoSection($promotionHtml, $prd['advantage'], 'dealFeatures', '', true, $totalOnetimeCost) .
+                '<div class="packageInfo">' .
+                '<h6>' . pll__('Features') . '</h6>' .
+                $anbComp->getServiceDetail($products[$idx]) .
+                '</div>' .
+                $this->priceSection('', '', '', 'dealPrice last', $infoOptionsHtml, false, $prd) .
+                '</div>';
+        }
+        $navContent .= '</div>';
 
-		$navHtml = '<li ' . $class . '><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__( $nav ) . '</a></li>';
+        $navHtml = '<li ' . $class . '><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__($nav) . '</a></li>';
 
-		//$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
-		//remove single quote
-		$navHtml = str_replace("'", '&#39;', $navHtml);
-		$minNavContent = str_replace("'", '&#39;', $this->minifyHtml( $navContent ));
-		$script = '<script>
+        //$script = '<script>appendToSelector(".topDeals .filterDeals ul", {"html": \''.$navHtml.'\'}); appendToSelector(".topDeals .dealsTable", {"html": \''.$navContent.'\'})</script>';
+        //remove single quote
+        $navHtml       = str_replace("'", '&#39;', $navHtml);
+        $minNavContent = str_replace("'", '&#39;', $this->minifyHtml($navContent));
+        $script        = '<script>
                     jQuery(document).ready(function($){
                         appendToSelector(".topDeals .filterDeals ul",  \'' . $navHtml . '\'); 
                         appendToSelector(".topDeals .dealsTable", \'' . $minNavContent . '\');
                     });
                    </script>';
-		echo $script;
+        echo $script;
 
-		//return "<pre>" . print_r($params, true) . "<br><br>" . print_r($products, true) . "</pre>";
-	}
+        //return "<pre>" . print_r($params, true) . "<br><br>" . print_r($products, true) . "</pre>";
+    }
 
-	function minifyHtml( $buffer ) {
+    function topDealProductsNew($atts, $tabName = "")
+    {
+        $atts = shortcode_atts(array(
+            'cat'           => '',
+            'tab_cat'       => 'popular_deals',
+            'tabname_short' => '',
+            'footer_cat'    => '',
+            'detaillevel'   => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
+            'sg'            => 'consumer',
+            'product_1'     => [],
+            'product_2'     => [],
+            'product_3'     => [],
+            'product_4'     => [],
+            'product_5'     => [],
+            'lang'          => getLanguage(),
+            'is_active'     => 'no',
+            'is_first'      => 'no',
+        ), $atts, 'anb_energy_top_deal_products_new');
 
-		$search = array(
-			'/\>[^\S ]+/s',     // strip whitespaces after tags, except space
-			'/[^\S ]+\</s',     // strip whitespaces before tags, except space
-			'/(\s)+/s',         // shorten multiple whitespace sequences
-			'/<!--(.|\s)*?-->/' // Remove HTML comments
-		);
+        if (!empty($atts['detaillevel']) && is_string($atts['detaillevel'])) {
+            $atts['detaillevel'] = explode(',', $atts['detaillevel']);
+        }
 
-		$replace = array(
-			'>',
-			'<',
-			'\\1',
-			''
-		);
+        if (empty($tabName)) {
+            $tabName = pll__($atts['tab_cat']);
+        }
 
-		$buffer = preg_replace( $search, $replace, $buffer );
-		$buffer = str_replace("'", "\'", $buffer);
+        $tabName = sanitize_text_field($tabName);
 
-		return $buffer;
-	}
+        if (empty($atts['tabname_short'])) {
+            $atts['tabname_short'] = $tabName;
+        }
 
-	function getActivationOrInstPriceHtml( $priceDetailArray, $key, $currencySymbol = '', $onlyArray = false, $withFirstTerm = true, &$totalOnetimeAmount = 0.00 ) {
-		//translations in function: pll__('Free installation'), pll__('Free activation'), pll__('Installation'), pll__('t.w.v')
-		$html         = '';
-		$firstTerm    = explode( '_', $key )[0];//first term before underscore like installation from installation_full
-		$firstTermLbl = ucfirst( $firstTerm );
+        $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
 
-		if ( $onlyArray ) {
-			$prices                     = [];
-			$prices[ $key . '_actual' ] = $priceDetailArray[ $key ];
-			if ( $priceDetailArray[ $key ] > 0 ) {
-				if ( $priceDetailArray[ $key . '_promo' ] > 0
-				     && $priceDetailArray[ $key . '_promo' ] != $priceDetailArray[ $key ]
-				) {//there is a promotional price as well
+        $productId1 = explode('|', $atts['product_1'])[1];
+        $productId2 = explode('|', $atts['product_2'])[1];
+        $productId3 = explode('|', $atts['product_3'])[1];
+        $productId4 = explode('|', $atts['product_4'])[1];
+        $productId5 = explode('|', $atts['product_5'])[1];
 
-					$prices[ $key ]            = $priceDetailArray[ $key ];
-					$prices[ $key . '_promo' ] = $priceDetailArray[ $key . '_promo' ];
+        $paramsArray = [
+            'detaillevel' => $atts['detaillevel'],
+            'pref_pids'   => array($productId1, $productId2, $productId3, $productId4, $productId5),
+            'sg'          => $atts['sg'],
+            'lang'        => $atts['lang'],
+            'cat'         => $productType,
+        ];
 
-				} elseif ( $priceDetailArray[ $key . '_promo' ] == 0 ) {
-					if ( $withFirstTerm ) {
-						$prices[ $key ] = pll__( 'Free' );
-					} else {
-						$prices[ $key ] = pll__( 'Free' . ( ! empty( $firstTerm ) ) ? ' ' . $firstTerm : '' );
-					}
-					$prices[ $key . '_free' ] = true;
-				} else {
-					$prices[ $key ] = round( $priceDetailArray[ $key ] );
-				}
-			} else{
-				if ( $withFirstTerm ) {
-					$prices[ $key ] = pll__( 'Free' );
-				} else {
-					$prices[ $key ] = pll__( 'Free' . ( ! empty( $firstTerm ) ) ? ' ' . $firstTerm : '' );
-				}
-				$prices[ $key . '_free' ] = true;
-			}
 
-			return $prices;
-		}
+        /** @var AnbCompare $anbCompare */
+        $anbCompare = wpal_create_instance(\AnbSearch\AnbCompare::class);
+        $result     = json_decode($anbCompare->getCompareResults($paramsArray));
 
-		//display installation and activation price
-		if ( $priceDetailArray[ $key ] > 0 ) {
-			$oldPriceArr = formatPriceInParts($priceDetailArray[ $key ], 2, $currencySymbol);
-			$oldPriceHtml = '<span class="cutPrice"><span class="amount">'.$oldPriceArr['currency'].$oldPriceArr['price'].'</span><span class="cents">'.$oldPriceArr['cents'].'</span></span>';
-			$actualPriceArr = formatPriceInParts($priceDetailArray[ $key ], 2, $currencySymbol);
-			$actualPriceHtml = '<span class="bold"><span class="amount">'.$actualPriceArr['currency'].$actualPriceArr['price'].'</span><span class="cents">'.$actualPriceArr['cents'].'</span></span>';
-			$promoPriceArr = formatPriceInParts($priceDetailArray[ $key . '_promo' ], 2, $currencySymbol);
-			$promoPriceHtml = '<span class="bold"><span class="amount">'.$promoPriceArr['currency'].$promoPriceArr['price'].'</span><span class="cents">'.$promoPriceArr['cents'].'</span></span>';
-			if ( $priceDetailArray[ $key . '_promo' ] > 0
-			     && $priceDetailArray[ $key . '_promo' ] != $priceDetailArray[ $key ]
-			) {//there is a promotional price as well
-				$totalOnetimeAmount += $priceDetailArray[ $key . '_promo' ];
-				$html .= '<li class="prominent">' . pll__( $firstTermLbl ) . ' ' . $promoPriceHtml .
-				         ' ' . $oldPriceHtml . '</li>';
-			} elseif ( $priceDetailArray[ $key . '_promo' ] == 0 ) {
-				$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . ' ' . $oldPriceHtml . '</li>';
-			} else {
-				$totalOnetimeAmount += $priceDetailArray[ $key ];
-				$html .= '<li class="bulletTick">' . pll__( $firstTermLbl ) . ' ' . $actualPriceHtml . '</li>';
-			}
-		} else {
-			$html .= '<li class="prominent">' . pll__( 'Free ' . $firstTerm ) . '</li>';
-		}
+        if ($atts['is_first'] == 'yes') {
+            // Load the top deals wrapper
+            include locate_template('template-parts/section/energy/top-deals/wrapper.php');
+        }
 
-		return $html;
-	}
+        $tabID       = sanitize_title_with_dashes(remove_accents($tabName)) . '-' . rand(0, 999);
+        $tabIsActive = isset($atts['is_active']) && $atts['is_active'] === 'yes';
+        $deals       = $result->results;
+        $footerText  = $atts['footer_cat'];
 
-	function getActOrInstPriceBreakDownHtml( $priceArray, $key, $currencySymbol = '' ) {
-		if ( empty( $priceArray[ $key ] ) ) {
-			return '';
-		}
+        ob_start();
 
-		$firstTerm = explode( '_', $key )[0];//first term before underscore like installation from installation_full
+        include locate_template('template-parts/section/energy/top-deals/deals.php');
 
-		$promoPriceHtml = ( ! empty( $priceArray[ $key . '_promo' ] ) && $priceArray[ $key . '_promo' ] != $priceArray[ $key . '_actual' ] ) ? '<span class="saving-price">' . formatPrice($priceArray[ $key ], 2, $priceArray[ $key . '_actual' ]) . '</span>' : '';
-		$html           = '<li>' . pll__( ucfirst( $firstTerm ) . ' cost' ) . '
+        $tabContent = '<div id="' . $tabID . '" class="tab-pane ' . ($tabIsActive ? 'active' : '') . '">' . ob_get_clean() . '</div>';
+
+        if ($atts['tab_cat'] == 'popular_deals') {
+            $tabIcon = 'abf abf-wifi';
+        } elseif ($atts['tab_cat'] == 'family_deals') {
+            $tabIcon = 'abf abf-family';
+        } elseif ($atts['tab_cat'] == 'mobile_pack') {
+            $tabIcon = 'abf abf-mobile';
+        } elseif ($atts['tab_cat'] == 'calling_and_data') {
+            $tabIcon = 'abf abf-mobile-calling-data';
+        } elseif ($atts['tab_cat'] == 'calling_only') {
+            $tabIcon = 'abf abf-mobile-calling';
+        } elseif ($atts['tab_cat'] == 'data_only') {
+            $tabIcon = 'abf abf-mobile-data';
+        } else {
+            $tabIcon = 'abf abf-dualfuel-pack';
+        }
+        $tabClass = $tabIsActive ? 'active' : '';
+        $tabItem  = '<li class="' . $tabClass . ' is-tab">';
+
+        $tabItem .= '<a href="#' . $tabID . '" data-toggle="tab">';
+        if (!empty($tabIcon)) {
+            $tabItem .= '<i class="' . $tabIcon . '" /></i> ';
+        }
+        $tabItem .= '<span class="hidden-xs">' . $tabName . '</span><span class="visible-xs">' . $atts['tabname_short'] . '</span></a></li>';
+
+        //TODO: replace energyTopDeals class
+        $script = '<script>
+                    jQuery(document).ready(function($){
+                        $(\'.energyTopDeals .filterDeals ul\').append(\'' . $tabItem . '\'); 
+                        $(\'.energyTopDeals .dealsTable .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
+                    });
+                   </script>';
+        echo $script;
+
+    }
+
+    function generateServiceDetail($product)
+    {
+        $featuresHtml = '';
+
+        if (isset($product->packtypes)) {
+            foreach ($product->packtypes as $key => $packType) {
+
+                $features = $packType->core_features->{$key};
+
+                if (is_array($features)) {
+                    foreach ($features as $feature) {
+                        $featuresHtml .= '<li>' . $feature->label . '</li>';
+                    }
+                }
+            }
+        } else {
+            $features = $product->core_features->internet;
+            if (is_array($features)) {
+                foreach ($features as $feature) {
+                    $featuresHtml .= '<li>' . $feature->label . '</li>';
+                }
+            }
+        }
+        return $featuresHtml;
+    }
+
+    function minifyHtml($buffer)
+    {
+
+        $search = array(
+            '/\>[^\S ]+/s',     // strip whitespaces after tags, except space
+            '/[^\S ]+\</s',     // strip whitespaces before tags, except space
+            '/(\s)+/s',         // shorten multiple whitespace sequences
+            '/<!--(.|\s)*?-->/' // Remove HTML comments
+        );
+
+        $replace = array(
+            '>',
+            '<',
+            '\\1',
+            '',
+        );
+
+        $buffer = preg_replace($search, $replace, $buffer);
+        $buffer = str_replace("'", "\'", $buffer);
+
+        return $buffer;
+    }
+
+    function getActivationOrInstPriceHtml($priceDetailArray, $key, $currencySymbol = '', $onlyArray = false, $withFirstTerm = true, &$totalOnetimeAmount = 0.00)
+    {
+        //translations in function: pll__('Free installation'), pll__('Free activation'), pll__('Installation'), pll__('t.w.v')
+        $html         = '';
+        $firstTerm    = explode('_', $key)[0];//first term before underscore like installation from installation_full
+        $firstTermLbl = ucfirst($firstTerm);
+
+        if ($onlyArray) {
+            $prices                   = [];
+            $prices[$key . '_actual'] = $priceDetailArray[$key];
+            if ($priceDetailArray[$key] > 0) {
+                if ($priceDetailArray[$key . '_promo'] > 0
+                    && $priceDetailArray[$key . '_promo'] != $priceDetailArray[$key]
+                ) {//there is a promotional price as well
+
+                    $prices[$key]            = $priceDetailArray[$key];
+                    $prices[$key . '_promo'] = $priceDetailArray[$key . '_promo'];
+
+                } elseif ($priceDetailArray[$key . '_promo'] == 0) {
+                    if ($withFirstTerm) {
+                        $prices[$key] = pll__('Free');
+                    } else {
+                        $prices[$key] = pll__('Free' . (!empty($firstTerm)) ? ' ' . $firstTerm : '');
+                    }
+                    $prices[$key . '_free'] = true;
+                } else {
+                    $prices[$key] = round($priceDetailArray[$key]);
+                }
+            } else {
+                if ($withFirstTerm) {
+                    $prices[$key] = pll__('Free');
+                } else {
+                    $prices[$key] = pll__('Free' . (!empty($firstTerm)) ? ' ' . $firstTerm : '');
+                }
+                $prices[$key . '_free'] = true;
+            }
+
+            return $prices;
+        }
+
+        //display installation and activation price
+        if ($priceDetailArray[$key] > 0) {
+            $oldPriceArr     = formatPriceInParts($priceDetailArray[$key], 2, $currencySymbol);
+            $oldPriceHtml    = '<span class="cutPrice"><span class="amount">' . $oldPriceArr['currency'] . $oldPriceArr['price'] . '</span><span class="cents">' . $oldPriceArr['cents'] . '</span></span>';
+            $actualPriceArr  = formatPriceInParts($priceDetailArray[$key], 2, $currencySymbol);
+            $actualPriceHtml = '<span class="bold"><span class="amount">' . $actualPriceArr['currency'] . $actualPriceArr['price'] . '</span><span class="cents">' . $actualPriceArr['cents'] . '</span></span>';
+            $promoPriceArr   = formatPriceInParts($priceDetailArray[$key . '_promo'], 2, $currencySymbol);
+            $promoPriceHtml  = '<span class="bold"><span class="amount">' . $promoPriceArr['currency'] . $promoPriceArr['price'] . '</span><span class="cents">' . $promoPriceArr['cents'] . '</span></span>';
+            if ($priceDetailArray[$key . '_promo'] > 0
+                && $priceDetailArray[$key . '_promo'] != $priceDetailArray[$key]
+            ) {//there is a promotional price as well
+                $totalOnetimeAmount += $priceDetailArray[$key . '_promo'];
+                $html               .= '<li class="prominent">' . pll__($firstTermLbl) . ' ' . $promoPriceHtml .
+                    ' ' . $oldPriceHtml . '</li>';
+            } elseif ($priceDetailArray[$key . '_promo'] == 0) {
+                $html .= '<li class="prominent">' . pll__('Free ' . $firstTerm) . ' ' . $oldPriceHtml . '</li>';
+            } else {
+                $totalOnetimeAmount += $priceDetailArray[$key];
+                $html               .= '<li class="bulletTick">' . pll__($firstTermLbl) . ' ' . $actualPriceHtml . '</li>';
+            }
+        } else {
+            $html .= '<li class="prominent">' . pll__('Free ' . $firstTerm) . '</li>';
+        }
+
+        return $html;
+    }
+
+    function getActOrInstPriceBreakDownHtml($priceArray, $key, $currencySymbol = '')
+    {
+        if (empty($priceArray[$key])) {
+            return '';
+        }
+
+        $firstTerm = explode('_', $key)[0];//first term before underscore like installation from installation_full
+
+        $promoPriceHtml = (!empty($priceArray[$key . '_promo']) && $priceArray[$key . '_promo'] != $priceArray[$key . '_actual']) ? '<span class="saving-price">' . formatPrice($priceArray[$key], 2, $priceArray[$key . '_actual']) . '</span>' : '';
+        $html           = '<li>' . pll__(ucfirst($firstTerm) . ' cost') . '
 					' . $promoPriceHtml . '
-                    <span class="cost-price">' . formatPrice($priceArray[ $key ], 2, $currencySymbol) . '</span>
+                    <span class="cost-price">' . formatPrice($priceArray[$key], 2, $currencySymbol) . '</span>
                  </li>';
 
-		if ( $priceArray[ $key . '_free' ] === true ) {
-			$html = '<li class="prominent">' . pll__( ucfirst( $firstTerm ) . ' cost' ) . '<span class="cost-price">' . pll__( 'Free' ) . '</span></li>';
-		}
+        if ($priceArray[$key . '_free'] === true) {
+            $html = '<li class="prominent">' . pll__(ucfirst($firstTerm) . ' cost') . '<span class="cost-price">' . pll__('Free') . '</span></li>';
+        }
 
-		return $html;
-	}
+        return $html;
+    }
 
-	/**
-	 * @param array $prd
-	 *
-	 * @return string
-	 */
-	function getServicesHtml( array $prd ) {
-		$servicesHtml = '';
-		//$prd['packtype']: This is combining mulitple names into one using + sign e.g. Internet + TV
-		$prdOrPckTypes = ( $prd['producttype'] == 'packs' ) ? $prd['packtypes'] : $prd['producttype'];
-		$prdOrPckTypes = (!is_array($prdOrPckTypes)) ? strtolower( $prdOrPckTypes ) : $prdOrPckTypes;
+    /**
+     * @param array $prd
+     *
+     * @return string
+     */
+    function getServicesHtml(array $prd)
+    {
+        $servicesHtml = '';
+        //$prd['packtype']: This is combining mulitple names into one using + sign e.g. Internet + TV
+        $prdOrPckTypes = ($prd['producttype'] == 'packs') ? $prd['packtypes'] : $prd['producttype'];
+        $prdOrPckTypes = (!is_array($prdOrPckTypes)) ? strtolower($prdOrPckTypes) : $prdOrPckTypes;
 
-		if ( (is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
-		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "int" ) !== false && $prdOrPckTypes != 'mobile_internet') ) {
-			$servicesHtml .= '<li class="wifi">
+        if ((is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "int") !== false && $prdOrPckTypes != 'mobile_internet')) {
+            $servicesHtml .= '<li class="wifi">
                                 <i class="service-icons wifi print-hide"></i>
-                                <img src="'.get_bloginfo('template_url').'/images/print-images/internet.svg" alt="" class="print-show" />
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/internet.svg" alt="" class="print-show" />
                               </li>';
-		}
-		if ( (is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
-			     (!is_array($prdOrPckTypes) && (strpos( $prdOrPckTypes, "mobile" ) !== false
-			                                    || strpos( $prdOrPckTypes, "gsm" ) !== false) && $prdOrPckTypes != 'mobile_internet' ) ) {
-			$servicesHtml .= '<li class="mobile">
+        }
+        if ((is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && (strpos($prdOrPckTypes, "mobile") !== false
+                    || strpos($prdOrPckTypes, "gsm") !== false) && $prdOrPckTypes != 'mobile_internet')) {
+            $servicesHtml .= '<li class="mobile">
                                 <i class="service-icons mobile print-hide"></i>
-                                <img src="'.get_bloginfo('template_url').'/images/print-images/mobile.svg" alt="" class="print-show" />
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/mobile.svg" alt="" class="print-show" />
                               </li>';
-		}
-		if ( (is_array($prdOrPckTypes) && in_array('telephony', $prdOrPckTypes)) ||
-		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "tel" ) !== false) ) {
-			$servicesHtml .= '<li class="phone">
+        }
+        if ((is_array($prdOrPckTypes) && in_array('telephony', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "tel") !== false)) {
+            $servicesHtml .= '<li class="phone">
                                 <i class="service-icons phone print-hide"></i>
-                                <img src="'.get_bloginfo('template_url').'/images/print-images/telephony.svg" alt="" class="print-show" />
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/telephony.svg" alt="" class="print-show" />
                               </li>';
-		}
-		if ( (is_array($prdOrPckTypes) && in_array('idtv', $prdOrPckTypes)) ||
-		     (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "tv" ) !== false) ) {
-			$servicesHtml .= '<li class="tv">
+        }
+        if ((is_array($prdOrPckTypes) && in_array('idtv', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "tv") !== false)) {
+            $servicesHtml .= '<li class="tv">
                                 <i class="service-icons tv print-hide"></i>
-                                <img src="'.get_bloginfo('template_url').'/images/print-images/idtv.svg" alt="" class="print-show" />
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/idtv.svg" alt="" class="print-show" />
                               </li>';
-		}
-        if ( (is_array($prdOrPckTypes) && in_array('mobile_internet', $prdOrPckTypes)) ||
-            (!is_array($prdOrPckTypes) && strpos( $prdOrPckTypes, "mobile_internet" ) !== false) ) {
+        }
+        if ((is_array($prdOrPckTypes) && in_array('mobile_internet', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "mobile_internet") !== false)) {
             $servicesHtml .= '<li class="mobile_internet">                              
-                                <img src="'.get_bloginfo('template_url').'/images/print-images/mobile-data-sim.svg" alt="" />
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/mobile-data-sim.svg" alt="" />
                               </li>';
         }
 
-		return $servicesHtml;
-	}
+        return $servicesHtml;
+    }
 
-	/**
-	 * @param array $products
-	 *
-	 * @return array
-	 */
-	public function prepareProductsData( array $products ) {
-		$data = [];
-		//for now hardcoded decimal separator to coma
-		foreach ( $products as $idx => $product ) {
-			$data[ $idx ] = $this->prepareProductData( $product );
-		}
+    /**
+     * @param array $prd
+     *
+     * @return string
+     */
+    function getServicesHtmlBase(array $prd)
+    {
+        $servicesHtml = '';
+        //$prd['packtype']: This is combining mulitple names into one using + sign e.g. Internet + TV
+        $prdOrPckTypes = ($prd['producttype'] == 'packs') ? $prd['packtypes'] : $prd['producttype'];
+        $prdOrPckTypes = (!is_array($prdOrPckTypes)) ? strtolower($prdOrPckTypes) : $prdOrPckTypes;
 
-		return $data;
-	}
+        if ((is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "int") !== false && $prdOrPckTypes != 'mobile_internet')) {
+            $servicesHtml .= '<li class="wifi">
+                                <i class="service-icons wifi print-hide"></i>
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/internet.svg" alt="" class="print-show" />
+                              </li>';
+        }
+        if ((is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && (strpos($prdOrPckTypes, "mobile") !== false
+                    || strpos($prdOrPckTypes, "gsm") !== false) && $prdOrPckTypes != 'mobile_internet')) {
+            $servicesHtml .= '<li class="mobile">
+                                <i class="service-icons mobile print-hide"></i>
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/mobile.svg" alt="" class="print-show" />
+                              </li>';
+        }
+        if ((is_array($prdOrPckTypes) && in_array('telephony', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "tel") !== false)) {
+            $servicesHtml .= '<li class="phone">
+                                <i class="service-icons phone print-hide"></i>
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/telephony.svg" alt="" class="print-show" />
+                              </li>';
+        }
+        if ((is_array($prdOrPckTypes) && in_array('idtv', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "tv") !== false)) {
+            $servicesHtml .= '<li class="tv">
+                                <i class="service-icons tv print-hide"></i>
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/idtv.svg" alt="" class="print-show" />
+                              </li>';
+        }
+        if ((is_array($prdOrPckTypes) && in_array('mobile_internet', $prdOrPckTypes)) ||
+            (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "mobile_internet") !== false)) {
+            $servicesHtml .= '<li class="mobile_internet">                              
+                                <img src="' . get_bloginfo('template_url') . '/images/print-images/mobile-data-sim.svg" alt="" />
+                              </li>';
+        }
 
-	/**
-	 * @param object $product
-	 *
-	 * @return array
-	 */
-	public function prepareProductData( $product ) {
-		$data = [];
-		//for now hardcoded decimal separator to coma
-		//Pack type: 'int_tel', 'tv_tel', 'int_tel_tv', 'gsm_int_tel_tv', 'int_tv', 'gsm_int_tv'
-		$data['producttype'] = $product->producttype;
+        return $servicesHtml;
+    }
 
-		if ( $product->producttype == "packs" ) {
-			$data['packtype'] = $product->packtype;
-			$data['packtypes'] = array_keys((array)$product->packtypes);
-		}
+    /**
+     * @param array $products
+     *
+     * @return array
+     */
+    public function prepareProductsData(array $products)
+    {
+        $data = [];
+        //for now hardcoded decimal separator to coma
+        foreach ($products as $idx => $product) {
+            $data[$idx] = $this->prepareProductData($product);
+        }
 
-		$data['product_name']  = $product->product_name;
-		$data['sg']            = $product->segment;
-		$data['last_update']   = $product->last_update;
-		$data['product_slug']  = $product->product_slug;
-		$data['supplier_id']   = $product->supplier_id;
-		$data['supplier_slug'] = $product->supplier_slug;
-		$data['supplier_name'] = $product->supplier_name;
-		$data['product_id']    = $product->product_id;
-		$data['tagline']       = isset( $product->texts->tagline ) ? $product->texts->tagline : "";
-		$data['price']         = (array) $product->price;
-		$data['monthly_fee']   = (array) $product->monthly_fee;
-		$data['advantage']     = $product->price->advantage;
-		$data['currency_unit'] = $data['monthly_fee']['unit'];
-		$data['year_1_promo']  = $product->price->year_1_promo;
-        $data['commission']  = $product->commission;
-		//break price into chunks like price, cents and currency
-		$monthlyPrice    = $data['monthly_fee']['value'];
-		$monthlyPriceArr = explode( ".", $monthlyPrice );
-		if ( ! isset( $monthlyPriceArr[1] ) ) {
-			$monthlyPriceArr[1] = 0;
-		}
-		$data['monthly_price_chunk'] = [
-			'price' => $monthlyPriceArr[0],
-			'cents' => ( $monthlyPriceArr[1] < 10 ? '0' . $monthlyPriceArr[1] : $monthlyPriceArr[1] ),
-			'unit'  => $data['monthly_fee']['unit']
-		];
+        return $data;
+    }
+
+    /**
+     * @param object $product
+     *
+     * @return array
+     */
+    public function prepareProductData($product)
+    {
+        $data = [];
+        //for now hardcoded decimal separator to coma
+        //Pack type: 'int_tel', 'tv_tel', 'int_tel_tv', 'gsm_int_tel_tv', 'int_tv', 'gsm_int_tv'
+        $data['producttype'] = $product->producttype;
+
+        if ($product->producttype == "packs") {
+            $data['packtype']  = $product->packtype;
+            $data['packtypes'] = array_keys((array)$product->packtypes);
+        }
+
+        $data['product_name']  = $product->product_name;
+        $data['sg']            = $product->segment;
+        $data['last_update']   = $product->last_update;
+        $data['product_slug']  = $product->product_slug;
+        $data['supplier_id']   = $product->supplier_id;
+        $data['supplier_slug'] = $product->supplier_slug;
+        $data['supplier_name'] = $product->supplier_name;
+        $data['product_id']    = $product->product_id;
+        $data['tagline']       = isset($product->texts->tagline) ? $product->texts->tagline : "";
+        $data['price']         = (array)$product->price;
+        $data['monthly_fee']   = (array)$product->monthly_fee;
+        $data['advantage']     = $product->price->advantage;
+        $data['currency_unit'] = $data['monthly_fee']['unit'];
+        $data['year_1_promo']  = $product->price->year_1_promo;
+        $data['commission']    = $product->commission;
+        //break price into chunks like price, cents and currency
+        $monthlyPrice    = $data['monthly_fee']['value'];
+        $monthlyPriceArr = explode(".", $monthlyPrice);
+        if (!isset($monthlyPriceArr[1])) {
+            $monthlyPriceArr[1] = 0;
+        }
+        $data['monthly_price_chunk'] = [
+            'price' => $monthlyPriceArr[0],
+            'cents' => ($monthlyPriceArr[1] < 10 ? '0' . $monthlyPriceArr[1] : $monthlyPriceArr[1]),
+            'unit'  => $data['monthly_fee']['unit'],
+        ];
 //            echo "+++".print_r($product->price, true)."<br>";
-		$data['monthly_promo']          = isset( $product->price->monthly_promo ) ? $product->price->monthly_promo : 0;
-		$data['monthly_promo_duration'] = isset( $product->price->monthly_promo_duration ) ? $product->price->monthly_promo_duration : 0;
+        $data['monthly_promo']          = isset($product->price->monthly_promo) ? $product->price->monthly_promo : 0;
+        $data['monthly_promo_duration'] = isset($product->price->monthly_promo_duration) ? $product->price->monthly_promo_duration : 0;
 
-		//in case normal price and promo price are not same
-		if ( $product->price->monthly_promo != $product->price->monthly ) {
-			//break price into chunks like price, cents and currency
-			$monthlyPricePromo    = $data['monthly_promo'];
-			$monthlyPricePromoArr = explode( ".", $monthlyPricePromo );
+        //in case normal price and promo price are not same
+        if ($product->price->monthly_promo != $product->price->monthly) {
+            //break price into chunks like price, cents and currency
+            $monthlyPricePromo    = $data['monthly_promo'];
+            $monthlyPricePromoArr = explode(".", $monthlyPricePromo);
 
-			if ( ! isset( $monthlyPricePromoArr[1] ) ) {
-				$monthlyPricePromoArr[1] = 0;
-			}
-			$data['monthly_promo_price_chunk'] = [
-				'price'    => $monthlyPricePromoArr[0],
-				'cents'    => ( $monthlyPricePromoArr[1] < 10 ? '0' . $monthlyPricePromoArr[1] : $monthlyPriceArr[1] ),
-				'unit'     => $data['monthly_price_chunk']['unit'],//use unit of normal monthly price
-				'duration' => $data['monthly_promo_duration']
-			];
-			//echo "+++".print_r($data['monthly_promo_price_chunk'], true)."<br>";
-		}
+            if (!isset($monthlyPricePromoArr[1])) {
+                $monthlyPricePromoArr[1] = 0;
+            }
+            $data['monthly_promo_price_chunk'] = [
+                'price'    => $monthlyPricePromoArr[0],
+                'cents'    => ($monthlyPricePromoArr[1] < 10 ? '0' . $monthlyPricePromoArr[1] : $monthlyPriceArr[1]),
+                'unit'     => $data['monthly_price_chunk']['unit'],//use unit of normal monthly price
+                'duration' => $data['monthly_promo_duration'],
+            ];
+            //echo "+++".print_r($data['monthly_promo_price_chunk'], true)."<br>";
+        }
 
-		$data['services'] = (array) $product->supplier->services;
-		$data['logo']     = (array) $product->supplier->logo;
-		$data['score']    = convertToSiteScore( $product->reviews->score );
-		$promotions       = (array) $product->promotions;
-		foreach ( $promotions as $promotion ) {
-			$data['promotions'][] = $promotion->texts->name;
-		}
+        $data['services'] = (array)$product->supplier->services;
+        $data['logo']     = (array)$product->supplier->logo;
+        $data['score']    = convertToSiteScore($product->reviews->score);
+        $promotions       = (array)$product->promotions;
+        foreach ($promotions as $promotion) {
+            $data['promotions'][] = $promotion->texts->name;
+        }
 
-		return $data;
-	}
+        return $data;
+    }
 
-	/**
-	 * @param array $prd
-	 *
-	 * @return string
-	 */
-	public function getPriceHtml( array $prd, $withCalcHtml = false ) {
-		$priceHtml = '';
-		$calcHtml = '';
+    /**
+     * @param array $prd
+     *
+     * @return string
+     */
+    public function getPriceHtml(array $prd, $withCalcHtml = false)
+    {
+        $priceHtml = '';
+        $calcHtml  = '';
 
-		if ( $withCalcHtml ) {
-			$href = "action=ajaxProductPriceBreakdownHtml&pid={$prd['product_id']}&prt={$prd['producttype']}";
+        if ($withCalcHtml) {
+            $href = "action=ajaxProductPriceBreakdownHtml&pid={$prd['product_id']}&prt={$prd['producttype']}";
 
-			$calcHtml = '<span class="calc">
-                    <a href="'.$href.'" data-toggle="modal" data-target="#calcPbsModal">
+            $calcHtml = '<span class="calc">
+                    <a href="' . $href . '" data-toggle="modal" data-target="#calcPbsModal">
                         <i class="custom-icons calc"></i>
                     </a>
                  </span>';
-		}
+        }
 
-		if ( $prd['monthly_price_chunk']['cents'] == "000" ) {
-			$prd['monthly_price_chunk']['cents'] = "00";
-		}
+        if ($prd['monthly_price_chunk']['cents'] == "000") {
+            $prd['monthly_price_chunk']['cents'] = "00";
+        }
 
-		if ( isset( $prd['monthly_promo_price_chunk'] ) ) {
-			$priceHtml .= '<div class="oldPrice">
+        if (isset($prd['monthly_promo_price_chunk'])) {
+            $priceHtml .= '<div class="oldPrice">
                                 <span class="amount">' . getCurrencySymbol($prd['currency_unit']) . $prd['monthly_price_chunk']['price'] . '</span>';
-			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
-				$priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
-			}
-			$priceHtml .= '</div>';
+            if (isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
+                $priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
+            }
+            $priceHtml .= '</div>';
 
-			$priceHtml .= '<div class="newPrice">
+            $priceHtml .= '<div class="newPrice">
                                 <span class="amount">' . $prd['monthly_promo_price_chunk']['price'];
-			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
-				$priceHtml .= '<span class="cents">' . substr($prd['monthly_promo_price_chunk']['cents'], 0, 2) . '</span>';
-			}
-			$priceHtml .= '<span class="recursion">/'.pll__('mth').'</span>
-						   '.$calcHtml.'
+            if (isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
+                $priceHtml .= '<span class="cents">' . substr($prd['monthly_promo_price_chunk']['cents'], 0, 2) . '</span>';
+            }
+            $priceHtml .= '<span class="recursion">/' . pll__('mth') . '</span>
+						   ' . $calcHtml . '
 						</span>
                        </div>';
-		} else {
+        } else {
             $priceHtml .= '<div class="oldPrice"></div>';
-			$priceHtml .= '<div class="newPrice">
+            $priceHtml .= '<div class="newPrice">
                                 <span class="amount">' . $prd['monthly_price_chunk']['price'];
-			if ( isset( $prd['monthly_price_chunk']['cents'] ) && ! empty( $prd['monthly_price_chunk']['cents'] ) ) {
-				$priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
-			}
-			$priceHtml .= '<span class="recursion">/'.pll__('mth').'</span>
-						   '.$calcHtml.'
+            if (isset($prd['monthly_price_chunk']['cents']) && !empty($prd['monthly_price_chunk']['cents'])) {
+                $priceHtml .= '<span class="cents">' . substr($prd['monthly_price_chunk']['cents'], 0, 2) . '</span>';
+            }
+            $priceHtml .= '<span class="recursion">/' . pll__('mth') . '</span>
+						   ' . $calcHtml . '
 						</span>
                        </div>';
-		}
+        }
 
-		return $priceHtml;
-	}
+        return $priceHtml;
+    }
 
-	/**
-	 * @param array $prd
-	 *
-	 * @return string
-	 */
-	public function getPromoHtml( array $prd ) {
-		//display promotions
-		$promotionHtml = '';
-		foreach ( $prd['promotions'] as $promotion ) {
-			$promotionHtml .= '<li class="prominent">' . $promotion . '</li>';
-		}
+    /**
+     * @param array $prd
+     *
+     * @return string
+     */
+    public function getPromoHtml(array $prd)
+    {
+        //display promotions
+        $promotionHtml = '';
+        foreach ($prd['promotions'] as $promotion) {
+            $promotionHtml .= '<li class="prominent">' . $promotion . '</li>';
+        }
 
-		return $promotionHtml;
-	}
+        return $promotionHtml;
+    }
 
-	/**
-	 * @param array $prd
-	 * @param boolean $withoutPromoList
-	 *
-	 * @return string
-	 */
-	public function getPromoInternalSection( array $prd, $withoutPromoList = false, $withTotalOnetimeCost = false ) {
-		$promotionHtml = '';
-		$totalOnetimeAmount = 0;
-		if(!in_array($prd['producttype'], $this->producttypesToSkipPromos)) {
+    /**
+     * @param array   $prd
+     * @param boolean $withoutPromoList
+     *
+     * @return string
+     */
+    public function getPromoInternalSection(array $prd, $withoutPromoList = false, $withTotalOnetimeCost = false)
+    {
+        $promotionHtml      = '';
+        $totalOnetimeAmount = 0;
+        if (!in_array($prd['producttype'], $this->producttypesToSkipPromos)) {
             $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price'], 'installation_full', getCurrencySymbol($prd['currency_unit']), false, true, $totalOnetimeAmount);
             $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price'], 'activation', getCurrencySymbol($prd['currency_unit']), false, true, $totalOnetimeAmount);
             $promotionHtml .= $this->getActivationOrInstPriceHtml($prd['price'], 'modem', getCurrencySymbol($prd['currency_unit']), false, true, $totalOnetimeAmount);
         }
 
-		//will block other promtions except from one-off costs like installation and activation
-		if ( ! $withoutPromoList ) {
-			$promotionHtml .= $this->getPromoHtml( $prd );
-		}
+        //will block other promtions except from one-off costs like installation and activation
+        if (!$withoutPromoList) {
+            $promotionHtml .= $this->getPromoHtml($prd);
+        }
 
-		return ($withTotalOnetimeCost) ? [$promotionHtml, $totalOnetimeAmount] : $promotionHtml;
-	}
+        return ($withTotalOnetimeCost) ? [$promotionHtml, $totalOnetimeAmount] : $promotionHtml;
+    }
 
-	public function getServiceIconsSection( $servicesHtml ) {
-		$serviceSec = '<div class="services">
+    public function getServiceIconsSection($servicesHtml)
+    {
+        $serviceSec = '<div class="services">
                             <ul class="list-unstyled list-inline">
                                 ' . $servicesHtml . '
                             </ul>
                          </div>';
 
-		return $serviceSec;
-	}
+        return $serviceSec;
+    }
 
-	public function getPromoSection( $promotionHtml, $advPrice, $cssClass = 'dealFeatures', $appendHtml = '', $withOnetimeCostLabel = false, $oneTimeTotalCost = 0 ) {
-		$oneTimeCostLabel = '';
-		if($withOnetimeCostLabel) {
-			$oneTimeCostLabel = '<h6>'.pll__('One-time costs').'</h6>';
-		}
-		$advHtml = '';
-		if(is_numeric($advPrice) && $advPrice > 0) {
-
-			$advHtml     = $this->getTotalAdvHtml( $advPrice );
-		}
-
-		if(!$promotionHtml) {
-		    return '';
+    public function getPromoSection($promotionHtml, $advPrice, $cssClass = 'dealFeatures', $appendHtml = '', $withOnetimeCostLabel = false, $oneTimeTotalCost = 0)
+    {
+        $oneTimeCostLabel = '';
+        if ($withOnetimeCostLabel) {
+            $oneTimeCostLabel = '<h6>' . pll__('One-time costs') . '</h6>';
         }
-		$promoSec = '<div class="' . $cssClass . '">
+        $advHtml = '';
+        if (is_numeric($advPrice) && $advPrice > 0) {
+
+            $advHtml = $this->getTotalAdvHtml($advPrice);
+        }
+
+        if (!$promotionHtml) {
+            return '';
+        }
+        $promoSec = '<div class="' . $cssClass . '">
                         <div class="extras">
-                        	'.$oneTimeCostLabel.'
+                        	' . $oneTimeCostLabel . '
                             <ul class="list-unstyled">
                                 ' . $promotionHtml . '
                             </ul>
@@ -598,56 +794,58 @@ class AnbProduct {
                         ' . $appendHtml . '
                     </div>';
 
-		return $promoSec;
-	}
+        return $promoSec;
+    }
 
-	public function priceSection( $priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = '', $productData = [], $withoutYearlyCost = false ) {
-		$prominentClass = '';
-		if($firstYearPrice) {
-			$prominentClass = 'class="prominent"';
-		}
+    public function priceSection($priceHtml, $monthDurationPromo, $firstYearPrice, $cssClass = 'dealPrice', $appendHtml = '', $calcHtml = '', $productData = [], $withoutYearlyCost = false)
+    {
+        $prominentClass = '';
+        if ($firstYearPrice) {
+            $prominentClass = 'class="prominent"';
+        }
 
-		$yearlyPriceHtml = '';
-		if($withoutYearlyCost) {
-			$promoPrice = $productData['price']['monthly'] - $productData['price']['monthly_promo'];
-			if($productData['monthly_promo_duration'] > 0 && $promoPrice > 0) {
-				$formatedPromoPrice = getCurrencySymbol($productData['currency_unit']) . ' ' . formatPrice($promoPrice, 2, '');
-				$yearlyPriceHtml = "<li $prominentClass>".sprintf(pll__('%s discount for %d months'), $formatedPromoPrice, $productData['monthly_promo_duration']) ."</li>";
-			} else {
-				$yearlyPriceHtml = "<li></li>";
-			}
-		} else {
-			$yearlyPriceHtml = '<li>' . $monthDurationPromo . '</li>
-                                <li '.$prominentClass.'>' . $firstYearPrice
-			                   . $calcHtml .
-			                   '</li>';
-		}
+        $yearlyPriceHtml = '';
+        if ($withoutYearlyCost) {
+            $promoPrice = $productData['price']['monthly'] - $productData['price']['monthly_promo'];
+            if ($productData['monthly_promo_duration'] > 0 && $promoPrice > 0) {
+                $formatedPromoPrice = getCurrencySymbol($productData['currency_unit']) . ' ' . formatPrice($promoPrice, 2, '');
+                $yearlyPriceHtml    = "<li $prominentClass>" . sprintf(pll__('%s discount for %d months'), $formatedPromoPrice, $productData['monthly_promo_duration']) . "</li>";
+            } else {
+                $yearlyPriceHtml = "<li></li>";
+            }
+        } else {
+            $yearlyPriceHtml = '<li>' . $monthDurationPromo . '</li>
+                                <li ' . $prominentClass . '>' . $firstYearPrice
+                . $calcHtml .
+                '</li>';
+        }
 
-		if(!empty($firstYearPrice) || !empty($monthDurationPromo) || !empty($calcHtml)) {
-			$priceInfoHtml = '<div class="priceInfo">
+        if (!empty($firstYearPrice) || !empty($monthDurationPromo) || !empty($calcHtml)) {
+            $priceInfoHtml = '<div class="priceInfo">
                             <ul class="list-unstyled">
-                                '.$yearlyPriceHtml.'
+                                ' . $yearlyPriceHtml . '
                             </ul>
                         </div>';
-		}
+        }
 
-		$priceSec = '<div class="' . $cssClass . '">
+        $priceSec = '<div class="' . $cssClass . '">
                         ' . $priceHtml . '
                         ' . $priceInfoHtml . '
-                        ' . html_entity_decode( $appendHtml ) . '
+                        ' . html_entity_decode($appendHtml) . '
                      </div>';
 
-		return $priceSec;
-	}
+        return $priceSec;
+    }
 
-	/**
-	 * @param $productData
-	 */
-	public function calculatorPopup( $productData ) {
-		$html               = "<div class='modal borderLess fade' id='calcBreakdown{$productData['product_id']}'  tabindex='-1' role='dialog' aria-labelledby='calcBreakdownLabel'>";
-		$priceBreakdownHtml = $this->getProductPriceBreakdownHtml($productData);
+    /**
+     * @param $productData
+     */
+    public function calculatorPopup($productData)
+    {
+        $html               = "<div class='modal borderLess fade' id='calcBreakdown{$productData['product_id']}'  tabindex='-1' role='dialog' aria-labelledby='calcBreakdownLabel'>";
+        $priceBreakdownHtml = $this->getProductPriceBreakdownHtml($productData);
 
-		$html               .= '<div class="modal-dialog modal-sm" role="document">
+        $html .= '<div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -675,63 +873,64 @@ class AnbProduct {
         </div>
     </div>';
 
-		print $html;
+        print $html;
 
-	}
+    }
 
-	/**
-	 * @param $productData
-	 * @param string $someHtml e.g. data-toggle="modal" data-target="#ModalCheckAvailability" or any link like href="/testit.php"
-	 *
-	 * @return string
-	 */
-	public function getProductPriceBreakdownHtml( $productData, $someHtml='', $withoutOrderBtn = false) {
-		$currency   = getCurrencySymbol( $productData['currency_unit'] );
-		$monthlyFee = convertToEuPrice( $productData['monthly_fee']['value'] );
-		list( $advPrice, $monthDurationPromo, $firstYearPrice ) = $this->getPriceInfo( $productData, true );
-		if ( $monthDurationPromo == '&nbsp;' ) {
-			$monthDurationPromo = pll__( 'Monthly promo price' );
-		}
+    /**
+     * @param        $productData
+     * @param string $someHtml e.g. data-toggle="modal" data-target="#ModalCheckAvailability" or any link like href="/testit.php"
+     *
+     * @return string
+     */
+    public function getProductPriceBreakdownHtml($productData, $someHtml = '', $withoutOrderBtn = false)
+    {
+        $currency   = getCurrencySymbol($productData['currency_unit']);
+        $monthlyFee = convertToEuPrice($productData['monthly_fee']['value']);
+        list($advPrice, $monthDurationPromo, $firstYearPrice) = $this->getPriceInfo($productData, true);
+        if ($monthDurationPromo == '&nbsp;') {
+            $monthDurationPromo = pll__('Monthly promo price');
+        }
 
         $actPriceHtml = $instPriceHtml = '';
-        if(!in_array($productData['producttype'], $this->producttypesToSkipPromos)) {
-            $actPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'activation', '', true, false);
+        if (!in_array($productData['producttype'], $this->producttypesToSkipPromos)) {
+            $actPrice     = $this->getActivationOrInstPriceHtml($productData['price'], 'activation', '', true, false);
             $actPriceHtml = $this->getActOrInstPriceBreakDownHtml($actPrice, 'activation', $currency);
 
-            $instPrice = $this->getActivationOrInstPriceHtml($productData['price'], 'installation_full', '', true, false);
+            $instPrice     = $this->getActivationOrInstPriceHtml($productData['price'], 'installation_full', '', true, false);
             $instPriceHtml = $this->getActOrInstPriceBreakDownHtml($instPrice, 'installation_full', $currency);
         }
 
-		$advHtml = '';
-		if ( ! empty( $productData['advantage'] ) ) {
-			$advHtml = '<li><div class="total-advantage">
-                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advPrice, 2, $currency) . '</span>
+        $advHtml = '';
+        if (!empty($productData['advantage'])) {
+            $advHtml = '<li><div class="total-advantage">
+                            ' . pll__('Total advantage') . '<span class="cost-price">' . formatPrice($advPrice, 2, $currency) . '</span>
                             </div>
                        </li>';
-		}
+        }
 
-		$monthlyPromoPriceHtml = '';
+        $monthlyPromoPriceHtml = '';
 
-		if ( ! empty( $productData['price']['monthly_promo'] ) &&
-		     ( $productData['price']['monthly_promo'] != $productData['price']['monthly'] ) ) {
-			$monthlyPromoPriceHtml = '<li>' . sprintf( pll__( 'First %d months' ), $monthDurationPromo ) . '<span class="cost-price">' . formatPrice($productData['price']['monthly_promo'], 2, $currency)  . '</span></li>';
-		}
+        if (!empty($productData['price']['monthly_promo']) &&
+            ($productData['price']['monthly_promo'] != $productData['price']['monthly'])) {
+            $monthlyPromoPriceHtml = '<li>' . sprintf(pll__('First %d months'), $monthDurationPromo) . '<span class="cost-price">' . formatPrice($productData['price']['monthly_promo'], 2, $currency) . '</span></li>';
+        }
 
-		$orderBtn = '';
-		if(!$withoutOrderBtn) {
-			$orderBtn = $someHtml;
-		}
+        $orderBtn = '';
+        if (!$withoutOrderBtn) {
+            $orderBtn = $someHtml;
+        }
 
-		$html = '<div class="AboutAllCosts">
+        $html = '<div class="AboutAllCosts">
                     <div class="MonthlyCost">
-                        <h5>' . pll__( 'Costs monthly' ) . '</h5>
+                        <h5>' . pll__('Costs monthly') . '</h5>
                         <ul class="list-unstyled">
                             <li>' . $productData['product_name'] . '<span class="cost-price">' . formatPrice($monthlyFee, 2, $currency) . '</span></li>
                             ' . $monthlyPromoPriceHtml . '
                         </ul>
                     </div>';
 
-		if($actPriceHtml || $instPriceHtml) {
+        if ($actPriceHtml || $instPriceHtml) {
             $html .= '<div class="MonthlyCost FirstCost">
                         <h5>' . pll__('First costs') . '</h5>
                         <ul class="list-unstyled">
@@ -745,119 +944,120 @@ class AnbProduct {
                             ' . $advHtml . '
                             <li>
                                 <div class="yearly-advantage">
-                                    ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($firstYearPrice, 2, $currency) . '</span>
+                                    ' . pll__('Total first year') . '<span class="cost-price">' . formatPrice($firstYearPrice, 2, $currency) . '</span>
                                 </div>
                             </li>
                         </ul>
                     </div>
-                    '.$orderBtn.'
+                    ' . $orderBtn . '
                 </div>';
 
-		return $html;
-	}
+        return $html;
+    }
 
-	/**
-	 * This method is same as getProductPriceBreakdownHtmlApi, but it'll generate HTML in a different organized manner which is more readable,
-	 * another difference is it'll generate first product by default and loop over the child products inside that to display them in a specific place
-	 *
-	 * @param array $apiParams these will be API Params
-	 * @param string $someHtml
-	 * @param bool $withoutOrderBtn
-	 * @return string
-	 */
-	public function getPbsOrganizedHtmlApi( array $apiParams, $someHtml='', $withoutOrderBtn = false, $displayFirstProductOnly = true, $pdfHtml = false, $enableCache = true, $expiresIn = 84600) {
-		if(defined('PBS_API_CACHE_DURATION')) {
-			$expiresIn = PBS_API_CACHE_DURATION;
-		}
-		//if language is missing get that automatically
-		if(!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
-			/** @var \AnbSearch\AnbCompare $anbComp */
-			$anbComp = wpal_create_instance( \AnbSearch\AnbCompare::class );
-			$apiParams['lang_mod'] = $anbComp->getCurrentLang();
-		}
+    /**
+     * This method is same as getProductPriceBreakdownHtmlApi, but it'll generate HTML in a different organized manner which is more readable,
+     * another difference is it'll generate first product by default and loop over the child products inside that to display them in a specific place
+     *
+     * @param array  $apiParams these will be API Params
+     * @param string $someHtml
+     * @param bool   $withoutOrderBtn
+     * @return string
+     */
+    public function getPbsOrganizedHtmlApi(array $apiParams, $someHtml = '', $withoutOrderBtn = false, $displayFirstProductOnly = true, $pdfHtml = false, $enableCache = true, $expiresIn = 84600)
+    {
+        if (defined('PBS_API_CACHE_DURATION')) {
+            $expiresIn = PBS_API_CACHE_DURATION;
+        }
+        //if language is missing get that automatically
+        if (!isset($apiParams['lang_mod']) || empty($apiParams['lang_mod'])) {
+            /** @var \AnbSearch\AnbCompare $anbComp */
+            $anbComp               = wpal_create_instance(\AnbSearch\AnbCompare::class);
+            $apiParams['lang_mod'] = $anbComp->getCurrentLang();
+        }
 
-        $apiParams['opt'] = array_filter(is_array($apiParams['opt']) ? $apiParams['opt'] : array());
+        $apiParams['opt']       = array_filter(is_array($apiParams['opt']) ? $apiParams['opt'] : array());
         $apiParams['extra_pid'] = array_filter(is_array($apiParams['extra_pid']) ? $apiParams['extra_pid'] : array());
 
-		//$html = '';
-		//$apiParamsHtml = http_build_query($apiParams, "&");
-		//$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
+        //$html = '';
+        //$apiParamsHtml = http_build_query($apiParams, "&");
+        //$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
 
-		/*if($_GET['debug']) {
-			echo "<pre>$apiUrl</pre>";
-		}*/
+        /*if($_GET['debug']) {
+            echo "<pre>$apiUrl</pre>";
+        }*/
 
-        $params['opt'] = array_filter(is_array($apiParams['opt']) ? $apiParams['opt'] : array());
-        $params['prt'] = $apiParams['prt'];
-        $params['a'] = '1';
-        $params['pid'] = $apiParams['pid'];
+        $params['opt']  = array_filter(is_array($apiParams['opt']) ? $apiParams['opt'] : array());
+        $params['prt']  = $apiParams['prt'];
+        $params['a']    = '1';
+        $params['pid']  = $apiParams['pid'];
         $params['lang'] = getLanguage();
 
-		$start = getStartTime();
-		$displayText = "Time API (PBS) inside getPbsOrganizedHtmlApi";
+        $start       = getStartTime();
+        $displayText = "Time API (PBS) inside getPbsOrganizedHtmlApi";
 
-		//$cacheKey = md5($apiUrl);
+        //$cacheKey = md5($apiUrl);
         $cacheKey = md5(serialize($params)) . ":rpc_pbs";
 
-		if ($enableCache && !isset($_GET['no_cache'])) {
-			$apiRes = mycache_get($cacheKey);
+        if ($enableCache && !isset($_GET['no_cache'])) {
+            $apiRes = mycache_get($cacheKey);
 
-			if($apiRes === false || empty($apiRes)) {
-				//$apiRes = file_get_contents($apiUrl);
+            if ($apiRes === false || empty($apiRes)) {
+                //$apiRes = file_get_contents($apiUrl);
                 $apiRes = $this->anbApi->telecomPbsRpcCall($params);
-				mycache_set($cacheKey, $apiRes, $expiresIn);
-			}
-		} else {
-			//$apiRes = file_get_contents($apiUrl);
+                mycache_set($cacheKey, $apiRes, $expiresIn);
+            }
+        } else {
+            //$apiRes = file_get_contents($apiUrl);
             $apiRes = $this->anbApi->telecomPbsRpcCall($params);
-		}
+        }
 
-		$finish = getEndTime();
-		displayCallTime($start, $finish, $displayText);
+        $finish = getEndTime();
+        displayCallTime($start, $finish, $displayText);
 
-		$totalMonthly = '';
-		$totalYearly = '';
-		$totalAdv = '';
-		$totalAdvPrice = 0;
-		$grandTotal = 0;
-		$productCount = 0;
-		$monthlyTotal = 0;
-		$yearlyTotal = 0;
-		$advTotal = 0;
+        $totalMonthly  = '';
+        $totalYearly   = '';
+        $totalAdv      = '';
+        $totalAdvPrice = 0;
+        $grandTotal    = 0;
+        $productCount  = 0;
+        $monthlyTotal  = 0;
+        $yearlyTotal   = 0;
+        $advTotal      = 0;
 
-		$monthlyDisc = 0;
-		$yearlyDisc = 0;
-		$currencyUnit = '';
+        $monthlyDisc  = 0;
+        $yearlyDisc   = 0;
+        $currencyUnit = '';
 
-		$yearlyAdvCollection = [];
-		$sectionsHtml = [];//0 for monthly, 1 for onetime, 2 for yearly
+        $yearlyAdvCollection = [];
+        $sectionsHtml        = [];//0 for monthly, 1 for onetime, 2 for yearly
 
-		if($apiRes) {
-			$apiRes = json_decode($apiRes);
+        if ($apiRes) {
+            $apiRes = json_decode($apiRes);
 
-			$orderBtn = '';
-			if(!$withoutOrderBtn) {
-				$orderBtn = $someHtml;
-			}
+            $orderBtn = '';
+            if (!$withoutOrderBtn) {
+                $orderBtn = $someHtml;
+            }
 
-			$diyReqClass = '';
+            $diyReqClass = '';
 
-			if($apiParams['it'] == 'diy') {
-				$diyReqClass = 'diy-requested';
-			}
+            if ($apiParams['it'] == 'diy') {
+                $diyReqClass = 'diy-requested';
+            }
 
-			if($pdfHtml) {
-				$html .= '<div class="order-selected followed '.$diyReqClass.'">';
-			} else {
-				$html .= '<div class="calculationPanel '.$diyReqClass.'">';
-			}
+            if ($pdfHtml) {
+                $html .= '<div class="order-selected followed ' . $diyReqClass . '">';
+            } else {
+                $html .= '<div class="calculationPanel ' . $diyReqClass . '">';
+            }
 
 
             $products = $this->getProducts(
                 [
-                    'cat' => $params['prt'],
-                    'lang' => $params['lang'],
-                    'detaillevel' => ['supplier', 'logo']
+                    'cat'         => $params['prt'],
+                    'lang'        => $params['lang'],
+                    'detaillevel' => ['supplier', 'logo'],
                 ],
                 $params['pid'],
                 true,
@@ -865,142 +1065,141 @@ class AnbProduct {
             );
 
             $products = json_decode($products, true);
-            if($products) {
+            if ($products) {
                 $product = current($products);
-                $html .= ' <div class="logoPanel telecom"><img src="' . $product['supplier']['logo']['200x140']['transparent']['color'] . '" alt="' . $product['supplier_name'] . '"></div>';
+                $html    .= ' <div class="logoPanel telecom"><img src="' . $product['supplier']['logo']['200x140']['transparent']['color'] . '" alt="' . $product['supplier_name'] . '"></div>';
             }
 
-			//Generate the main HTML only for main/base product
-			$oneTimeHtml = '';
-			$dynamicHtml = '';//Just to be used as container to combine all HTML
-			foreach($apiRes as $key => $priceSec) {
-			    //echo '<pre>'.print_r($priceSec, true).'</pre>';
-				$currencyUnit  = $priceSec->total->unit;
-				$totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
-				$totalYearly   = $priceSec->total->display_value;
-				$totalAdv      = $priceSec->total_discount->display_value;
-				$totalAdvPrice = $priceSec->total_discount->value;
-				$monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
-				$monthlyDisc   += abs($priceSec->monthly_costs->subtotal_discount->value);
+            //Generate the main HTML only for main/base product
+            $oneTimeHtml = '';
+            $dynamicHtml = '';//Just to be used as container to combine all HTML
+            foreach ($apiRes as $key => $priceSec) {
+                //echo '<pre>'.print_r($priceSec, true).'</pre>';
+                $currencyUnit  = $priceSec->total->unit;
+                $totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
+                $totalYearly   = $priceSec->total->display_value;
+                $totalAdv      = $priceSec->total_discount->display_value;
+                $totalAdvPrice = $priceSec->total_discount->value;
+                $monthlyTotal  += $priceSec->monthly_costs->subtotal->value;
+                $monthlyDisc   += abs($priceSec->monthly_costs->subtotal_discount->value);
 
-				//A patch added to negate the installation price from the total until we request it is requested, once that's addressed in API we need to revert it back
-				//Revert back to the code this code $oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
-				if((!isset($apiParams['it']) || empty($apiParams['it']))
-					&& !isset($priceSec->oneoff_costs->lines->free_install->product->value)) {//don't exclude the installation if free installation option is available
-					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
-				} else {
-					$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
-				}
-
-                //$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
-                $oneoffDisc    += abs($priceSec->oneoff_costs->subtotal_discount->value);
-				$yearlyTotal   += $priceSec->total->value;
-				$yearlyDisc    += abs( $priceSpec->total_discount );//if number is negative convert that to +ve
-				$grandTotal    += $priceSec->monthly_costs->subtotal->value;
-				$advTotal      += abs($priceSec->total_discount->value);
-
-                if($priceSec->monthly_costs->lines->discount_fee_amount || $priceSec->monthly_costs->lines->discount_fee_amount_extra){
-                    if($priceSec->monthly_costs->lines->discount_fee_amount) {
-                        $months = $priceSec->monthly_costs->lines->discount_fee_amount->multiplicand->value;
-                    }
-                    else{
-                        $months = $priceSec->monthly_costs->lines->discount_fee_amount_extra->multiplicand->value;
-                    }
-                    $infoText = sprintf( pll__( 'First %s months' ) , $months);
+                //A patch added to negate the installation price from the total until we request it is requested, once that's addressed in API we need to revert it back
+                //Revert back to the code this code $oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+                if ((!isset($apiParams['it']) || empty($apiParams['it']))
+                    && !isset($priceSec->oneoff_costs->lines->free_install->product->value)) {//don't exclude the installation if free installation option is available
+                    $oneoffTotal += $priceSec->oneoff_costs->subtotal->value - ($priceSec->oneoff_costs->lines->installation->product->value + $priceSec->oneoff_costs->lines->free_install->product->value);
                 } else {
-                    $infoText = pll__( 'First month' );
+                    $oneoffTotal += $priceSec->oneoff_costs->subtotal->value;
                 }
 
-				list( $monthlyHtml, $yearlyAdvCollection ) = ( $pdfHtml ) ? $this->generatePdfPbsSectionHtml(
-					$dynamicHtml,
-					'pbs-monthly',
-					$priceSec->monthly_costs,
-					$productCount,
-					$monthlyTotal,
-					$yearlyAdvCollection,
-					$sectionsHtml,
-					pll__( 'Monthly costs' ),
-					pll__( 'Monthly total' )
-				) : $this->generatePbsSectionHtml(
-					$dynamicHtml,
-					'pbs-monthly',
-					$priceSec->monthly_costs,
-					$productCount,
-					$monthlyTotal,
-					$yearlyAdvCollection,
-					$sectionsHtml,
-					pll__( 'Monthly costs' ),
-					pll__( 'Monthly total' ),
+                //$oneoffTotal   += $priceSec->oneoff_costs->subtotal->value;
+                $oneoffDisc  += abs($priceSec->oneoff_costs->subtotal_discount->value);
+                $yearlyTotal += $priceSec->total->value;
+                $yearlyDisc  += abs($priceSpec->total_discount);//if number is negative convert that to +ve
+                $grandTotal  += $priceSec->monthly_costs->subtotal->value;
+                $advTotal    += abs($priceSec->total_discount->value);
+
+                if ($priceSec->monthly_costs->lines->discount_fee_amount || $priceSec->monthly_costs->lines->discount_fee_amount_extra) {
+                    if ($priceSec->monthly_costs->lines->discount_fee_amount) {
+                        $months = $priceSec->monthly_costs->lines->discount_fee_amount->multiplicand->value;
+                    } else {
+                        $months = $priceSec->monthly_costs->lines->discount_fee_amount_extra->multiplicand->value;
+                    }
+                    $infoText = sprintf(pll__('First %s months'), $months);
+                } else {
+                    $infoText = pll__('First month');
+                }
+
+                list($monthlyHtml, $yearlyAdvCollection) = ($pdfHtml) ? $this->generatePdfPbsSectionHtml(
+                    $dynamicHtml,
+                    'pbs-monthly',
+                    $priceSec->monthly_costs,
+                    $productCount,
+                    $monthlyTotal,
+                    $yearlyAdvCollection,
+                    $sectionsHtml,
+                    pll__('Monthly costs'),
+                    pll__('Monthly total')
+                ) : $this->generatePbsSectionHtml(
+                    $dynamicHtml,
+                    'pbs-monthly',
+                    $priceSec->monthly_costs,
+                    $productCount,
+                    $monthlyTotal,
+                    $yearlyAdvCollection,
+                    $sectionsHtml,
+                    pll__('Monthly costs'),
+                    pll__('Monthly total'),
                     $infoText,
-					pll__( 'PBS: Monthly total tooltip text' ),
-					$apiParams
-				);
+                    pll__('PBS: Monthly total tooltip text'),
+                    $apiParams
+                );
 
-				$dynamicHtml .= $monthlyHtml;
+                $dynamicHtml .= $monthlyHtml;
 
-				if ( isset( $priceSec->oneoff_costs ) ) {
-					list( $oneoffHtml, $yearlyAdvCollection ) = ( $pdfHtml ) ?
-						$this->generatePdfPbsSectionHtml(
-							$dynamicHtml,
-							'pbs-oneoff',
-							$priceSec->oneoff_costs,
-							$productCount,
-							$oneoffTotal,
-							$yearlyAdvCollection,
-							$sectionsHtml,
-							pll__( 'One-time costs' ),
-							pll__( 'One-time total' )
-						) : $this->generatePbsSectionHtml(
-							$dynamicHtml,
-							'pbs-oneoff',
-							$priceSec->oneoff_costs,
-							$productCount,
-							$oneoffTotal,
-							$yearlyAdvCollection,
-							$sectionsHtml,
-							pll__( 'One-time costs' ),
-							pll__( 'One-time total' ),
-							'',
-							'',
-							$apiParams
-						);
+                if (isset($priceSec->oneoff_costs)) {
+                    list($oneoffHtml, $yearlyAdvCollection) = ($pdfHtml) ?
+                        $this->generatePdfPbsSectionHtml(
+                            $dynamicHtml,
+                            'pbs-oneoff',
+                            $priceSec->oneoff_costs,
+                            $productCount,
+                            $oneoffTotal,
+                            $yearlyAdvCollection,
+                            $sectionsHtml,
+                            pll__('One-time costs'),
+                            pll__('One-time total')
+                        ) : $this->generatePbsSectionHtml(
+                            $dynamicHtml,
+                            'pbs-oneoff',
+                            $priceSec->oneoff_costs,
+                            $productCount,
+                            $oneoffTotal,
+                            $yearlyAdvCollection,
+                            $sectionsHtml,
+                            pll__('One-time costs'),
+                            pll__('One-time total'),
+                            '',
+                            '',
+                            $apiParams
+                        );
 
-					$dynamicHtml .= $oneoffHtml;
-				}
+                    $dynamicHtml .= $oneoffHtml;
+                }
 
-				$productCount++;
-			}
+                $productCount++;
+            }
 
-			//Now use sectionHtml array to render the final HTML at this stage we can unset $dynamicHtml as that's no more required
-			unset($dynamicHtml);
-			$html .= $sectionsHtml['pbs-monthly'];
-			$html .= $sectionsHtml['pbs-oneoff'];
+            //Now use sectionHtml array to render the final HTML at this stage we can unset $dynamicHtml as that's no more required
+            unset($dynamicHtml);
+            $html .= $sectionsHtml['pbs-monthly'];
+            $html .= $sectionsHtml['pbs-oneoff'];
 
-			/*$html .= '<div class="MonthlyCost">';
-			$html .= '<h5>' . $pVal->label . '</h5>';
-			$html .= '<ul class="list-unstyled">';
-			$html .= $oneTimeHtml;
-			$html .= '</ul>';
-			$html .= '</div>';*/
+            /*$html .= '<div class="MonthlyCost">';
+            $html .= '<h5>' . $pVal->label . '</h5>';
+            $html .= '<ul class="list-unstyled">';
+            $html .= $oneTimeHtml;
+            $html .= '</ul>';
+            $html .= '</div>';*/
 
-			/*$advHtml = '';
+            /*$advHtml = '';
 
-			if($totalAdvPrice < 0) {
-				$advHtml = '<li><div class="total-advantage">
+            if($totalAdvPrice < 0) {
+                $advHtml = '<li><div class="total-advantage">
                             ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
                             </div></li>';
-			}*/
-			if(!empty($yearlyAdvCollection)) {
-				list( $yearlyHtml, $yearlyAdvTotal ) = ( $pdfHtml ) ? $this->generatePdfPbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit ) :
-					$this->generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currencyUnit );
+            }*/
+            if (!empty($yearlyAdvCollection)) {
+                list($yearlyHtml, $yearlyAdvTotal) = ($pdfHtml) ? $this->generatePdfPbsYearlyBreakdownHtml($yearlyAdvCollection, $currencyUnit) :
+                    $this->generatePbsYearlyBreakdownHtml($yearlyAdvCollection, $currencyUnit);
 
-				if($yearlyAdvTotal != 0) {
-					$html .= $yearlyHtml;
-				}
-			}
+                if ($yearlyAdvTotal != 0) {
+                    $html .= $yearlyHtml;
+                }
+            }
 
-			//$advHtml was part of it now removing it
-			/*$html .=     '<div class="MonthlyCost CostAdvantage">
+            //$advHtml was part of it now removing it
+            /*$html .=     '<div class="MonthlyCost CostAdvantage">
                             <ul class="list-unstyled">
                                 '.$yearlyAdvHtml.'
                                 <li>
@@ -1010,32 +1209,33 @@ class AnbProduct {
                                 </li>
                             </ul>
                           </div>';*/
-			$html .= $orderBtn.
-			         '</div>';
-		}
+            $html .= $orderBtn .
+                '</div>';
+        }
 
-		return [
-			'html'                  => $html,
-			'monthly'               => $totalMonthly,
-			'first_year'            => $totalYearly,
-			'grand_total'           => $grandTotal,
-			'yearly_total'          => $yearlyTotal,
-			'monthly_total'         => $monthlyTotal,
-			'monthly_disc'          => $monthlyDisc,
-			'yearly_disc'           => $yearlyDisc,
-			'yearly_adv_collection' => $yearlyAdvCollection,
-			'currency_unit'         => $currencyUnit
-		];
-	}
+        return [
+            'html'                  => $html,
+            'monthly'               => $totalMonthly,
+            'first_year'            => $totalYearly,
+            'grand_total'           => $grandTotal,
+            'yearly_total'          => $yearlyTotal,
+            'monthly_total'         => $monthlyTotal,
+            'monthly_disc'          => $monthlyDisc,
+            'yearly_disc'           => $yearlyDisc,
+            'yearly_adv_collection' => $yearlyAdvCollection,
+            'currency_unit'         => $currencyUnit,
+        ];
+    }
 
-    function ajaxProductPriceBreakdownHtml() {
+    function ajaxProductPriceBreakdownHtml()
+    {
         $apiData = [
-            'pid' => $_REQUEST['pid'],//product id
-            'prt' => $_REQUEST['prt'],//product type like internet, packs or energy
-            'it'  => $_REQUEST['it'],//Installation type like full/diy
-            'opt' => array_filter($_REQUEST['opt']),//array options
-            'extra_pid' => array_filter($_REQUEST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
-            'tmp_diy_inst_price' => $_REQUEST['tmp_diy_inst_price']
+            'pid'                => $_REQUEST['pid'],//product id
+            'prt'                => $_REQUEST['prt'],//product type like internet, packs or energy
+            'it'                 => $_REQUEST['it'],//Installation type like full/diy
+            'opt'                => array_filter($_REQUEST['opt']),//array options
+            'extra_pid'          => array_filter($_REQUEST['extra_pid']),//array extra PIDs like extra_pid[]=mobile]|643
+            'tmp_diy_inst_price' => $_REQUEST['tmp_diy_inst_price'],
         ];
 
         $apiData = array_filter($apiData);//cleaning empty values
@@ -1045,9 +1245,9 @@ class AnbProduct {
         //echo "toCartPage: $toCartPage";
 
         //$priceBreakdown = $this->getProductPriceBreakdownHtmlApi($apiData);
-	    $priceBreakdown = $this->getPbsOrganizedHtmlApi($apiData);
-	    var_dump($apiData);
-	    var_dump($priceBreakdown);
+        $priceBreakdown = $this->getPbsOrganizedHtmlApi($apiData);
+        var_dump($apiData);
+        var_dump($priceBreakdown);
 
         /*echo '<div class="CostWrap">
             <div class="TotalCostBox">
@@ -1067,7 +1267,7 @@ class AnbProduct {
             echo $priceBreakdown['html'];
         echo '</div>';*/
 
-	    echo '<div class="newCostCalc">
+        echo '<div class="newCostCalc">
                 <div class="TotalCostBox">
                     <svg class="calculator" height="28px" viewBox="0 0 291 393" fill="#FFF">
                         <path d="M232.806181,0 L58.193819,0 C26.1918543,0 0,26.2144262 0,58.2096279 L0,334.790372 C0,366.80103 26.1918543,393 58.193819,393 L232.806181,393 C264.808146,393 291,366.80103 291,334.790372 L291,58.2096279 C291,26.2144262 264.808146,0 232.806181,0 Z M93.5644116,334.790372 C93.5644116,342.765988 86.9816801,349.350507 78.946421,349.350507 L58.193819,349.350507 C50.1585599,349.350507 43.6376381,342.765988 43.6376381,334.790372 L43.6376381,313.970306 C43.6376381,305.99469 50.1585599,299.410171 58.193819,299.410171 L78.946421,299.410171 C86.9816801,299.410171 93.5644116,305.99469 93.5644116,313.970306 L93.5644116,334.790372 Z M93.5644116,257.816408 C93.5644116,265.838394 86.9816801,272.361087 78.946421,272.361087 L58.193819,272.361087 C50.1585599,272.361087 43.6376381,265.838394 43.6376381,257.816408 L43.6376381,237.042712 C43.6376381,229.082553 50.1585599,222.498034 58.193819,222.498034 L78.946421,222.498034 C86.9816801,222.498034 93.5644116,229.082553 93.5644116,237.042712 L93.5644116,257.816408 Z M93.5644116,180.888815 C93.5644116,188.926257 86.9816801,195.44895 78.946421,195.44895 L58.193819,195.44895 C50.1585599,195.44895 43.6376381,188.926257 43.6376381,180.888815 L43.6376381,160.130575 C43.6376381,152.093133 50.1585599,145.508613 58.193819,145.508613 L78.946421,145.508613 C86.9816801,145.508613 93.5644116,152.093133 93.5644116,160.130575 L93.5644116,180.888815 Z M170.455661,334.790372 C170.455661,342.765988 163.872929,349.350507 155.914932,349.350507 L135.085068,349.350507 C127.127071,349.350507 120.544339,342.765988 120.544339,334.790372 L120.544339,313.970306 C120.544339,305.99469 127.127071,299.410171 135.085068,299.410171 L155.914932,299.410171 C163.872929,299.410171 170.455661,305.99469 170.455661,313.970306 L170.455661,334.790372 Z M170.455661,257.816408 C170.455661,265.838394 163.872929,272.361087 155.914932,272.361087 L135.085068,272.361087 C127.127071,272.361087 120.544339,265.838394 120.544339,257.816408 L120.544339,237.042712 C120.544339,229.082553 127.127071,222.498034 135.085068,222.498034 L155.914932,222.498034 C163.872929,222.498034 170.455661,229.082553 170.455661,237.042712 L170.455661,257.816408 Z M170.455661,180.888815 C170.455661,188.926257 163.872929,195.44895 155.914932,195.44895 L135.085068,195.44895 C127.127071,195.44895 120.544339,188.926257 120.544339,180.888815 L120.544339,160.130575 C120.544339,152.093133 127.127071,145.508613 135.085068,145.508613 L155.914932,145.508613 C163.872929,145.508613 170.455661,152.093133 170.455661,160.130575 L170.455661,180.888815 Z M247.362362,334.790372 C247.362362,342.765988 240.77963,349.350507 232.806181,349.350507 L211.991769,349.350507 C204.01832,349.350507 197.435588,342.765988 197.435588,334.790372 L197.435588,313.970306 C197.435588,305.99469 204.01832,299.410171 211.991769,299.410171 L232.806181,299.410171 C240.77963,299.410171 247.362362,305.99469 247.362362,313.970306 L247.362362,334.790372 Z M247.362362,257.816408 C247.362362,265.838394 240.77963,272.361087 232.806181,272.361087 L211.991769,272.361087 C204.01832,272.361087 197.435588,265.838394 197.435588,257.816408 L197.435588,237.042712 C197.435588,229.082553 204.01832,222.498034 211.991769,222.498034 L232.806181,222.498034 C240.77963,222.498034 247.362362,229.082553 247.362362,237.042712 L247.362362,257.816408 Z M247.362362,180.888815 C247.362362,188.926257 240.77963,195.44895 232.806181,195.44895 L211.991769,195.44895 C204.01832,195.44895 197.435588,188.926257 197.435588,180.888815 L197.435588,160.130575 C197.435588,152.093133 204.01832,145.508613 211.991769,145.508613 L232.806181,145.508613 C240.77963,145.508613 247.362362,152.093133 247.362362,160.130575 L247.362362,180.888815 Z M247.362362,101.920947 C247.362362,109.896563 240.77963,116.465626 232.806181,116.465626 L58.193819,116.465626 C50.2203696,116.465626 43.6376381,109.896563 43.6376381,101.920947 L43.6376381,66.5407457 C43.6376381,58.5651302 50.2203696,51.9806104 58.193819,51.9806104 L232.806181,51.9806104 C240.84144,51.9806104 247.362362,58.5033037 247.362362,66.5407457 L247.362362,101.920947 Z"
@@ -1081,265 +1281,275 @@ class AnbProduct {
                     </svg>
                     <div class="totalPriceWrapper">';
 
-	    if ( $priceBreakdown['monthly_disc'] > 0 ):
-		    echo '<div class="oldPrice">
+        if ($priceBreakdown['monthly_disc'] > 0):
+            echo '<div class="oldPrice">
                 <span class="oldPriceWrapper">
                     <span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
-                    <span class="amount">'.formatPrice($priceBreakdown['monthly_disc']+$priceBreakdown['monthly_total'], 2, '', '', false, true).'</span>
+                    <span class="amount">' . formatPrice($priceBreakdown['monthly_disc'] + $priceBreakdown['monthly_total'], 2, '', '', false, true) . '</span>
                 </span>
             </div>';
-	    endif;
+        endif;
 
-	    echo '<div class="totalPrice">';
-	    $priceParts = formatPriceInParts( $priceBreakdown['monthly_total'], 2, '' );
-	    echo '<span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
+        echo '<div class="totalPrice">';
+        $priceParts = formatPriceInParts($priceBreakdown['monthly_total'], 2, '');
+        echo '<span class="currency">' . $priceBreakdown['currency_unit'] . '</span>
                 <span class="amount">' . $priceParts['price'] . '</span>
                 <span class="cents">' . $priceParts['cents'] . '</span>
-                <span class="recursion">/'.pll__('mth').'</span>
+                <span class="recursion">/' . pll__('mth') . '</span>
                 </div></div></div>';
-	    echo $priceBreakdown['html'];
-	    echo "</div>";
+        echo $priceBreakdown['html'];
+        echo "</div>";
 
         wp_die();
     }
 
-    function getToCartAnchorHtml($parentSegment, $productId, $supplierId, $sg='', $productType='', $forceCheckAvailability = false) {
+    function getToCartAnchorHtml($parentSegment, $productId, $supplierId, $sg = '', $productType = '', $forceCheckAvailability = false)
+    {
 
-        $domain = explode('//', WP_HOME)[1];
+        $domain          = explode('//', WP_HOME)[1];
         $directLandOrExt = (strpos($_SERVER['HTTP_REFERER'], $domain) === false || empty($_SESSION['product']['zip'])) ? true : false;
 
-        $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__( 'checkout' );
-        $toCartLinkHtml = "href='" . $checkoutPageLink."?product_to_cart&product_id=".$productId .
+        $checkoutPageLink = '/' . ltrim($parentSegment, '/') . '/' . pll__('checkout');
+        $toCartLinkHtml   = "href='" . $checkoutPageLink . "?product_to_cart&product_id=" . $productId .
             "&provider_id=" . $supplierId . "&sg=$sg&producttype=$productType'";
 
-	    if ( ( $directLandOrExt && ! isset( $_GET['zip'] ) && empty( $_GET['zip'] ) ) || $forceCheckAvailability ) {
-		    $toCartLinkHtml = 'data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $sg . '" data-prt="' . $productType . '"';
-	    }
+        if (($directLandOrExt && !isset($_GET['zip']) && empty($_GET['zip'])) || $forceCheckAvailability) {
+            $toCartLinkHtml = 'data-pid="' . $productId . '" data-sid="' . $supplierId . '" data-sg="' . $sg . '" data-prt="' . $productType . '"';
+        }
 
-	    $toCartInternalLink = $toCartLinkHtml;
-	    $justCartLinkHtml = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
-	    $oldCartLinkHtml  = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__( 'configure your pack' ) . '</a>';
-	    $toCartLinkHtml   = '<div class="buttonWrapper print-hide">' . $justCartLinkHtml . '</div>';
+        $toCartInternalLink = $toCartLinkHtml;
+        $justCartLinkHtml   = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__('configure your pack') . '</a>';
+        $oldCartLinkHtml    = '<a ' . $toCartLinkHtml . ' class="btn btn-default all-caps">' . pll__('configure your pack') . '</a>';
+        $toCartLinkHtml     = '<div class="buttonWrapper print-hide">' . $justCartLinkHtml . '</div>';
 
         return [$toCartLinkHtml, $directLandOrExt, $justCartLinkHtml, $oldCartLinkHtml, $toCartInternalLink, $checkoutPageLink];
     }
 
-	/**
-	 * @param array $prd
-	 *
-	 * @return string
-	 */
-	public function getTitleSection( array $prd, $listView = false ) {
+    /**
+     * @param array $prd
+     *
+     * @return string
+     */
+    public function getTitleSection(array $prd, $listView = false)
+    {
 
-		$titleSec = '<h4>' . $prd['product_name'] . '</h4>
+        $titleSec = '<h4>' . $prd['product_name'] . '</h4>
                      <p class="slogan">' . $prd['tagline'] . '</p>';
 
-		if($listView) {
-			$titleSec = '<h5>' . $prd['product_name'] . '</h5>';
-		}
+        if ($listView) {
+            $titleSec = '<h5>' . $prd['product_name'] . '</h5>';
+        }
 
-		return $titleSec;
-	}
+        return $titleSec;
+    }
 
-	public function getLogoSection( array $prd, $listview, $includeText ) {
+    public function getLogoSection(array $prd, $listview, $includeText)
+    {
         $greyClass = '';
-        if($includeText){ $greyClass = 'partnergrey'; }
+        if ($includeText) {
+            $greyClass = 'partnergrey';
+        }
         $logoSec = '<div class="dealLogo">
-                        <img class="'.$greyClass.'" src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
+                        <img class="' . $greyClass . '" src="' . $prd['logo']['200x140']->transparent->color . '" alt="' . $prd['product_name'] . '">
                     </div>';
-		return $logoSec;
-	}
+        return $logoSec;
+    }
 
-	public function getCustomerRatingSection( $prd, $listView = false ) {
-		$custRatSec = '';
-		if ( (float) $prd['score'] > 0 ) {
-			$custRatSec = '<div class="customerRating">
+    public function getCustomerRatingSection($prd, $listView = false)
+    {
+        $custRatSec = '';
+        if ((float)$prd['score'] > 0) {
+            $custRatSec = '<div class="customerRating">
                             <div class="stamp">
                                 ' . $prd['score'] . '
                             </div>
-                            <span>'.pll__('Customer Score').'</span>
+                            <span>' . pll__('Customer Score') . '</span>
                        </div>';
 
-			if($listView) {
-				$custRatSec = '<div class="recCustomerRating">
+            if ($listView) {
+                $custRatSec = '<div class="recCustomerRating">
 	                                <span class="ratingCount">' . $prd['score'] . '</span>
-	                                <span class="labelHolder">'.pll__('Customer Score').'</span>
+	                                <span class="labelHolder">' . pll__('Customer Score') . '</span>
 	                            </div>';
-			}
-		}
+            }
+        }
 
-		return $custRatSec;
-	}
+        return $custRatSec;
+    }
 
-	/**
-	 * @param string $badgeTxt
-	 *
-	 * @return string
-	 */
-	public function getBadgeSection( $badgeTxt ) {
-		$revSec = '<div class="bestReviewBadge">
-                        <span>' . pll__( 'BEST' ) . '</span>
-                        <span class="bold">' . pll__( $badgeTxt ) . '</span>
+    /**
+     * @param string $badgeTxt
+     *
+     * @return string
+     */
+    public function getBadgeSection($badgeTxt)
+    {
+        $revSec = '<div class="bestReviewBadge">
+                        <span>' . pll__('BEST') . '</span>
+                        <span class="bold">' . pll__($badgeTxt) . '</span>
                    </div>';
 
-		return $revSec;
-	}
+        return $revSec;
+    }
 
-	public function getProductDetailSection( $prd, $servicesHtml, $includeText = false, $includeBadge = false, $badgeTxt = '', $listView = false ) {
-		$detailsSec = '<div class="dealDetails">';
+    public function getProductDetailSection($prd, $servicesHtml, $includeText = false, $includeBadge = false, $badgeTxt = '', $listView = false)
+    {
+        $detailsSec = '<div class="dealDetails">';
 
-		if ( $includeBadge && ! empty( $badgeTxt ) ) {
-			$detailsSec .= $this->getBadgeSection( $badgeTxt );
-		}
+        if ($includeBadge && !empty($badgeTxt)) {
+            $detailsSec .= $this->getBadgeSection($badgeTxt);
+        }
 
-		if($listView) {
-			$detailsSec .= $this->getLogoSection( $prd, $listView, $includeText ) .
-			               $this->getTitleSection( $prd,  $listView) .
-			               $this->getCustomerRatingSection( $prd, $listView );
-		} else {
-			$detailsSec .= $this->getLogoSection( $prd, $listView, $includeText ) .
-			               $this->getTitleSection( $prd ) .
-                           $this->getServiceIconsSection( $servicesHtml ) .
-                           $this->getCustomerRatingSection( $prd );
-		}
+        if ($listView) {
+            $detailsSec .= $this->getLogoSection($prd, $listView, $includeText) .
+                $this->getTitleSection($prd, $listView) .
+                $this->getCustomerRatingSection($prd, $listView);
+        } else {
+            $detailsSec .= $this->getLogoSection($prd, $listView, $includeText) .
+                $this->getTitleSection($prd) .
+                $this->getServiceIconsSection($servicesHtml) .
+                $this->getCustomerRatingSection($prd);
+        }
 
-		$detailsSec .= '</div>';
+        $detailsSec .= '</div>';
 
-		return $detailsSec;
-	}
+        return $detailsSec;
+    }
 
-	/**
-	 * @param array $prd
-	 * @param boolean $onlyNumericData
-	 *
-	 * @return array
-	 */
-	public function getPriceInfo( array $prd, $onlyNumericData = false ) {
-		$advPrice = '&nbsp;';
-		$totalAdv = 0;
+    /**
+     * @param array   $prd
+     * @param boolean $onlyNumericData
+     *
+     * @return array
+     */
+    public function getPriceInfo(array $prd, $onlyNumericData = false)
+    {
+        $advPrice = '&nbsp;';
+        $totalAdv = 0;
 
-		if ( ! empty( $prd['advantage'] ) && $prd['advantage'] > 0 ) {//only include +ve values in advantage
-			if ( $onlyNumericData ) {
-				$advPrice = $prd['advantage'];
-			} else {
-				$advPrice = formatPrice($prd['advantage'], 2, getCurrencySymbol( $prd['currency_unit'] )) . ' ' . pll__( 'advantage' );
-			}
-			$totalAdv = $prd['advantage'];
-		}
+        if (!empty($prd['advantage']) && $prd['advantage'] > 0) {//only include +ve values in advantage
+            if ($onlyNumericData) {
+                $advPrice = $prd['advantage'];
+            } else {
+                $advPrice = formatPrice($prd['advantage'], 2, getCurrencySymbol($prd['currency_unit'])) . ' ' . pll__('advantage');
+            }
+            $totalAdv = $prd['advantage'];
+        }
 
-		$monthDurationPromo = '&nbsp;';
-		//sprintf
-		if ( ! empty( $prd['monthly_promo_duration'] ) ) {
-			if ( $onlyNumericData ) {
-				$monthDurationPromo = $prd['monthly_promo_duration'];
-			} else {
-				$monthDurationPromo = sprintf( pll__( 'the first %d months' ), $prd['monthly_promo_duration'] );
-			}
-		}
+        $monthDurationPromo = '&nbsp;';
+        //sprintf
+        if (!empty($prd['monthly_promo_duration'])) {
+            if ($onlyNumericData) {
+                $monthDurationPromo = $prd['monthly_promo_duration'];
+            } else {
+                $monthDurationPromo = sprintf(pll__('the first %d months'), $prd['monthly_promo_duration']);
+            }
+        }
 
-		$firstYearPrice = '';
-		if ( intval( $prd['year_1_promo'] ) > 0 ) {
-			if ( $onlyNumericData ) {
-				$firstYearPrice = $prd['year_1_promo'];
-			} else {
-				$firstYearPrice = getCurrencySymbol( $prd['currency_unit'] ) . ' ' . formatPrice(intval( $prd['year_1_promo'] ), 0, '');
-				$firstYearPrice = $firstYearPrice . ' ' . pll__( 'the first year' );
-			}
-		}
+        $firstYearPrice = '';
+        if (intval($prd['year_1_promo']) > 0) {
+            if ($onlyNumericData) {
+                $firstYearPrice = $prd['year_1_promo'];
+            } else {
+                $firstYearPrice = getCurrencySymbol($prd['currency_unit']) . ' ' . formatPrice(intval($prd['year_1_promo']), 0, '');
+                $firstYearPrice = $firstYearPrice . ' ' . pll__('the first year');
+            }
+        }
 
-		return array( $advPrice, $monthDurationPromo, $firstYearPrice, $totalAdv );
-	}
+        return array($advPrice, $monthDurationPromo, $firstYearPrice, $totalAdv);
+    }
 
-	/**
-	 * Wrapper for Aanbieders API getProducts method
-	 *
-	 * @param array $params
-	 * @param array|int|string $productId
-	 *
-	 * @return array
-	 */
-	public function getProducts( array $params, $productId = null, $enableCache = true, $cacheDurationSeconds = 600 ) {
-	    if(defined('PRODUCT_API_CACHE_DURATION')) {
-	        $cacheDurationSeconds = PRODUCT_API_CACHE_DURATION;
+    /**
+     * Wrapper for Aanbieders API getProducts method
+     *
+     * @param array            $params
+     * @param array|int|string $productId
+     *
+     * @return array
+     */
+    public function getProducts(array $params, $productId = null, $enableCache = true, $cacheDurationSeconds = 600)
+    {
+        if (defined('PRODUCT_API_CACHE_DURATION')) {
+            $cacheDurationSeconds = PRODUCT_API_CACHE_DURATION;
         }
 
         $params['indv_product_id'] = $productId;
 
-	    $matchSlug = false;//To make sure on product detail page we don't get the wrong product from cache at all
-        $slug = '';
+        $matchSlug = false;//To make sure on product detail page we don't get the wrong product from cache at all
+        $slug      = '';
 
-        if ( is_string( $productId ) && ! is_numeric( $productId ) ) {
+        if (is_string($productId) && !is_numeric($productId)) {
             //make it part of params instead of passing directly to the API
             $params['productid'] = $productId;
-            $slug = $productId;
-            $productId = null;
-            $matchSlug = true;
+            $slug                = $productId;
+            $productId           = null;
+            $matchSlug           = true;
         }
 
         //generate key from params to store in cache
         displayParams($params);
-        $start = getStartTime();
+        $start       = getStartTime();
         $displayText = "Time API (Product) inside getProducts";
         if ($enableCache && !isset($_GET['no_cache'])) {
             $keyParams = $params;
 
-            if($_GET['debug']) {
-            	echo "Key generationg params...<br />";
-	            var_dump(serialize($keyParams) . $productId);
+            if ($_GET['debug']) {
+                echo "Key generationg params...<br />";
+                var_dump(serialize($keyParams) . $productId);
             }
 
             $cacheKey = md5(serialize($keyParams) . $productId) . ":getProducts";
 
             $result = mycache_get($cacheKey);
 
-            if(($result === false || empty($result)) ||
+            if (($result === false || empty($result)) ||
                 ($matchSlug && !empty($result) && json_decode($result)[0]->product_slug != $slug)) {
-                $result = $this->anbApi->getProducts( $params, $productId );
+                $result = $this->anbApi->getProducts($params, $productId);
                 mycache_set($cacheKey, $result, $cacheDurationSeconds);
             } else {
                 $displayText = "Time Cached API Data (Product) inside getProducts";
             }
         } else {
-            $result = $this->anbApi->getProducts( $params, $productId );
+            $result = $this->anbApi->getProducts($params, $productId);
         }
         $finish = getEndTime();
         displayCallTime($start, $finish, $displayText);
 
-		return $result;
-	}
+        return $result;
+    }
 
-	function getProductsLastUpdated($lang, $productId = '', $cat = '', $enableCache = true, $cacheDurationSeconds = 42300)
-	{
+    function getProductsLastUpdated($lang, $productId = '', $cat = '', $enableCache = true, $cacheDurationSeconds = 42300)
+    {
         $params['lang'] = $lang;
-	    if(!empty($productId)){
-	        $params['product_id'] = $productId;
+        if (!empty($productId)) {
+            $params['product_id'] = $productId;
         }
-        if(!empty($cat)){
+        if (!empty($cat)) {
             $params['cat'] = $cat;
         }
-		if(defined('HALF_DAY_CACHE_DURATION')) {
-			$cacheDurationSeconds = HALF_DAY_CACHE_DURATION;
-		}
-		$result = null;
-		$start = getStartTime();
-		$displayText = "Time API (Previous Compare) inside getProductsLastUpdated";
-		if ($enableCache && !isset($_GET['no_cache'])) {
+        if (defined('HALF_DAY_CACHE_DURATION')) {
+            $cacheDurationSeconds = HALF_DAY_CACHE_DURATION;
+        }
+        $result      = null;
+        $start       = getStartTime();
+        $displayText = "Time API (Previous Compare) inside getProductsLastUpdated";
+        if ($enableCache && !isset($_GET['no_cache'])) {
             $cacheKey = md5("product_last_updated_$lang") . ":last_udpated_$productId";
-			$result = mycache_get($cacheKey);
-			if($result === false || empty($result)) {
-				$result = $this->anbApi->getProductsLastUpdated($params);
-				mycache_set($cacheKey, $result, $cacheDurationSeconds);
-			} else {
-				$displayText = "Time API Cached (Compare) inside getProductsLastUpdated";
-			}
-		} else {
-			$result = $this->anbApi->getProductsLastUpdated($params);
-		}
-		$finish = getEndTime();
-		displayCallTime($start, $finish, $displayText);
+            $result   = mycache_get($cacheKey);
+            if ($result === false || empty($result)) {
+                $result = $this->anbApi->getProductsLastUpdated($params);
+                mycache_set($cacheKey, $result, $cacheDurationSeconds);
+            } else {
+                $displayText = "Time API Cached (Compare) inside getProductsLastUpdated";
+            }
+        } else {
+            $result = $this->anbApi->getProductsLastUpdated($params);
+        }
+        $finish = getEndTime();
+        displayCallTime($start, $finish, $displayText);
 
-		return str_replace('"', '', $result);
-	}
+        return str_replace('"', '', $result);
+    }
 
 
     /**
@@ -1371,29 +1581,29 @@ class AnbProduct {
     }
 
     /**
-     * @param null $options
-     * @param null $groupOptions
+     * @param null    $options
+     * @param null    $groupOptions
      * @param boolean $isRecommendedRequired
      * @return array
      */
-	public function prepareProductRecommendedOptions ($options = null, $groupOptions = null, $isRecommendedRequired = true)
+    public function prepareProductRecommendedOptions($options = null, $groupOptions = null, $isRecommendedRequired = true)
     {
 
-        $groupOptionsArray = $optionsArray = [];
+        $groupOptionsArray  = $optionsArray = [];
         $excludeFromOptions = [];
-        $minFee = 0;
+        $minFee             = 0;
 
-        if( is_array($groupOptions) ) {
+        if (is_array($groupOptions)) {
             foreach ($groupOptions as $groupOption) {
-                if(is_array($groupOption)) {
+                if (is_array($groupOption)) {
                     $groupOption = (object)$groupOption;
                 }
 
                 if ($groupOption->is_recommended || $isRecommendedRequired === false) {
                     $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id] = [
-                        'name' => $groupOption->texts->name,
+                        'name'        => $groupOption->texts->name,
                         'description' => $groupOption->texts->description,
-                        'banner' => $groupOption->links->banner,
+                        'banner'      => $groupOption->links->banner,
                     ];
 
                     foreach ($groupOption->options as $listOption) {
@@ -1409,13 +1619,13 @@ class AnbProduct {
                                 $minFee = $optionSpecification['price'];
                             }
 
-                            $excludeFromOptions[] = $optionSpecification['option_id'];
+                            $excludeFromOptions[]                                                         = $optionSpecification['option_id'];
                             $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id]['options'][] = [
-                                'id' => $optionSpecification['option_id'],
-                                'price' => $optionSpecification['price'],
-                                'name' => $optionSpecification['texts']['name'],
+                                'id'          => $optionSpecification['option_id'],
+                                'price'       => $optionSpecification['price'],
+                                'name'        => $optionSpecification['texts']['name'],
                                 'description' => $optionSpecification['texts']['description'],
-                                'banner' => $optionSpecification['links']['banner'],
+                                'banner'      => $optionSpecification['links']['banner'],
                             ];
                         }
                     }
@@ -1425,262 +1635,271 @@ class AnbProduct {
         }
 
         foreach ($options as $listOption) {
-        	if(is_array($listOption)) {
-		        $listOption = (object)$listOption;
-	        }
+            if (is_array($listOption)) {
+                $listOption = (object)$listOption;
+            }
             if (($listOption->is_recommended || $isRecommendedRequired === false) && !in_array($listOption->option_id, $excludeFromOptions)) {
 
                 $optionsArray['options'][$listOption->option_id] = [
-                	'id' => $listOption->option_id,
-                    'price' => $listOption->price,
-                    'name' => $listOption->texts->name,
+                    'id'          => $listOption->option_id,
+                    'price'       => $listOption->price,
+                    'name'        => $listOption->texts->name,
                     'description' => $listOption->texts->description,
-	                'banner' => $listOption->links->banner
+                    'banner'      => $listOption->links->banner,
                 ];
             }
 
         }
 
-        return array_merge($groupOptionsArray , $optionsArray);
+        return array_merge($groupOptionsArray, $optionsArray);
     }
 
-	/**
-	 * @param $priceSec
-	 * @param $productCount
-	 * @param array $yearlyAdvCollection This will include the values which are negative or zero, to make a collection of all advantages
-	 *
-	 * @return string
-	 */
-	public function getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, &$yearlyAdvCollection = [], $pdfHtml = false, $apiParams = [] ) {
-		$html = '';
-		$htmlArr = [];
-		foreach ( $priceSec->lines as $lineKey => $lineVal ) {
-		    //if some key starts with free then skip it, as it'll be automatically included during processing that specific field
-			if(strpos($lineKey, 'free_') === 0) {
-				continue;
-			}
-			if($lineVal == -1 && $lineKey == 'installation') {//-1 for installation means that this is not possible so skip it
-				continue;
-			}
+    /**
+     * @param       $priceSec
+     * @param       $productCount
+     * @param array $yearlyAdvCollection This will include the values which are negative or zero, to make a collection of all advantages
+     *
+     * @return string
+     */
+    public function getPbsOrganizedHtmlApiPriceSection($priceSec, $productCount, &$yearlyAdvCollection = [], $pdfHtml = false, $apiParams = [])
+    {
+        $html    = '';
+        $htmlArr = [];
+        foreach ($priceSec->lines as $lineKey => $lineVal) {
+            //if some key starts with free then skip it, as it'll be automatically included during processing that specific field
+            if (strpos($lineKey, 'free_') === 0) {
+                continue;
+            }
+            if ($lineVal == -1 && $lineKey == 'installation') {//-1 for installation means that this is not possible so skip it
+                continue;
+            }
 
-			$freeLineVal = $priceSec->lines->{'free_'.$lineKey};
+            $freeLineVal = $priceSec->lines->{'free_' . $lineKey};
 
-			if($lineKey == 'installation' && empty($freeLineVal)) {
-				$freeLineVal = $priceSec->lines->{'free_install'};//An exception for installation as its keys doesn't match in API when free
-			}
+            if ($lineKey == 'installation' && empty($freeLineVal)) {
+                $freeLineVal = $priceSec->lines->{'free_install'};//An exception for installation as its keys doesn't match in API when free
+            }
 
-			//we don't want to skip installation cost when free price is available
-			if(!isset($freeLineVal) &&
-				($lineKey == 'installation' && (!isset($apiParams['it']) || empty($apiParams['it'])))) { //skipping installation cost
-				continue;
-			}
+            //we don't want to skip installation cost when free price is available
+            if (!isset($freeLineVal) &&
+                ($lineKey == 'installation' && (!isset($apiParams['it']) || empty($apiParams['it'])))) { //skipping installation cost
+                continue;
+            }
 
-			$priceDisplayVal = $lineVal->product->display_value;
-			$extraClass      = '';
-			if ( !is_numeric($lineVal->product->value) ) {
-				$extraClass      = 'class="prominent"';
-				$priceDisplayVal = ucfirst($lineVal->product->display_value);
-			}
-			elseif ( $lineVal->product->value === 0 ) {
-				$extraClass      = 'class="prominent"';
-				$priceDisplayVal = pll__( 'Free' );
-			}
-			if( $lineVal->product->value <= 0 || !is_numeric($lineVal->product->value) || isset($freeLineVal) ) {
-				$yearlyLineVal = $lineVal;
-				if(isset($freeLineVal)) {
-					$yearlyLineVal = $freeLineVal;
-				}
-				$yearlyAdvPrice = $yearlyLineVal->product->value*$yearlyLineVal->multiplicand->value;
-				$yearlyAdvDisplayPrice = formatPrice($yearlyAdvPrice, 2, $yearlyLineVal->product->unit);
-				$extraClass      = 'class="prominent"';
-				if(!is_numeric($yearlyLineVal->product->value)) {
-					$yearlyAdvDisplayPrice = ucfirst($yearlyLineVal->product->display_value);
-				}
+            $priceDisplayVal = $lineVal->product->display_value;
+            $extraClass      = '';
+            if (!is_numeric($lineVal->product->value)) {
+                $extraClass      = 'class="prominent"';
+                $priceDisplayVal = ucfirst($lineVal->product->display_value);
+            } elseif ($lineVal->product->value === 0) {
+                $extraClass      = 'class="prominent"';
+                $priceDisplayVal = pll__('Free');
+            }
+            if ($lineVal->product->value <= 0 || !is_numeric($lineVal->product->value) || isset($freeLineVal)) {
+                $yearlyLineVal = $lineVal;
+                if (isset($freeLineVal)) {
+                    $yearlyLineVal = $freeLineVal;
+                }
+                $yearlyAdvPrice        = $yearlyLineVal->product->value * $yearlyLineVal->multiplicand->value;
+                $yearlyAdvDisplayPrice = formatPrice($yearlyAdvPrice, 2, $yearlyLineVal->product->unit);
+                $extraClass            = 'class="prominent"';
+                if (!is_numeric($yearlyLineVal->product->value)) {
+                    $yearlyAdvDisplayPrice = ucfirst($yearlyLineVal->product->display_value);
+                }
 
-				$yearlyAdvCollection[] = ['label' => $yearlyLineVal->label,
-				                          'price_value' => $yearlyLineVal->product->value,
-				                          'price_display_value' => $priceDisplayVal,
-				                          'price_multiplied_val' => $yearlyAdvPrice,
-				                          'price_multiplied_display_val' => $yearlyAdvDisplayPrice];
-			}
+                $yearlyAdvCollection[] = [
+                    'label'                        => $yearlyLineVal->label,
+                    'price_value'                  => $yearlyLineVal->product->value,
+                    'price_display_value'          => $priceDisplayVal,
+                    'price_multiplied_val'         => $yearlyAdvPrice,
+                    'price_multiplied_display_val' => $yearlyAdvDisplayPrice,
+                ];
+            }
 
-			$hasOldPrice = false;
-			$hasOldPriceClass = '';
-			$oldPriceHtml = '';
-			$promoPriceHtml = '';
-			$offerPrice = 0;
-			$actualPrice = $lineVal->product->value;
-			if(isset($freeLineVal)) {//its free part exist as well
-				$hasOldPrice = true;
-				$hasOldPriceClass = 'hasOldPrice';
-				$offerPrice = $freeLinePrice = abs($freeLineVal->product->value);
-				$currLinePrice = $lineVal->product->value;
+            $hasOldPrice      = false;
+            $hasOldPriceClass = '';
+            $oldPriceHtml     = '';
+            $promoPriceHtml   = '';
+            $offerPrice       = 0;
+            $actualPrice      = $lineVal->product->value;
+            if (isset($freeLineVal)) {//its free part exist as well
+                $hasOldPrice      = true;
+                $hasOldPriceClass = 'hasOldPrice';
+                $offerPrice       = $freeLinePrice = abs($freeLineVal->product->value);
+                $currLinePrice    = $lineVal->product->value;
 
-				$remainingPrice = $currLinePrice - $freeLinePrice;
+                $remainingPrice = $currLinePrice - $freeLinePrice;
 
-				$priceDisplayVal = formatPrice($remainingPrice, 2, $lineVal->product->unit);
-				$freeLineDisplayPrice = ( $pdfHtml ) ? formatPrice( $freeLinePrice, 2, $lineVal->product->unit . ' ', '', true, true ) :
-					formatPrice( $freeLinePrice, 2, $freeLineVal->product->unit . ' ', '', true, true );
+                $priceDisplayVal      = formatPrice($remainingPrice, 2, $lineVal->product->unit);
+                $freeLineDisplayPrice = ($pdfHtml) ? formatPrice($freeLinePrice, 2, $lineVal->product->unit . ' ', '', true, true) :
+                    formatPrice($freeLinePrice, 2, $freeLineVal->product->unit . ' ', '', true, true);
 
-				//$priceDisplayVal = "<span style='text-decoration: line-through'>{$freeLineDisplayPrice}</span> $priceDisplayVal";
-				$oldPriceHtml = '<span class="oldPrice">' . $freeLineDisplayPrice . '</span>';
+                //$priceDisplayVal = "<span style='text-decoration: line-through'>{$freeLineDisplayPrice}</span> $priceDisplayVal";
+                $oldPriceHtml = '<span class="oldPrice">' . $freeLineDisplayPrice . '</span>';
 
-				$promoPriceHtml = ( $pdfHtml ) ? $this->generatePdfPbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) :
-					$this->generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal );
-			}
-			$priceDetailHtml = ( $pdfHtml ) ? $this->generatePdfPbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice ) :
-				$this->generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice );
+                $promoPriceHtml = ($pdfHtml) ? $this->generatePdfPbsPromoHtml($freeLineDisplayPrice, $freeLineVal) :
+                    $this->generatePbsPromoHtml($freeLineDisplayPrice, $freeLineVal);
+            }
+            $priceDetailHtml = ($pdfHtml) ? $this->generatePdfPbsPackOptionHtml($lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice) :
+                $this->generatePbsPackOptionHtml($lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice);
 
-			$htmlArr[] = $priceDetailHtml;
+            $htmlArr[] = $priceDetailHtml;
 
-			if($lineKey == 'discount_fee_amount_extra') {//if this exist then move it to 2nd place
-				$tmpHtml = $htmlArr[1];//storing 2nd index value in temp variable
-				$extraClass      = 'class="prominent"';
-				$mulVal = $lineVal->product->value*$lineVal->multiplicand->value;
-				$mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
-				//$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
-				$promoHtml = ($pdfHtml) ? $this->generatePdfPbsPromoHtml( $mulValDisplay, $lineVal) : $this->generatePbsPromoHtml( $mulValDisplay, $lineVal);
-				$htmlArr[1] = ( $pdfHtml ) ? $this->generatePdfPbsPackOptionHtml( $lineVal, '', '', $promoHtml, $offerPrice ) :
-					$this->generatePbsPackOptionHtml( $lineVal, '', '', $promoHtml, $offerPrice );
-				$htmlArr[count($htmlArr)-1] = $tmpHtml;//Now brining value stored in 2
-			}
-			if ( $productCount > 0 ) {
-				//This means that its a child product you can add remove symbol here.
-			}
-		}
+            if ($lineKey == 'discount_fee_amount_extra') {//if this exist then move it to 2nd place
+                $tmpHtml       = $htmlArr[1];//storing 2nd index value in temp variable
+                $extraClass    = 'class="prominent"';
+                $mulVal        = $lineVal->product->value * $lineVal->multiplicand->value;
+                $mulValDisplay = formatPrice($mulVal, 2, $lineVal->product->unit);
+                //$htmlArr[1] = '<li ' . $extraClass . '>' . $mulValDisplay . ' ' . $lineVal->label . '</li>';
+                $promoHtml                    = ($pdfHtml) ? $this->generatePdfPbsPromoHtml($mulValDisplay, $lineVal) : $this->generatePbsPromoHtml($mulValDisplay, $lineVal);
+                $htmlArr[1]                   = ($pdfHtml) ? $this->generatePdfPbsPackOptionHtml($lineVal, '', '', $promoHtml, $offerPrice) :
+                    $this->generatePbsPackOptionHtml($lineVal, '', '', $promoHtml, $offerPrice);
+                $htmlArr[count($htmlArr) - 1] = $tmpHtml;//Now brining value stored in 2
+            }
+            if ($productCount > 0) {
+                //This means that its a child product you can add remove symbol here.
+            }
+        }
 
-		$html .= implode( '', $htmlArr );
+        $html .= implode('', $htmlArr);
 
-		return $html;
-	}
+        return $html;
+    }
 
-	/**
-	 * @param $lineVal
-	 * @param $oldPriceHtml
-	 * @param $hasOldPriceClass
-	 * @param $promoPriceHtml
-	 *
-	 * @return string
-	 */
-	private function generatePbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice ) {
-		$priceText = '';
-		if(!is_numeric($lineVal->product->value)) {
-			$priceText = ucfirst($lineVal->product->value);
-		}
-		$priceArr = formatPriceInParts( $lineVal->product->value - $offerPrice, 2, $lineVal->product->unit );
+    /**
+     * @param $lineVal
+     * @param $oldPriceHtml
+     * @param $hasOldPriceClass
+     * @param $promoPriceHtml
+     *
+     * @return string
+     */
+    private function generatePbsPackOptionHtml($lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice)
+    {
+        $priceText = '';
+        if (!is_numeric($lineVal->product->value)) {
+            $priceText = ucfirst($lineVal->product->value);
+        }
+        $priceArr = formatPriceInParts($lineVal->product->value - $offerPrice, 2, $lineVal->product->unit);
 
-		if($offerPrice == 0) {
-			$oldPriceHtml = '';
-		}
+        if ($offerPrice == 0) {
+            $oldPriceHtml = '';
+        }
 
-		$currPriceHtml = '<span class="currentPrice ident-applied-price" applied-price="'.($lineVal->product->value - $offerPrice).'">
+        $currPriceHtml = '<span class="currentPrice ident-applied-price" applied-price="' . ($lineVal->product->value - $offerPrice) . '">
 					                <span class="currency">' . $priceArr['currency'] . '</span>
 					                <span class="amount">' . $priceArr['price'] . '</span>
 					                <span class="cents">' . $priceArr['cents'] . '</span>
 					            </span>';
 
-		if($priceText) {
-			$currPriceHtml = '<span class="currentPrice">'.$priceText.'</span>';
-		}
+        if ($priceText) {
+            $currPriceHtml = '<span class="currentPrice">' . $priceText . '</span>';
+        }
 
-		$currOldPriceHtml = '<div class="packagePrice">
+        $currOldPriceHtml = '<div class="packagePrice">
 				            ' . $oldPriceHtml . $currPriceHtml . '
 				            </div>';
 
-		$instClass = '';
+        $instClass = '';
 
-		//Special class to identfy the installation location, to overcome a bug in the API that doesn't gives back the correct DIY price
-		if(strpos(strtolower($lineVal->label), 'inst') !== false) {$instClass = 'ident-inst';}
+        //Special class to identfy the installation location, to overcome a bug in the API that doesn't gives back the correct DIY price
+        if (strpos(strtolower($lineVal->label), 'inst') !== false) {
+            $instClass = 'ident-inst';
+        }
 
-		$priceDetailHtml = '<li class="packOption">
+        $priceDetailHtml = '<li class="packOption">
 								<div class="packageDetail ' . $instClass . '">
 								<div class="packageDesc ' . $hasOldPriceClass . '">' . $lineVal->label . '</div>
 					            ' . $currOldPriceHtml . $promoPriceHtml . '
 					            </div>
 					            </li>';
 
-		return $priceDetailHtml;
-	}
+        return $priceDetailHtml;
+    }
 
-	private function generatePdfPbsPackOptionHtml( $lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice ) {
-		$priceText = '';
-		if(!is_numeric($lineVal->product->value)) {
-			$priceText = ucfirst($lineVal->product->value);
-		}
+    private function generatePdfPbsPackOptionHtml($lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice)
+    {
+        $priceText = '';
+        if (!is_numeric($lineVal->product->value)) {
+            $priceText = ucfirst($lineVal->product->value);
+        }
 
-		if($offerPrice == 0) {
-			$oldPriceHtml = '';
-		}
+        if ($offerPrice == 0) {
+            $oldPriceHtml = '';
+        }
 
-		$currPriceHtml = '<span class="currentPrice">' . $lineVal->subtotal->unit . formatPrice( $lineVal->product->value - $offerPrice, 2, $lineVal->product->unit . ' ' ) . '</span>';
+        $currPriceHtml = '<span class="currentPrice">' . $lineVal->subtotal->unit . formatPrice($lineVal->product->value - $offerPrice, 2, $lineVal->product->unit . ' ') . '</span>';
 
-		if($priceText) {
-			$currPriceHtml = '<span class="currentPrice">'.$priceText.'</span>';
-		}
+        if ($priceText) {
+            $currPriceHtml = '<span class="currentPrice">' . $priceText . '</span>';
+        }
 
-		$currOldPriceHtml = '<div class="packagePrice">
+        $currOldPriceHtml = '<div class="packagePrice">
 				            ' . $oldPriceHtml . $currPriceHtml . '
 				            </div>';
 
-		$priceDetailHtml = '<tr class="packOption">
+        $priceDetailHtml = '<tr class="packOption">
 					            <td class="firstChildCost">' . $lineVal->label . '</td>
                                 <td class="secondChildCost">' . $promoPriceHtml . '</td>
                                 <td class="thirdChildCost">' . $oldPriceHtml . '</td>
                                 <td class="fourthChildCost">' . $currPriceHtml . '</td>
 				            </tr>';
 
-		return $priceDetailHtml;
-	}
+        return $priceDetailHtml;
+    }
 
-	/**
-	 * @param $freeLineDisplayPrice
-	 * @param $freeLineVal
-	 *
-	 * @return string
-	 */
-	private function generatePbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) {
-		$promoPriceHtml = '<div class="packagePromo with-promo">
+    /**
+     * @param $freeLineDisplayPrice
+     * @param $freeLineVal
+     *
+     * @return string
+     */
+    private function generatePbsPromoHtml($freeLineDisplayPrice, $freeLineVal)
+    {
+        $promoPriceHtml = '<div class="packagePromo with-promo">
 					                <ul class="list-unstyled">
-					                    <li class="promo prominent"><svg class="svg-Promo"> <use xlink:href="'.get_bloginfo('template_url').'/images/svg-sprite.svg#Promo"></use> </svg>' . $freeLineDisplayPrice . ' ' . $freeLineVal->label . '</li>
+					                    <li class="promo prominent"><svg class="svg-Promo"> <use xlink:href="' . get_bloginfo('template_url') . '/images/svg-sprite.svg#Promo"></use> </svg>' . $freeLineDisplayPrice . ' ' . $freeLineVal->label . '</li>
 					                </ul>
 					            </div>';
 
-		return $promoPriceHtml;
-	}
+        return $promoPriceHtml;
+    }
 
-	private function generatePdfPbsPromoHtml( $freeLineDisplayPrice, $freeLineVal ) {
-		$promoPriceHtml = $freeLineDisplayPrice . ' ' . $freeLineVal->label;
+    private function generatePdfPbsPromoHtml($freeLineDisplayPrice, $freeLineVal)
+    {
+        $promoPriceHtml = $freeLineDisplayPrice . ' ' . $freeLineVal->label;
 
-		return $promoPriceHtml;
-	}
+        return $promoPriceHtml;
+    }
 
-	/**
-	 * @param $total
-	 * @param $priceSec
-	 *
-	 * @return string
-	 */
-	private function generatePbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel, $infoTextLabel = '', $infoTextHelpText = '' ) {
-		$sectionTotalPriceArr = formatPriceInParts( $total, 2, $priceSec->subtotal->unit );
-		$infoTextHtml = '';
+    /**
+     * @param $total
+     * @param $priceSec
+     *
+     * @return string
+     */
+    private function generatePbsSectionTotalHtml($total, $priceSec, $sectionTotalLabel, $infoTextLabel = '', $infoTextHelpText = '')
+    {
+        $sectionTotalPriceArr = formatPriceInParts($total, 2, $priceSec->subtotal->unit);
+        $infoTextHtml         = '';
 
-		$oneTimeTotalClass = '';
+        $oneTimeTotalClass = '';
 
-		if(empty($sectionTotalLabel)) {
-			$sectionTotalLabel = $priceSec->label;
-		}
+        if (empty($sectionTotalLabel)) {
+            $sectionTotalLabel = $priceSec->label;
+        }
 
-		if($sectionTotalLabel == pll__('One-time total')) {
-			$oneTimeTotalClass = 'ident-onetime-total';
-		}
+        if ($sectionTotalLabel == pll__('One-time total')) {
+            $oneTimeTotalClass = 'ident-onetime-total';
+        }
 
-		if($infoTextHelpText) {
-			$infoTextHtml = '<div class="additionalInfo">
+        if ($infoTextHelpText) {
+            $infoTextHtml = '<div class="additionalInfo">
                                 <p>' . $infoTextLabel . ' <a href="#" class="tip" data-toggle="tooltip" title="<p>' . $infoTextHelpText . '</p>">?</a></p>
                             </div>';
-		}
-		$sectionTotalHtml     = '<div class="calcPanelTotal">
-			                            <div class="packageTotal '.$oneTimeTotalClass.'" onetime-total="'.$total.'">
+        }
+        $sectionTotalHtml = '<div class="calcPanelTotal">
+			                            <div class="packageTotal ' . $oneTimeTotalClass . '" onetime-total="' . $total . '">
 			                                <span class="caption">' . $sectionTotalLabel . '</span>
 			                                <span class="price">
                                                 <span class="currency">' . $sectionTotalPriceArr['currency'] . '</span>
@@ -1689,21 +1908,22 @@ class AnbProduct {
                                             </span>
 			                            </div>
 			                            <!-- optional additonal Info -->
-			                            '.$infoTextHtml.'
+			                            ' . $infoTextHtml . '
 			                            <!-- optional additonal Info -->
 			                        </div>';
 
-		return $sectionTotalHtml;
-	}
+        return $sectionTotalHtml;
+    }
 
-	private function generatePdfPbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel) {
-		$sectionTotalPriceArr = formatPriceInParts( $total, 2, $priceSec->subtotal->unit );
+    private function generatePdfPbsSectionTotalHtml($total, $priceSec, $sectionTotalLabel)
+    {
+        $sectionTotalPriceArr = formatPriceInParts($total, 2, $priceSec->subtotal->unit);
 
-		if(empty($sectionTotalLabel)) {
-			$sectionTotalLabel = $priceSec->label;
-		}
+        if (empty($sectionTotalLabel)) {
+            $sectionTotalLabel = $priceSec->label;
+        }
 
-		$sectionTotalHtml = '<tr class="prominent">
+        $sectionTotalHtml = '<tr class="prominent">
                                 <td class="firstChildCost"><strong>' . $sectionTotalLabel . '</strong></td>
                                 <td class="secondChildCost"></td>
                                 <td class="thirdChildCost"></td>
@@ -1711,117 +1931,122 @@ class AnbProduct {
                                 </td>
                             </tr>';
 
-		return $sectionTotalHtml;
-	}
+        return $sectionTotalHtml;
+    }
 
-	/**
-	 * @param $existingHtml
-	 * @param $priceSec
-	 * @param $productCount
-	 * @param $total
-	 * @param $yearlyAdvCollection
-	 * @param string $infoTextLabel
-	 * @param string $infoText
-	 *
-	 * @return array
-	 */
-	private function generatePbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
-		&$sectionsHtml, $sectionTitle = '', $sectionTotalLabel='', $infoTextLabel='', $infoText='', $apiParams = [] ) {
-		if(empty($sectionTitle)) {
-			$sectionTitle = $priceSec->label;
-		}
+    /**
+     * @param        $existingHtml
+     * @param        $priceSec
+     * @param        $productCount
+     * @param        $total
+     * @param        $yearlyAdvCollection
+     * @param string $infoTextLabel
+     * @param string $infoText
+     *
+     * @return array
+     */
+    private function generatePbsSectionHtml(
+        $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
+        &$sectionsHtml, $sectionTitle = '', $sectionTotalLabel = '', $infoTextLabel = '', $infoText = '', $apiParams = []
+    ) {
+        if (empty($sectionTitle)) {
+            $sectionTitle = $priceSec->label;
+        }
 
-		$html = '<div class="calcSection '.$pbsSectionClass.'">';
-		$html .= '<div class="calcPanelHeader">';
-		$html .= '<h6>' . $sectionTitle . '</h6>';
-		$html .= '<i class="aan-icon panelOpen fa fa-chevron-down"></i>
+        $html      = '<div class="calcSection ' . $pbsSectionClass . '">';
+        $html      .= '<div class="calcPanelHeader">';
+        $html      .= '<h6>' . $sectionTitle . '</h6>';
+        $html      .= '<i class="aan-icon panelOpen fa fa-chevron-down"></i>
                             	 <i class="aan-icon panelClose fa fa-chevron-right"></i>';
-		$html .= '</div>';
-		$html .= '<div class="calcPanelOptions">
+        $html      .= '</div>';
+        $html      .= '<div class="calcPanelOptions">
                     <ul class="list-unstyled">';
-		$itemsHtml = '';
+        $itemsHtml = '';
 
-		//adjust this new HTML to existing html if some already exists like monthly, that should get generated once
-		if(preg_match('/<div class="calcSection '.$pbsSectionClass.'">/', $existingHtml)) {
-			$d = new \DOMDocument();
-			$d->loadHTML('<?xml encoding="utf-8" ?>' . $existingHtml);//UTF8 encoding is required to keep the data clean
+        //adjust this new HTML to existing html if some already exists like monthly, that should get generated once
+        if (preg_match('/<div class="calcSection ' . $pbsSectionClass . '">/', $existingHtml)) {
+            $d = new \DOMDocument();
+            $d->loadHTML('<?xml encoding="utf-8" ?>' . $existingHtml);//UTF8 encoding is required to keep the data clean
 
-			$xpath = new \DOMXPath($d);
-			$nodes = $xpath->query('//div[contains(@class, "'.$pbsSectionClass.'")]');//searching for the section
-			$nodeDic = [];//ensure duplicates are never added
-			foreach($nodes as $node) {
-				$existingItems = $xpath->query('descendant::li[contains(@class, "packOption")]', $node);//searching for actual items
-				foreach($existingItems as $item) {
-					$nodeHash = crc32($item->textContent);
-					if(!$nodeDic[$nodeHash]) {
-						$itemsHtml .= $item->ownerDocument->saveHTML($item);
-						$nodeDic[$nodeHash] = true;
-					}
-				}
-			}
-		}
-		$itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, $yearlyAdvCollection, false, $apiParams );
+            $xpath   = new \DOMXPath($d);
+            $nodes   = $xpath->query('//div[contains(@class, "' . $pbsSectionClass . '")]');//searching for the section
+            $nodeDic = [];//ensure duplicates are never added
+            foreach ($nodes as $node) {
+                $existingItems = $xpath->query('descendant::li[contains(@class, "packOption")]', $node);//searching for actual items
+                foreach ($existingItems as $item) {
+                    $nodeHash = crc32($item->textContent);
+                    if (!$nodeDic[$nodeHash]) {
+                        $itemsHtml          .= $item->ownerDocument->saveHTML($item);
+                        $nodeDic[$nodeHash] = true;
+                    }
+                }
+            }
+        }
+        $itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection($priceSec, $productCount, $yearlyAdvCollection, false, $apiParams);
 
-		$html .= $itemsHtml;
-		$html .= '</ul></div>';//end of price section
+        $html .= $itemsHtml;
+        $html .= '</ul></div>';//end of price section
 
-		$html .= $this->generatePbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel, $infoTextLabel, $infoText );
-		$html .= '</div>';
+        $html .= $this->generatePbsSectionTotalHtml($total, $priceSec, $sectionTotalLabel, $infoTextLabel, $infoText);
+        $html .= '</div>';
 
-		$sectionsHtml[$pbsSectionClass] = $html;
+        $sectionsHtml[$pbsSectionClass] = $html;
 
-		return array( $html, $yearlyAdvCollection, $infoTextLabel, $infoText );
-	}
+        return array($html, $yearlyAdvCollection, $infoTextLabel, $infoText);
+    }
 
-	private function generatePdfPbsSectionHtml( $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
-		&$sectionsHtml, $sectionTitle = '', $sectionTotalLabel='' ) {
-		if(empty($sectionTitle)) {
-			$sectionTitle = $priceSec->label;
-		}
-		$html = '<div class="borderedWrapper '.$pbsSectionClass.'"><h2>' . $sectionTitle . '</h2>';
-		$html .= '<table><tbody>';
-		$itemsHtml = '';
+    private function generatePdfPbsSectionHtml(
+        $existingHtml, $pbsSectionClass, $priceSec, $productCount, $total, &$yearlyAdvCollection,
+        &$sectionsHtml, $sectionTitle = '', $sectionTotalLabel = ''
+    ) {
+        if (empty($sectionTitle)) {
+            $sectionTitle = $priceSec->label;
+        }
+        $html      = '<div class="borderedWrapper ' . $pbsSectionClass . '"><h2>' . $sectionTitle . '</h2>';
+        $html      .= '<table><tbody>';
+        $itemsHtml = '';
 
-		//adjust this new HTML to existing html if some already exists like monthly, that should get generated once
-		if(preg_match('/<div class="borderedWrapper '.$pbsSectionClass.'">/', $existingHtml)) {
-			$d = new \DOMDocument();
-			$d->loadHTML('<?xml encoding="utf-8" ?>' . $existingHtml);//UTF8 encoding is required to keep the data clean
+        //adjust this new HTML to existing html if some already exists like monthly, that should get generated once
+        if (preg_match('/<div class="borderedWrapper ' . $pbsSectionClass . '">/', $existingHtml)) {
+            $d = new \DOMDocument();
+            $d->loadHTML('<?xml encoding="utf-8" ?>' . $existingHtml);//UTF8 encoding is required to keep the data clean
 
-			$xpath = new \DOMXPath($d);
-			$nodes = $xpath->query('//div[contains(@class, "'.$pbsSectionClass.'")]');//searching for the section
-			$nodeDic = [];//ensure duplicates are never added
-			foreach($nodes as $node) {
-				$existingItems = $xpath->query('descendant::tr[contains(@class, "packOption")]', $node);//searching for actual items
-				foreach($existingItems as $item) {
-					$nodeHash = crc32($item->textContent);
-					if(!$nodeDic[$nodeHash]) {
-						$itemsHtml .= $item->ownerDocument->saveHTML($item);
-						$nodeDic[$nodeHash] = true;
-					}
-				}
-			}
-		}
-		$itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection( $priceSec, $productCount, $yearlyAdvCollection, true );
+            $xpath   = new \DOMXPath($d);
+            $nodes   = $xpath->query('//div[contains(@class, "' . $pbsSectionClass . '")]');//searching for the section
+            $nodeDic = [];//ensure duplicates are never added
+            foreach ($nodes as $node) {
+                $existingItems = $xpath->query('descendant::tr[contains(@class, "packOption")]', $node);//searching for actual items
+                foreach ($existingItems as $item) {
+                    $nodeHash = crc32($item->textContent);
+                    if (!$nodeDic[$nodeHash]) {
+                        $itemsHtml          .= $item->ownerDocument->saveHTML($item);
+                        $nodeDic[$nodeHash] = true;
+                    }
+                }
+            }
+        }
+        $itemsHtml .= $this->getPbsOrganizedHtmlApiPriceSection($priceSec, $productCount, $yearlyAdvCollection, true);
 
-		$html .= $itemsHtml;
-		$html .= $this->generatePdfPbsSectionTotalHtml( $total, $priceSec, $sectionTotalLabel);
+        $html .= $itemsHtml;
+        $html .= $this->generatePdfPbsSectionTotalHtml($total, $priceSec, $sectionTotalLabel);
 
-		$html .= '</tbody></table></div>';//end of price section
+        $html .= '</tbody></table></div>';//end of price section
 
-		$sectionsHtml[$pbsSectionClass] = $html;
+        $sectionsHtml[$pbsSectionClass] = $html;
 
-		return array( $html, $yearlyAdvCollection );
-	}
+        return array($html, $yearlyAdvCollection);
+    }
 
-	/**
-	 * @param $yearlyAdvCollection
-	 */
-	private function generatePbsYearlyBreakdownHtml( $yearlyAdvCollection, $currency ) {
-		$totalAdv = 0;
-		$html     = '<div class="calcSection blue">
+    /**
+     * @param $yearlyAdvCollection
+     */
+    private function generatePbsYearlyBreakdownHtml($yearlyAdvCollection, $currency)
+    {
+        $totalAdv = 0;
+        $html     = '<div class="calcSection blue">
                         <!--heading-->
                         <div class="calcPanelHeader">
-                            <h6>' . pll__( 'Year profit' ) . '</h6>
+                            <h6>' . pll__('Year profit') . '</h6>
                             <i class="aan-icon panelOpen fa fa-chevron-down"></i>
                             <i class="aan-icon panelClose fa fa-chevron-right"></i>
                         </div>
@@ -1830,39 +2055,39 @@ class AnbProduct {
                         <div class="calcPanelOptions">
                             <ul class="list-unstyled">';
 
-		foreach ( $yearlyAdvCollection as $adv ) {
-			if($adv['price_multiplied_val'] == 0) {
-				continue;
-			}
+        foreach ($yearlyAdvCollection as $adv) {
+            if ($adv['price_multiplied_val'] == 0) {
+                continue;
+            }
 
-			$totalAdv += $adv['price_multiplied_val'];
-			$priceArr = formatPriceInParts( $adv['price_multiplied_val'], 2, $currency );
-			$negativeSign = '';
-			if($priceArr['price'] > 0) {
-				$negativeSign = '- ';
-			}
-			$html .= '<li class="packOption">
+            $totalAdv     += $adv['price_multiplied_val'];
+            $priceArr     = formatPriceInParts($adv['price_multiplied_val'], 2, $currency);
+            $negativeSign = '';
+            if ($priceArr['price'] > 0) {
+                $negativeSign = '- ';
+            }
+            $html .= '<li class="packOption">
                         <div class="packageDetail no-padding">
                             <div class="packageDesc">' . $adv['label'] . '</div>
                             <div class="packagePrice">
                                 <span class="currentPrice">
-                                    <span class="currency">' . $negativeSign.$priceArr['currency'] . '</span>
+                                    <span class="currency">' . $negativeSign . $priceArr['currency'] . '</span>
                                     <span class="amount">' . $priceArr['price'] . '</span>
                                     <span class="cents">' . $priceArr['cents'] . '</span>
                                 </span>
                             </div>
                         </div>
                     </li>';
-		}
-		$advArr   = formatPriceInParts( $totalAdv, 2, $currency );
-		$html     .= '</ul>
+        }
+        $advArr = formatPriceInParts($totalAdv, 2, $currency);
+        $html   .= '</ul>
                         </div>
                         <!--options-->
 
                         <!--total for section-->
                         <div class="calcPanelTotal">
                             <div class="packageTotal">
-                                <span class="caption">' . pll__( 'Your advantage' ) . '</span>
+                                <span class="caption">' . pll__('Your advantage') . '</span>
                                 <span class="price">
                                     <span class="currency">' . $advArr['currency'] . '</span>
                                     <span class="amount">' . $advArr['price'] . '</span>
@@ -1873,40 +2098,41 @@ class AnbProduct {
                         <!--total for section-->
                     </div>';
 
-		return [$html, $totalAdv];
-	}
+        return [$html, $totalAdv];
+    }
 
-	private function generatePdfPbsYearlyBreakdownHtml( $yearlyAdvCollection, $currency ) {
-		$totalAdv = 0;
-		$html = '<h2>' . pll__( 'Year profit' ) . '</h2>
+    private function generatePdfPbsYearlyBreakdownHtml($yearlyAdvCollection, $currency)
+    {
+        $totalAdv = 0;
+        $html     = '<h2>' . pll__('Year profit') . '</h2>
 					<div class="borderedWrapper secondary">
                         <table>
                             <tbody>';
 
-		foreach ( $yearlyAdvCollection as $adv ) {
-			if($adv['price_multiplied_val'] == 0) {
-				continue;
-			}
+        foreach ($yearlyAdvCollection as $adv) {
+            if ($adv['price_multiplied_val'] == 0) {
+                continue;
+            }
 
-			$totalAdv += $adv['price_multiplied_val'];
-			$priceArr = formatPriceInParts( $adv['price_multiplied_val'], 2, $currency );
-			$negativeSign = '';
-			if($priceArr['price'] > 0) {
-				$negativeSign = '- ';
-			}
-			$html .= '<tr>
+            $totalAdv     += $adv['price_multiplied_val'];
+            $priceArr     = formatPriceInParts($adv['price_multiplied_val'], 2, $currency);
+            $negativeSign = '';
+            if ($priceArr['price'] > 0) {
+                $negativeSign = '- ';
+            }
+            $html .= '<tr>
 	                        <td class="firstChildCost">' . $adv['label'] . '</td>
 	                        <td class="secondChildCost"></td>
 	                        <td class="thirdChildCost"></td>
-	                        <td class="fourthChildCost">' . $negativeSign. formatPrice($adv['price_multiplied_val'], 2, $currency . ' ', '', true) . '</td>
+	                        <td class="fourthChildCost">' . $negativeSign . formatPrice($adv['price_multiplied_val'], 2, $currency . ' ', '', true) . '</td>
                     	</tr>';
-		}
+        }
 
-		$html .= '<tr class="prominent">
-                        <td class="firstChildCost"><strong>' . pll__( 'Your advantage' ) . '</strong></td>
+        $html .= '<tr class="prominent">
+                        <td class="firstChildCost"><strong>' . pll__('Your advantage') . '</strong></td>
                         <td class="secondChildCost"></td>
                         <td class="thirdChildCost"></td>
-                        <td class="fourthChildCost"><strong><span class="currentPrice">'. formatPrice($totalAdv, 2, $currency . ' ', '', true) .'</span></strong>
+                        <td class="fourthChildCost"><strong><span class="currentPrice">' . formatPrice($totalAdv, 2, $currency . ' ', '', true) . '</span></strong>
                         </td>
                     </tr>';
 
@@ -1914,23 +2140,24 @@ class AnbProduct {
                 </table>
             </div>';
 
-		return [$html, $totalAdv];
-	}
+        return [$html, $totalAdv];
+    }
 
-	/**
-	 * @param $advPrice
-	 *
-	 * @return string
-	 */
-	public function getTotalAdvHtml( $advPrice ) {
-	    if($advPrice['price'] == 0) {
-	        return '';
+    /**
+     * @param $advPrice
+     *
+     * @return string
+     */
+    public function getTotalAdvHtml($advPrice)
+    {
+        if ($advPrice['price'] == 0) {
+            return '';
         }
 
-		$advPriceArr = formatPriceInParts($advPrice, 2);
-		$advHtml = '<div class="calcPanelTotal blue">
+        $advPriceArr = formatPriceInParts($advPrice, 2);
+        $advHtml     = '<div class="calcPanelTotal blue">
                             <div class="packageTotal">
-                                <span class="caption">' . pll__( 'Your advantage' ) . '</span>
+                                <span class="caption">' . pll__('Your advantage') . '</span>
                                 <span class="price">
                                 <span class="currency">' . $advPriceArr['currency'] . '</span>
                                 <span class="amount">' . $advPriceArr['price'] . '</span>
@@ -1939,7 +2166,7 @@ class AnbProduct {
                             </div>
                         </div>';
 
-		return $advHtml;
-	}
+        return $advHtml;
+    }
 
 }
