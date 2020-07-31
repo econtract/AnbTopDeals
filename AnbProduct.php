@@ -273,14 +273,13 @@ class AnbProduct
             'cat'         => $productType,
         ];
 
-
         /** @var AnbCompare $anbCompare */
         $anbCompare = wpal_create_instance(\AnbSearch\AnbCompare::class);
         $result     = json_decode($anbCompare->getCompareResults($paramsArray));
 
         if ($atts['is_first'] == 'yes') {
             // Load the top deals wrapper
-            include locate_template('template-parts/section/energy/top-deals/wrapper.php');
+            include locate_template('template-parts/section/top-deals/wrapper.php');
         }
 
         $tabID       = sanitize_title_with_dashes(remove_accents($tabName)) . '-' . rand(0, 999);
@@ -290,7 +289,7 @@ class AnbProduct
 
         ob_start();
 
-        include locate_template('template-parts/section/energy/top-deals/deals.php');
+        include locate_template('template-parts/section/top-deals/deals.php');
 
         $tabContent = '<div id="' . $tabID . '" class="tab-pane ' . ($tabIsActive ? 'active' : '') . '">' . ob_get_clean() . '</div>';
 
@@ -326,7 +325,6 @@ class AnbProduct
                     });
                    </script>';
         echo $script;
-
     }
 
     function generateServiceDetail($product)
@@ -531,37 +529,33 @@ class AnbProduct
 
         if ((is_array($prdOrPckTypes) && in_array('internet', $prdOrPckTypes)) ||
             (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "int") !== false && $prdOrPckTypes != 'mobile_internet')) {
-            $servicesHtml .= '<li class="wifi">
-                                <i class="service-icons wifi print-hide"></i>
-                                <img src="' . get_bloginfo('template_url') . '/images/print-images/internet.svg" alt="" class="print-show" />
+            $servicesHtml .= '<li>
+                                <i class="abf abf-wifi"></i>
                               </li>';
         }
         if ((is_array($prdOrPckTypes) && in_array('mobile', $prdOrPckTypes)) ||
             (!is_array($prdOrPckTypes) && (strpos($prdOrPckTypes, "mobile") !== false
                     || strpos($prdOrPckTypes, "gsm") !== false) && $prdOrPckTypes != 'mobile_internet')) {
-            $servicesHtml .= '<li class="mobile">
-                                <i class="service-icons mobile print-hide"></i>
-                                <img src="' . get_bloginfo('template_url') . '/images/print-images/mobile.svg" alt="" class="print-show" />
+            $servicesHtml .= '<li>
+                                <i class="abf abf-mobile-phone"></i>
                               </li>';
         }
         if ((is_array($prdOrPckTypes) && in_array('telephony', $prdOrPckTypes)) ||
             (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "tel") !== false)) {
-            $servicesHtml .= '<li class="phone">
-                                <i class="service-icons phone print-hide"></i>
-                                <img src="' . get_bloginfo('template_url') . '/images/print-images/telephony.svg" alt="" class="print-show" />
+            $servicesHtml .= '<li>
+                                <i class="abf abf-phone"></i>
                               </li>';
         }
         if ((is_array($prdOrPckTypes) && in_array('idtv', $prdOrPckTypes)) ||
             (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "tv") !== false)) {
-            $servicesHtml .= '<li class="tv">
-                                <i class="service-icons tv print-hide"></i>
-                                <img src="' . get_bloginfo('template_url') . '/images/print-images/idtv.svg" alt="" class="print-show" />
+            $servicesHtml .= '<li>
+                                <i class="abf abf-tv"></i>
                               </li>';
         }
         if ((is_array($prdOrPckTypes) && in_array('mobile_internet', $prdOrPckTypes)) ||
             (!is_array($prdOrPckTypes) && strpos($prdOrPckTypes, "mobile_internet") !== false)) {
-            $servicesHtml .= '<li class="mobile_internet">                              
-                                <img src="' . get_bloginfo('template_url') . '/images/print-images/mobile-data-sim.svg" alt="" />
+            $servicesHtml .= '<li>
+                                <i class="abf abf-mobile-data-sim"></i>
                               </li>';
         }
 
