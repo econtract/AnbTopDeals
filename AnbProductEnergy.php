@@ -459,8 +459,8 @@ class AnbProductEnergy extends AnbProduct
 
         $script = '<script>
                     jQuery(document).ready(function($){
-                        $(\'.energyTopDeals .filterDeals ul\').append(\'' . $tabItem . '\');
-                        $(\'.energyTopDeals .dealsTable .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
+                        $(\'.top-deals .filterDeals ul\').append(\'' . $tabItem . '\');
+                        $(\'.top-deals .dealsTable .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
                     });
                    </script>';
         echo $script;
