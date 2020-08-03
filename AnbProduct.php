@@ -241,7 +241,7 @@ class AnbProduct
             'lang'          => getLanguage(),
             'is_active'     => 'no',
             'is_first'      => 'no',
-        ), $atts, 'anb_energy_top_deal_products_new');
+        ), $atts, 'anb_top_deal_products_new');
 
         if (!empty($atts['detaillevel']) && is_string($atts['detaillevel'])) {
             $atts['detaillevel'] = explode(',', $atts['detaillevel']);
@@ -316,12 +316,11 @@ class AnbProduct
             $tabItem .= '<i class="' . $tabIcon . '" /></i> ';
         }
         $tabItem .= '<span class="hidden-xs">' . $tabName . '</span><span class="visible-xs">' . $atts['tabname_short'] . '</span></a></li>';
-
-        //TODO: replace energyTopDeals class
+        
         $script = '<script>
                     jQuery(document).ready(function($){
-                        $(\'.energyTopDeals .filterDeals ul\').append(\'' . $tabItem . '\'); 
-                        $(\'.energyTopDeals .dealsTable .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
+                        $(\'.top-deals .filterDeals ul\').append(\'' . $tabItem . '\'); 
+                        $(\'.top-deals .dealsTable .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
                     });
                    </script>';
         echo $script;
