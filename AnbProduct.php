@@ -360,8 +360,6 @@ class AnbProduct
 
         if (isset($product->packtypes)) {
 
-            $product->core_features->internet;
-
             foreach ($product->packtypes as $key => $packType) {
                 $features = $packType->core_features->{$key};
                 if (is_array($features)) {
