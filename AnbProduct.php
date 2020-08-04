@@ -354,12 +354,11 @@ class AnbProduct
 
     function generateServiceDetailTelecom($product)
     {
-        $featuresHtml     = '';
+        $featuresHtml    = '';
         $lastFeatureHTML = null;
-        $priorityChecked  = false;
+        $priorityChecked = false;
 
         if (isset($product->packtypes)) {
-
             foreach ($product->packtypes as $key => $packType) {
                 $features = $packType->core_features->{$key};
                 if (is_array($features)) {
@@ -370,7 +369,7 @@ class AnbProduct
                     } else if ($key == 'idtv') {
                         $priorityChecked = true;
                         foreach ($features as $feature) {
-                            $lastFeatureHTML= '<li>' . $feature->label . '</li>';
+                            $lastFeatureHTML = '<li>' . $feature->label . '</li>';
                         }
                     } else if ($key == 'mobile' && !isset($lastFeatureHTML)) {
                         foreach ($features as $feature) {
