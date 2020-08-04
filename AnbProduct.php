@@ -352,6 +352,53 @@ class AnbProduct
         return $featuresHtml;
     }
 
+    function generateServiceDetailTelecom($product)
+    {
+        $featuresHtml     = '';
+        $lastFeatureHTML = null;
+        $priorityChecked  = false;
+
+        if (isset($product->packtypes)) {
+
+            $product->core_features->internet;
+
+            foreach ($product->packtypes as $key => $packType) {
+                $features = $packType->core_features->{$key};
+                if (is_array($features)) {
+                    if ($key == 'internet') {
+                        foreach ($features as $feature) {
+                            $featuresHtml .= '<li>' . $feature->label . '</li>';
+                        }
+                    } else if ($key == 'idtv') {
+                        $priorityChecked = true;
+                        foreach ($features as $feature) {
+                            $lastFeatureHTML= '<li>' . $feature->label . '</li>';
+                        }
+                    } else if ($key == 'mobile' && !isset($lastFeatureHTML)) {
+                        foreach ($features as $feature) {
+                            $lastFeatureHTML = '<li>' . $feature->label . '</li>';
+                        }
+                    } else if ($key == 'telephony' && !$priorityChecked) {
+                        foreach ($features as $feature) {
+                            $lastFeatureHTML = '<li>' . $feature->label . '</li>';
+                        }
+                    }
+                }
+            }
+
+            $featuresHtml .= $lastFeatureHTML;
+
+        } else {
+            $features = $product->core_features->internet;
+            if (is_array($features)) {
+                foreach ($features as $feature) {
+                    $featuresHtml .= '<li>' . $feature->label . '</li>';
+                }
+            }
+        }
+        return $featuresHtml;
+    }
+
     function minifyHtml($buffer)
     {
 
