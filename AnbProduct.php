@@ -352,48 +352,31 @@ class AnbProduct
         return $featuresHtml;
     }
 
-    function generateServiceDetailTelecom($product)
+    function generateServiceDetailArray($product, $order)
     {
-        $featuresHtml    = '';
-        $lastFeatureHTML = null;
-        $priorityChecked = false;
+        $servicesDetailsArray = [];
 
         if (isset($product->packtypes)) {
             foreach ($product->packtypes as $key => $packType) {
                 $features = $packType->core_features->{$key};
                 if (is_array($features)) {
-                    if ($key == 'internet') {
-                        foreach ($features as $feature) {
-                            $featuresHtml .= '<li>' . $feature->label . '</li>';
-                        }
-                    } else if ($key == 'idtv') {
-                        $priorityChecked = true;
-                        foreach ($features as $feature) {
-                            $lastFeatureHTML = '<li>' . $feature->label . '</li>';
-                        }
-                    } else if ($key == 'mobile' && !isset($lastFeatureHTML)) {
-                        foreach ($features as $feature) {
-                            $lastFeatureHTML = '<li>' . $feature->label . '</li>';
-                        }
-                    } else if ($key == 'telephony' && !$priorityChecked) {
-                        foreach ($features as $feature) {
-                            $lastFeatureHTML = '<li>' . $feature->label . '</li>';
-                        }
+                    foreach ($features as $feature) {
+                        $servicesDetailsArray[$key] = $feature->label;
                     }
                 }
             }
-
-            $featuresHtml .= $lastFeatureHTML;
-
-        } else {
-            $features = $product->core_features->internet;
-            if (is_array($features)) {
-                foreach ($features as $feature) {
-                    $featuresHtml .= '<li>' . $feature->label . '</li>';
-                }
-            }
         }
-        return $featuresHtml;
+
+        //Default order
+        $order = isset($order) ? $order : $order = ['internet', 'idtv', 'telephony', 'mobile', 'mobile_internet'];
+
+        uksort($servicesDetailsArray, function ($a, $b) use ($order) {
+            $pos_a = array_search($a, $order);
+            $pos_b = array_search($b, $order);
+            return $pos_a - $pos_b;
+        });
+
+        return $servicesDetailsArray;
     }
 
     function minifyHtml($buffer)
