@@ -368,7 +368,7 @@ class AnbProduct
         }
 
         //Default order
-        $order = isset($order) ? $order : $order = ['internet', 'idtv', 'telephony', 'mobile', 'mobile_internet'];
+        $order = isset($order) ? $order : ['internet', 'idtv', 'telephony', 'mobile', 'mobile_internet'];
 
         uksort($servicesDetailsArray, function ($a, $b) use ($order) {
             $pos_a = array_search($a, $order);
