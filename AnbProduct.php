@@ -231,7 +231,7 @@ class AnbProduct
             'tab_cat'       => 'popular_deals',
             'tabname_short' => '',
             'footer_cat'    => '',
-            'detaillevel'   => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
+            'detaillevel'   => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing', 'all_features'],
             'sg'            => 'consumer',
             'product_1'     => [],
             'product_2'     => [],
@@ -257,19 +257,22 @@ class AnbProduct
             $atts['tabname_short'] = $tabName;
         }
 
-        $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
+        if (is_string($atts['product_1'])) {
+            $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
+        } else {
+            $productType = isset($atts['product_1'][0]) ? $atts['product_1'][0] : null;
+        }
 
-        $productId1 = explode('|', $atts['product_1'])[1];
-        $productId2 = explode('|', $atts['product_2'])[1];
-        $productId3 = explode('|', $atts['product_3'])[1];
-        $productId4 = explode('|', $atts['product_4'])[1];
-        $productId5 = explode('|', $atts['product_5'])[1];
+        if (!$productType) {
+            return;
+        }
 
         $paramsArray = [
             'detaillevel' => $atts['detaillevel'],
-            'pref_pids'   => array($productId1, $productId2, $productId3, $productId4, $productId5),
+            'pref_pids'   => $this->getProductIdsFromAttributes($atts),
             'sg'          => $atts['sg'],
             'lang'        => $atts['lang'],
+            'zip'         => '9000',
             'cat'         => $productType,
         ];
 
@@ -316,7 +319,7 @@ class AnbProduct
             $tabItem .= '<i class="' . $tabIcon . '" /></i> ';
         }
         $tabItem .= '<span class="hidden-xs">' . $tabName . '</span><span class="visible-xs">' . $atts['tabname_short'] . '</span></a></li>';
-        
+
         $script = '<script>
                     jQuery(document).ready(function($){
                         $(\'.top-deals .tabs ul\').append(\'' . $tabItem . '\'); 
@@ -324,6 +327,35 @@ class AnbProduct
                     });
                    </script>';
         echo $script;
+    }
+
+    /**
+     * @param array $atts
+     * @param int   $amount
+     * @return array
+     */
+    function getProductIdsFromAttributes($atts, $amount = 5) {
+
+        $productIds = [];
+
+        // When called as a shortcode, products are formatted like `[product_type]|[product_id]`
+        foreach (range(1, $amount) as $index) {
+            $key = 'product_' . $index;
+            if (!isset($atts[$key])) {
+                continue;
+            }
+            $product = $atts[$key];
+            if (is_string($atts[$key])) {
+                $product = explode('|', $product);
+            }
+            if (!isset($product[1])) {
+                continue;
+            } else {
+                $productIds[] = $product[1];
+            }
+        }
+
+        return $productIds;
     }
 
     function generateServiceDetail($product)
@@ -352,11 +384,11 @@ class AnbProduct
         return $featuresHtml;
     }
 
-    function generateServiceDetailArray($product, $order)
+    function generateServiceDetailArray($product, $order = null)
     {
         $servicesDetailsArray = [];
 
-        if (isset($product->packtypes)) {
+        if (property_exists($product, 'packtypes') && is_array($product->packtypes)) {
             foreach ($product->packtypes as $key => $packType) {
                 $features = $packType->core_features->{$key};
                 if (is_array($features)) {

@@ -83,39 +83,39 @@ class AnbProductEnergy extends AnbProduct
 
     public function getGreenPeaceRating($product = null, $greenpeaceScore = null, $disabledAttr='disabled', $idPrefix = '', $returnWithoutContainer = false)
     {
-    	$product_id = '';
-    	if($product) {
-		    $product_id = $product->product_id;
-	    }
-	    $greenpeaceScore = ($greenpeaceScore) ?: (($product->electricity->specifications->greenpeace_score->value) ?: $product->specifications->greenpeace_score->value);
-	    $greenpeaceScore = ceil($greenpeaceScore/5);
+        $product_id = '';
+        if($product) {
+            $product_id = $product->product_id;
+        }
+        $greenpeaceScore = ($greenpeaceScore) ?: (($product->electricity->specifications->greenpeace_score->value) ?: $product->specifications->greenpeace_score->value);
+        $greenpeaceScore = ceil($greenpeaceScore/5);
 
-	    $greenpeaceHtml = '';
-	    $counter = 0;
-	    for($i = $greenpeaceScore; $i > 0; $i--) {
-	    	$j = $i;
-	    	$checked = '';
-	    	if($i == $greenpeaceScore) {
-			    $checked = 'checked = "checked"';
-		    }
+        $greenpeaceHtml = '';
+        $counter = 0;
+        for($i = $greenpeaceScore; $i > 0; $i--) {
+            $j = $i;
+            $checked = '';
+            if($i == $greenpeaceScore) {
+                $checked = 'checked = "checked"';
+            }
 
-		    $greenpeaceHtml .= '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace'.$product_id.'" value="'.$j.'" '.$checked.' '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
+            $greenpeaceHtml .= '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace'.$product_id.'" value="'.$j.'" '.$checked.' '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
                                 <label class="full" for="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>';
-		    $counter++;
-	    }
+            $counter++;
+        }
 
-	    if($counter < 4) {
-		    for($i = $counter; $i < 4; $i++) {
-			    $j = $i+1;
-			    $greenpeaceHtml = '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace" value="'.$j.'" '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
+        if($counter < 4) {
+            for($i = $counter; $i < 4; $i++) {
+                $j = $i+1;
+                $greenpeaceHtml = '<input type="radio" id="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" name="greenpeace" value="'.$j.'" '.$disabledAttr.' greenpeace="'.$greenpeaceScore.'">
                                 <label class="full" for="'.$idPrefix.'deal_'.$product_id.'_greenPease_'.$j.'" title="'.$j.' star"></label>'
-			                      . $greenpeaceHtml;
-		    }
-	    }
+                    . $greenpeaceHtml;
+            }
+        }
 
-	    if($returnWithoutContainer) {
-	    	return $greenpeaceHtml;
-	    }
+        if($returnWithoutContainer) {
+            return $greenpeaceHtml;
+        }
 
         $greenPeace = '<div class="greenpeace-container">
                             <div class="peace-logo"><img src="'.get_bloginfo('template_url').'/images/svg-icons/greenpeace-logo.svg" /></div>
@@ -273,7 +273,7 @@ class AnbProductEnergy extends AnbProduct
 
         $promohtml = '<div class="col_5">';
         if ( count ($promotions) ) {
-        	$promohtml .= '<div class="promo" data-toggle="modal" data-target="#energyPromotionModal'.$product->product_id.'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
+            $promohtml .= '<div class="promo" data-toggle="modal" data-target="#energyPromotionModal'.$product->product_id.'"><img src="'.get_bloginfo('template_url').'/images/svg-icons/Promo.svg" />' . pll__('promo') . '</div>';
             $promohtml .= '<ul class="promo-list" data-toggle="modal" data-target="#energyPromotionModal'.$product->product_id.'">';
             foreach ($promotions as $promo ) {
 
@@ -363,7 +363,7 @@ class AnbProductEnergy extends AnbProduct
             'tab_cat'       => 'dualfuel_pack',
             'tabname_short' => '',
             'footer_cat'    => '',
-            'detaillevel'   => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing'],
+            'detaillevel'   => ['supplier', 'logo', 'services', 'price', 'reviews', 'texts', 'promotions', 'core_features', 'specifications', 'pricing', 'all_features'],
             'sg'            => 'consumer',
             'product_1'     => [],
             'product_2'     => [],
@@ -389,17 +389,19 @@ class AnbProductEnergy extends AnbProduct
             $atts['tabname_short'] = $tabName;
         }
 
-        $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
+        if (is_string($atts['product_1'])) {
+            $productType = substr($atts['product_1'], 0, strpos($atts['product_1'], "|"));
+        } else {
+            $productType = isset($atts['product_1'][0]) ? $atts['product_1'][0] : null;
+        }
 
-        $productId1 = explode('|', $atts['product_1'])[1];
-        $productId2 = explode('|', $atts['product_2'])[1];
-        $productId3 = explode('|', $atts['product_3'])[1];
-        $productId4 = explode('|', $atts['product_4'])[1];
-        $productId5 = explode('|', $atts['product_5'])[1];
+        if (!$productType) {
+            return;
+        }
 
         $paramsArray = [
             'detaillevel' => $atts['detaillevel'],
-            'pref_pids'   => array($productId1, $productId2, $productId3, $productId4, $productId5),
+            'pref_pids'   => $this->getProductIdsFromAttributes($atts),
             'sg'          => $atts['sg'],
             'lang'        => $atts['lang'],
             'zip'         => '9000',
@@ -576,7 +578,7 @@ class AnbProductEnergy extends AnbProduct
         }
 
         $navHtmlName = sanitize_title_with_dashes( remove_accents ($nav ) );
-/*        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';*/
+        /*        $navContent = '<div class="row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';*/
         $navContent  = '<div class="slider-' . $navHtmlName . ' custom-deals owl-theme owl-carousel row family-deals ' . $navHtmlName . '" ' . $displayStyle . '>';
 
         $idxx = 1;
@@ -671,7 +673,7 @@ class AnbProductEnergy extends AnbProduct
                                     <div class="price yearly">'.$yearAdvArr['currency'].' '.$yearAdvArr['price'].'
                                     </div>
                                     <div class="price monthly hide">'.
-                                        $monthAdvArr['currency']. ' ' . $monthAdvArr['price'].'
+                    $monthAdvArr['currency']. ' ' . $monthAdvArr['price'].'
                                     </div>
                                 </div>';
             endif;
@@ -684,9 +686,9 @@ class AnbProductEnergy extends AnbProduct
                                     <div class="top-label">'.$this->getBadgeSection( '' ).'</div>
                                     <div class="flex-grid">
                                         <div class="cols">'
-                                            . $this->getProductDetailSection( $productData, '', false, '', true  )
-                                            . $this->getGreenPeaceRatingWithImages( $product ) .
-                                        '</div>
+                . $this->getProductDetailSection( $productData, '', false, '', true  )
+                . $this->getGreenPeaceRatingWithImages( $product ) .
+                '</div>
                                         <div class="cols">
                                             <ul class="green-services">'.$servicesHtml.'</ul>
                                         </div>
@@ -695,20 +697,20 @@ class AnbProductEnergy extends AnbProduct
                                         </div>
                                         <div class="cols">'.$this->getPromoSection( $product ).'</div>
                                         <div class="cols">'.
-                                            $yearAdvHTML.'
+                $yearAdvHTML.'
                                             <div class="col_11 bottomBtnDv border-top">'.$toCartLinkHtml.'</div>
                                         </div>
                                     </div>
                                     
                                 </div>
                             </div>';
-                        $endScriptTime = getEndTime();
-                        displayCallTime($startScriptTime, $endScriptTime, "Total page load time for Results page for individual product listView end.");
-                        //unset($productData);//these variables are used in portion right below on calling getProductDetailSection
-                        unset($product);
-                        //unset($servicesHtml);
+            $endScriptTime = getEndTime();
+            displayCallTime($startScriptTime, $endScriptTime, "Total page load time for Results page for individual product listView end.");
+            //unset($productData);//these variables are used in portion right below on calling getProductDetailSection
+            unset($product);
+            //unset($servicesHtml);
             $idxx = $idxx + 1;
-            endforeach;
+        endforeach;
         $navContent .= '</div>';
 
         $navHtml = '<li ' . $class . '><a href="javascript:void(0);" related="' . $navHtmlName . '">' . pll__( $nav ) . '</a></li>';
@@ -727,10 +729,10 @@ class AnbProductEnergy extends AnbProduct
     {
         $html = '';
         if(is_object($savings)){
-	        $priceYearly = formatPriceInParts($savings->yearly->promo_price,2);
-	        $priceMontly = formatPriceInParts($savings->monthly->promo_price,2);
+            $priceYearly = formatPriceInParts($savings->yearly->promo_price,2);
+            $priceMontly = formatPriceInParts($savings->monthly->promo_price,2);
         } else {
-	        $priceYearly = $priceMontly = formatPriceInParts(0,2);
+            $priceYearly = $priceMontly = formatPriceInParts(0,2);
         }
         if($savings->yearly->promo_price > 0) {
             $html = '<div class="price-label ">
