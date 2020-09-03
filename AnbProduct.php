@@ -388,25 +388,26 @@ class AnbProduct
     {
         $servicesDetailsArray = [];
 
-        if (property_exists($product, 'packtypes')) {
-            foreach ($product->packtypes as $key => $packType) {
-                $features = $packType->core_features->{$key};
-                if (is_array($features)) {
-                    foreach ($features as $feature) {
-                        $servicesDetailsArray[$key] = $feature->label;
-                    }
-                }
+        if ($product->producttype !== 'packs') {
+            if (property_exists($product, 'core_features')) {
+                return [$product->producttype => $product->core_features];
             }
+            return [];
         }
 
         //Default order
         $order = isset($order) ? $order : ['internet', 'idtv', 'telephony', 'mobile', 'mobile_internet'];
 
-        uksort($servicesDetailsArray, function ($a, $b) use ($order) {
-            $pos_a = array_search($a, $order);
-            $pos_b = array_search($b, $order);
-            return $pos_a - $pos_b;
-        });
+        if (property_exists($product, 'packtypes')) {
+            foreach ($order as $key => $packType) {
+                if (property_exists($product, $packType)) {
+                    $features = $product->{$packType}->core_features;
+                        foreach ($features as $feature) {
+                            $servicesDetailsArray[$key] = $feature[0]->label;
+                        }
+                }
+            }
+        }
 
         return $servicesDetailsArray;
     }
