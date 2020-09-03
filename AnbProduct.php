@@ -388,7 +388,7 @@ class AnbProduct
     {
         $servicesDetailsArray = [];
 
-        if (property_exists($product, 'packtypes') && is_array($product->packtypes)) {
+        if (property_exists($product, 'packtypes')) {
             foreach ($product->packtypes as $key => $packType) {
                 $features = $packType->core_features->{$key};
                 if (is_array($features)) {
