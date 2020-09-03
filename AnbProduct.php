@@ -387,12 +387,10 @@ class AnbProduct
     function generateServiceDetailArray($product, $order = null)
     {
         $servicesDetailsArray = [];
-
         if ($product->producttype !== 'packs') {
             if (property_exists($product, 'core_features')) {
-                return [$product->producttype => $product->core_features];
+                $servicesDetailsArray[0] = $product->core_features->{$product->producttype}[0]->label;
             }
-            return [];
         }
 
         //Default order
@@ -402,9 +400,9 @@ class AnbProduct
             foreach ($order as $key => $packType) {
                 if (property_exists($product, $packType)) {
                     $features = $product->{$packType}->core_features;
-                        foreach ($features as $feature) {
-                            $servicesDetailsArray[$key] = $feature[0]->label;
-                        }
+                    foreach ($features as $feature) {
+                        $servicesDetailsArray[$key] = $feature[0]->label;
+                    }
                 }
             }
         }
