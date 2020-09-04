@@ -384,30 +384,42 @@ class AnbProduct
         return $featuresHtml;
     }
 
-    function generateServiceDetailArray($product, $order = null)
+    /**
+     * @param object     $product
+     * @param array|null $order
+     * @return string[][]
+     */
+    function getCoreFeatures($product, $order = null)
     {
-        $servicesDetailsArray = [];
-        if ($product->producttype !== 'packs') {
-            if (property_exists($product, 'core_features')) {
-                $servicesDetailsArray[0] = $product->core_features->{$product->producttype}[0]->label;
-            }
+        // Core features are not included, so return empty array
+        if (!property_exists($product, 'core_features') || empty($product->core_features)) {
+            return [];
         }
 
-        //Default order
+        $productType = $product->producttype;
+        if ($productType !== 'packs') {
+            $features      = $product->core_features->{$productType};
+            $featureLabels = array_map(function ($feature) {
+                return $feature->label;
+            }, $features);
+
+            return [$productType => $featureLabels];
+        }
+
+        // Default order
         $order = isset($order) ? $order : ['internet', 'idtv', 'telephony', 'mobile', 'mobile_internet'];
 
-        if (property_exists($product, 'packtypes')) {
-            foreach ($order as $key => $packType) {
-                if (property_exists($product, $packType)) {
-                    $features = $product->{$packType}->core_features;
-                    foreach ($features as $feature) {
-                        $servicesDetailsArray[$key] = $feature[0]->label;
-                    }
+        $coreFeatures = [];
+        foreach ($order as $packType) {
+            if (property_exists($product, $packType)) {
+                $features = $product->{$packType}->core_features->{$packType};
+                foreach ($features as $feature) {
+                    $coreFeatures[$packType][] = $feature->label;
                 }
             }
         }
 
-        return $servicesDetailsArray;
+        return $coreFeatures;
     }
 
     function minifyHtml($buffer)
