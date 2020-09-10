@@ -1078,6 +1078,7 @@ class AnbProduct
         $finish = getEndTime();
         displayCallTime($start, $finish, $displayText);
 
+        $priceSecArray = [];
         $totalMonthly  = '';
         $totalYearly   = '';
         $totalAdv      = '';
@@ -1138,6 +1139,7 @@ class AnbProduct
             $dynamicHtml = '';//Just to be used as container to combine all HTML
             foreach ($apiRes as $key => $priceSec) {
                 //echo '<pre>'.print_r($priceSec, true).'</pre>';
+                $priceSecArray = $priceSec;
                 $currencyUnit  = $priceSec->total->unit;
                 $totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
                 $totalYearly   = $priceSec->total->display_value;
@@ -1287,6 +1289,8 @@ class AnbProduct
             'yearly_disc'           => $yearlyDisc,
             'yearly_adv_collection' => $yearlyAdvCollection,
             'currency_unit'         => $currencyUnit,
+            'priceSecArray'         => $priceSecArray,
+            'total_adv'             => $totalAdvPrice
         ];
     }
 
@@ -1837,7 +1841,7 @@ class AnbProduct
      *
      * @return string
      */
-    private function generatePbsPackOptionHtml($lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice)
+    public function generatePbsPackOptionHtml($lineVal, $oldPriceHtml, $hasOldPriceClass, $promoPriceHtml, $offerPrice)
     {
         $priceText = '';
         if (!is_numeric($lineVal->product->value)) {
