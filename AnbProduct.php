@@ -673,11 +673,11 @@ class AnbProduct
         $data['supplier_name'] = $product->supplier_name;
         $data['product_id']    = $product->product_id;
         $data['tagline']       = isset($product->texts->tagline) ? $product->texts->tagline : "";
-        $data['price']         = (array)$product->price;
+        $data['price']         = isset($product->price) ? (array)$product->price : "";
         $data['monthly_fee']   = (array)$product->monthly_fee;
-        $data['advantage']     = $product->price->advantage;
+        $data['advantage']     = isset($product->price->advantage) ? $product->price->advantage : "";
         $data['currency_unit'] = $data['monthly_fee']['unit'];
-        $data['year_1_promo']  = $product->price->year_1_promo;
+        $data['year_1_promo']  = isset($product->price->year_1_promo) ? $product->price->year_1_promo : "";
         $data['commission']    = $product->commission;
         //break price into chunks like price, cents and currency
         $monthlyPrice    = $data['monthly_fee']['value'];
@@ -695,7 +695,8 @@ class AnbProduct
         $data['monthly_promo_duration'] = isset($product->price->monthly_promo_duration) ? $product->price->monthly_promo_duration : 0;
 
         //in case normal price and promo price are not same
-        if ($product->price->monthly_promo != $product->price->monthly) {
+        $priceMonthly = isset($product->price->monthly) ? $product->price->monthly_promo : 0;
+        if ($data['monthly_promo'] != $priceMonthly) {
             //break price into chunks like price, cents and currency
             $monthlyPricePromo    = $data['monthly_promo'];
             $monthlyPricePromoArr = explode(".", $monthlyPricePromo);
@@ -1025,7 +1026,7 @@ class AnbProduct
      * @param array  $apiParams these will be API Params
      * @param string $someHtml
      * @param bool   $withoutOrderBtn
-     * @return string
+     * @return array
      */
     public function getPbsOrganizedHtmlApi(array $apiParams, $someHtml = '', $withoutOrderBtn = false, $displayFirstProductOnly = true, $pdfHtml = false, $enableCache = true, $expiresIn = 84600)
     {
@@ -1042,14 +1043,6 @@ class AnbProduct
         $apiParams['opt']       = array_filter(is_array($apiParams['opt']) ? $apiParams['opt'] : array());
         $apiParams['extra_pid'] = array_filter(is_array($apiParams['extra_pid']) ? $apiParams['extra_pid'] : array());
 
-        //$html = '';
-        //$apiParamsHtml = http_build_query($apiParams, "&");
-        //$apiUrl = AB_PRICE_BREAKDOWN_URL . '&' . $apiParamsHtml;
-
-        /*if($_GET['debug']) {
-            echo "<pre>$apiUrl</pre>";
-        }*/
-
         $params['opt']  = array_filter(is_array($apiParams['opt']) ? $apiParams['opt'] : array());
         $params['prt']  = $apiParams['prt'];
         $params['a']    = '1';
@@ -1059,26 +1052,22 @@ class AnbProduct
         $start       = getStartTime();
         $displayText = "Time API (PBS) inside getPbsOrganizedHtmlApi";
 
-        //$cacheKey = md5($apiUrl);
         $cacheKey = md5(serialize($params)) . ":rpc_pbs";
 
         if ($enableCache && !isset($_GET['no_cache'])) {
             $apiRes = mycache_get($cacheKey);
 
             if ($apiRes === false || empty($apiRes)) {
-                //$apiRes = file_get_contents($apiUrl);
                 $apiRes = $this->anbApi->telecomPbsRpcCall($params);
                 mycache_set($cacheKey, $apiRes, $expiresIn);
             }
         } else {
-            //$apiRes = file_get_contents($apiUrl);
             $apiRes = $this->anbApi->telecomPbsRpcCall($params);
         }
 
         $finish = getEndTime();
         displayCallTime($start, $finish, $displayText);
 
-        $priceSecArray = [];
         $totalMonthly  = '';
         $totalYearly   = '';
         $totalAdv      = '';
@@ -1135,11 +1124,8 @@ class AnbProduct
             }
 
             //Generate the main HTML only for main/base product
-            $oneTimeHtml = '';
             $dynamicHtml = '';//Just to be used as container to combine all HTML
             foreach ($apiRes as $key => $priceSec) {
-                //echo '<pre>'.print_r($priceSec, true).'</pre>';
-                $priceSecArray = $priceSec;
                 $currencyUnit  = $priceSec->total->unit;
                 $totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
                 $totalYearly   = $priceSec->total->display_value;
@@ -1240,20 +1226,6 @@ class AnbProduct
             $html .= $sectionsHtml['pbs-monthly'];
             $html .= $sectionsHtml['pbs-oneoff'];
 
-            /*$html .= '<div class="MonthlyCost">';
-            $html .= '<h5>' . $pVal->label . '</h5>';
-            $html .= '<ul class="list-unstyled">';
-            $html .= $oneTimeHtml;
-            $html .= '</ul>';
-            $html .= '</div>';*/
-
-            /*$advHtml = '';
-
-            if($totalAdvPrice < 0) {
-                $advHtml = '<li><div class="total-advantage">
-                            ' . pll__( 'Total advantage' ) . '<span class="cost-price">' . formatPrice($advTotal) . '</span>
-                            </div></li>';
-            }*/
             if (!empty($yearlyAdvCollection)) {
                 list($yearlyHtml, $yearlyAdvTotal) = ($pdfHtml) ? $this->generatePdfPbsYearlyBreakdownHtml($yearlyAdvCollection, $currencyUnit) :
                     $this->generatePbsYearlyBreakdownHtml($yearlyAdvCollection, $currencyUnit);
@@ -1263,17 +1235,6 @@ class AnbProduct
                 }
             }
 
-            //$advHtml was part of it now removing it
-            /*$html .=     '<div class="MonthlyCost CostAdvantage">
-                            <ul class="list-unstyled">
-                                '.$yearlyAdvHtml.'
-                                <li>
-                                    <div class="yearly-advantage">
-                                        ' . pll__( 'Total first year' ) . '<span class="cost-price">' . formatPrice($yearlyTotal) . '</span>
-                                    </div>
-                                </li>
-                            </ul>
-                          </div>';*/
             $html .= $orderBtn .
                 '</div>';
         }
@@ -1289,7 +1250,7 @@ class AnbProduct
             'yearly_disc'           => $yearlyDisc,
             'yearly_adv_collection' => $yearlyAdvCollection,
             'currency_unit'         => $currencyUnit,
-            'priceSecArray'         => $priceSecArray,
+            'price_sections'        => $apiRes,
             'total_adv'             => $totalAdvPrice
         ];
     }
