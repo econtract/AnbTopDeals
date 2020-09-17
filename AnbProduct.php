@@ -1068,6 +1068,7 @@ class AnbProduct
         $finish = getEndTime();
         displayCallTime($start, $finish, $displayText);
 
+        $priceSecArray = [];
         $totalMonthly  = '';
         $totalYearly   = '';
         $totalAdv      = '';
@@ -1126,6 +1127,7 @@ class AnbProduct
             //Generate the main HTML only for main/base product
             $dynamicHtml = '';//Just to be used as container to combine all HTML
             foreach ($apiRes as $key => $priceSec) {
+
                 $currencyUnit  = $priceSec->total->unit;
                 $totalMonthly  = $priceSec->monthly_costs->subtotal->display_value;
                 $totalYearly   = $priceSec->total->display_value;
