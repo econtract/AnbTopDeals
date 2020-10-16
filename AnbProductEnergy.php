@@ -420,12 +420,6 @@ class AnbProductEnergy extends AnbProduct
         /** @var AnbCompare $anbCompare */
         $anbCompare = wpal_create_instance(\AnbSearch\AnbCompare::class);
         $result     = json_decode($anbCompare->getCompareResults($paramsArray));
-
-        if ($atts['is_first'] == 'yes') {
-            // Load the top deals wrapper
-            include locate_template('template-parts/section/top-deals/wrapper.php');
-        }
-
         $tabID       = sanitize_title_with_dashes(remove_accents($tabName)) . '-' . rand(0, 999);
         $tabIsActive = isset($atts['is_active']) && $atts['is_active'] === 'yes';
         $deals       = $result->results;
@@ -463,6 +457,8 @@ class AnbProductEnergy extends AnbProduct
                     jQuery(document).ready(function($){
                         $(\'.top-deals .tabs ul\').append(\'' . $tabItem . '\');
                         $(\'.top-deals .tab-content\').append(\'' . $this->minifyHtml($tabContent) . '\');
+                        $(\'.top-deals\').removeClass(\'loading\');
+                        $(\'.top-deals .loading\').removeClass(\'loading\');
                     });
                    </script>';
         echo $script;
