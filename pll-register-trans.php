@@ -62,8 +62,8 @@ function anbTopDealsTrans() {
     pll_register_string('mobile_pack_shortTabName', 'mobile_pack_shortTabName', 'AnbTopDeals');
 
     //All-in-1 Footer
-    pll_register_string('popular_deals_footer', 'popular_deals_footer_footer', 'AnbTopDeals');
-    pll_register_string('family_deals_footer', 'family_footer_footer', 'AnbTopDeals');
+    pll_register_string('popular_deals_footer', 'popular_deals_footer', 'AnbTopDeals');
+    pll_register_string('family_deals_footer', 'family_deals_footer', 'AnbTopDeals');
     pll_register_string('mobile_pack_footer', 'mobile_pack_footer', 'AnbTopDeals');
 
     //Mobile Short Tab Names
