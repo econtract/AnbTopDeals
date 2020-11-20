@@ -1044,11 +1044,12 @@ class AnbProduct
 
                             $excludeFromOptions[]                                                         = $optionSpecification['option_id'];
                             $groupOptionsArray['groupOptions'][$groupOption->optiongroup_id]['options'][] = [
-                                'id'          => $optionSpecification['option_id'],
-                                'price'       => $optionSpecification['price'],
-                                'name'        => $optionSpecification['texts']['name'],
-                                'description' => $optionSpecification['texts']['description'],
-                                'banner'      => $optionSpecification['links']['banner'],
+                                'id'           => $optionSpecification['option_id'],
+                                'price'        => $optionSpecification['price'],
+                                'price_oneoff' => $optionSpecification['price_oneoff'],
+                                'name'         => $optionSpecification['texts']['name'],
+                                'description'  => $optionSpecification['texts']['description'],
+                                'banner'       => $optionSpecification['links']['banner'],
                             ];
                         }
                     }
@@ -1064,11 +1065,12 @@ class AnbProduct
             if (($listOption->is_recommended || $isRecommendedRequired === false) && !in_array($listOption->option_id, $excludeFromOptions)) {
 
                 $optionsArray['options'][$listOption->option_id] = [
-                    'id'          => $listOption->option_id,
-                    'price'       => $listOption->price,
-                    'name'        => $listOption->texts->name,
-                    'description' => $listOption->texts->description,
-                    'banner'      => $listOption->links->banner,
+                    'id'           => $listOption->option_id,
+                    'price'        => $listOption->price,
+                    'price_oneoff' => $listOption->price_oneoff,
+                    'name'         => $listOption->texts->name,
+                    'description'  => $listOption->texts->description,
+                    'banner'       => $listOption->links->banner,
                 ];
             }
 
