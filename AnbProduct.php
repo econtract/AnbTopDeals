@@ -272,7 +272,6 @@ class AnbProduct
             'pref_pids'   => $this->getProductIdsFromAttributes($atts),
             'sg'          => $atts['sg'],
             'lang'        => $atts['lang'],
-            'zip'         => '9000',
             'cat'         => $productType,
         ];
 
