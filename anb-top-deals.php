@@ -17,9 +17,6 @@ if ( ! defined( 'WPINC' ) ) {
     die;
 }
 
-//wpal_load(AnbProduct::class);
-//$product = new AnbProduct();
-
 include(__DIR__ . '/pll-register-trans.php');
 
 $result = wpal_create_instance(AnbProduct::class);
