@@ -299,12 +299,12 @@ class AnbProduct
             ];
         }
 
-        $data['services'] = (array)$product->supplier->services;
-        $data['logo']     = (array)$product->supplier->logo;
-        $data['score']    = convertToSiteScore($product->reviews->score);
-        $promotions       = (array)$product->promotions;
+        $data['services'] = isset($product->supplier->services) ? (array)$product->supplier->services : [];
+        $data['logo']     = isset($product->supplier->logo) ?(array)$product->supplier->logo : [];
+        $data['score']    = isset($product->reviews->score) ? convertToSiteScore($product->reviews->score) : null;
+        $promotions       = isset($product->promotions) ? (array)$product->promotions : [];
         foreach ($promotions as $promotion) {
-            $data['promotions'][] = $promotion->texts->name;
+            $data['promotions'][] = isset($promotion->texts->name) ? $promotion->texts->name : null;
         }
 
         return $data;
