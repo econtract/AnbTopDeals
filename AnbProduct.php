@@ -10,6 +10,7 @@ namespace AnbTopDeals;
 
 use AnbApiClient\Aanbieders;
 use AnbSearch\AnbCompare;
+use function Functional\reindex;
 
 if (!function_exists('getLanguage')) {
     function getLanguage()
@@ -87,9 +88,11 @@ class AnbProduct
             return;
         }
 
+        $productIds = $this->getProductIdsFromAttributes($atts);
+
         $paramsArray = [
             'detaillevel' => $atts['detaillevel'],
-            'pref_pids'   => $this->getProductIdsFromAttributes($atts),
+            'pref_pids'   => $productIds,
             'sg'          => $atts['sg'],
             'lang'        => $atts['lang'],
             'cat'         => $productType,
@@ -100,8 +103,15 @@ class AnbProduct
         $result     = json_decode($anbCompare->getCompareResults($paramsArray));
         $tabID       = sanitize_title_with_dashes(remove_accents($tabName)) . '-' . rand(0, 999);
         $tabIsActive = isset($atts['is_active']) && $atts['is_active'] === 'yes';
-        $deals       = $result->results;
-        $footerText  = $atts['footer_cat'];
+        $result->results = reindex($result->results, function ($item) {
+            return $item->product->product_id;
+        });
+        // Sort by order of product IDs passed in the shortcode attributes
+        $result->results = array_replace(array_fill_keys($productIds, null), $result->results);
+        // Remove empty results
+        $result->results = array_filter(array_values($result->results));
+        $deals           = $result->results;
+        $footerText      = $atts['footer_cat'];
 
         ob_start();
 
