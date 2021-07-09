@@ -18,11 +18,3 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 include(__DIR__ . '/pll-register-trans.php');
-
-$result = wpal_create_instance(AnbProduct::class);
-$energy = wpal_create_instance(AnbProductEnergy::class);
-
-add_shortcode( 'anb_top_deal_products', [$result, 'topDealProductsNew'] );
-add_shortcode( 'anb_top_deal_products_new', [$result, 'topDealProductsNew'] );
-add_shortcode( 'anb_energy_top_deal_products', [$energy, 'topDealProductsNew'] );
-add_shortcode( 'anb_energy_top_deal_products_new', [$energy, 'topDealProductsNew'] );
